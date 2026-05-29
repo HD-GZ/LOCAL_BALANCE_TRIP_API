@@ -1,0 +1,58 @@
+name: LOCAL_BALANCE_TRIP_API CD (stage)
+
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: false
+
+      - name: Build JAR
+        run: |
+          set -a
+          source .env.example
+          set +a
+          ./gradlew clean build -x test -Dspring.profiles.active=dev
+
+      - name: SCP JAR to develop server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEVELOP_SERVER_HOST }}
+          username: ${{ secrets.DEVELOP_SERVER_USER }}
+          key: ${{ secrets.DEVELOP_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEVELOP_SERVER_PORT }}
+          source: ${{ secrets.SOURCE_JAR_PATH }}
+          target: ${{ secrets.DEVELOP_SERVER_TARGET_DIR }}
+          strip_components: 2
+
+      - name: Run deploy script on develop server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEVELOP_SERVER_HOST }}
+          username: ${{ secrets.DEVELOP_SERVER_USER }}
+          key: ${{ secrets.DEVELOP_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEVELOP_SERVER_PORT }}
+          script: ${{ secrets.DEVELOP_DEPLOY_SCRIPT_PATH }}
