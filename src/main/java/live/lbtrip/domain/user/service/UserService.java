@@ -4,17 +4,15 @@ import java.util.Locale;
 
 import live.lbtrip.domain.user.dto.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
 	private final UserRepository userRepository;
-
-	public UserService(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
 
 	@Transactional(readOnly = true)
 	public EmailAvailabilityResponse checkEmailAvailability(String email) {

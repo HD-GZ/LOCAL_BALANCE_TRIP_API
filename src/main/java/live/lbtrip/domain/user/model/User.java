@@ -12,9 +12,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
 @Entity
 @Table(name = "users")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
 	@Id
@@ -58,9 +63,6 @@ public class User {
 
 	@Column(nullable = false)
 	private LocalDateTime updatedAt;
-
-	protected User() {
-	}
 
 	private User(
 		String name,
@@ -125,55 +127,4 @@ public class User {
 		this.status = UserStatus.ACTIVE;
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public String getPhoneNumber() {
-		return phoneNumber;
-	}
-
-	public Integer getAge() {
-		return age;
-	}
-
-	public Gender getGender() {
-		return gender;
-	}
-
-	public UserStatus getStatus() {
-		return status;
-	}
-
-	public boolean isTermsAgreed() {
-		return termsAgreed;
-	}
-
-	public boolean isPrivacyAgreed() {
-		return privacyAgreed;
-	}
-
-	public boolean isMarketingAgreed() {
-		return marketingAgreed;
-	}
-
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public LocalDateTime getUpdatedAt() {
-		return updatedAt;
-	}
 }

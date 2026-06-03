@@ -14,9 +14,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
 @Entity
 @Table(name = "refresh_tokens")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
 
 	@Id
@@ -38,9 +43,6 @@ public class RefreshToken {
 
 	@Column(nullable = false)
 	private LocalDateTime createdAt;
-
-	protected RefreshToken() {
-	}
 
 	private RefreshToken(User user, String token, Instant expiresAt) {
 		this.user = user;
@@ -66,27 +68,4 @@ public class RefreshToken {
 		this.revoked = true;
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public User getUser() {
-		return user;
-	}
-
-	public String getToken() {
-		return token;
-	}
-
-	public Instant getExpiresAt() {
-		return expiresAt;
-	}
-
-	public boolean isRevoked() {
-		return revoked;
-	}
-
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
 }

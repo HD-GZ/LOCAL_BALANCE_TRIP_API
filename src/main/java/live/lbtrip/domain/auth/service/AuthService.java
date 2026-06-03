@@ -16,11 +16,13 @@ import live.lbtrip.domain.user.model.UserStatus;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
 	private final UserRepository userRepository;
@@ -28,20 +30,6 @@ public class AuthService {
 	private final EmailVerificationService emailVerificationService;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final RefreshTokenRepository refreshTokenRepository;
-
-	public AuthService(
-		UserRepository userRepository,
-		PasswordEncoder passwordEncoder,
-		EmailVerificationService emailVerificationService,
-		JwtTokenProvider jwtTokenProvider,
-		RefreshTokenRepository refreshTokenRepository
-	) {
-		this.userRepository = userRepository;
-		this.passwordEncoder = passwordEncoder;
-		this.emailVerificationService = emailVerificationService;
-		this.jwtTokenProvider = jwtTokenProvider;
-		this.refreshTokenRepository = refreshTokenRepository;
-	}
 
 	@Transactional
 	public SignupResponse signup(SignupRequest request) {

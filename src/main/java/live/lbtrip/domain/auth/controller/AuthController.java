@@ -14,58 +14,59 @@ import live.lbtrip.domain.auth.dto.SignupResponse;
 import live.lbtrip.domain.auth.service.AuthService;
 import live.lbtrip.domain.auth.service.EmailVerificationService;
 import live.lbtrip.global.response.ApiResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
 	private final AuthService authService;
 	private final EmailVerificationService emailVerificationService;
 
-	public AuthController(AuthService authService, EmailVerificationService emailVerificationService) {
-		this.authService = authService;
-		this.emailVerificationService = emailVerificationService;
-	}
-
 	@PostMapping("/signup")
-	@ResponseStatus(HttpStatus.CREATED)
-	public ApiResponse<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
-		return ApiResponse.success(authService.signup(request));
+	public ResponseEntity<ApiResponse<SignupResponse>> signup(@Valid @RequestBody SignupRequest request) {
+		SignupResponse response = authService.signup(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
 	}
 
 	@PostMapping("/login")
-	public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-		return ApiResponse.success(authService.login(request));
+	public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+		LoginResponse response = authService.login(request);
+		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 
 	@PostMapping("/token/refresh")
-	public ApiResponse<TokenResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
-		return ApiResponse.success(authService.refreshToken(request));
+	public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+		TokenResponse response = authService.refreshToken(request);
+		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 
 	@PostMapping("/logout")
-	public ApiResponse<Object> logout(@Valid @RequestBody LogoutRequest request) {
+	public ResponseEntity<ApiResponse<Object>> logout(@Valid @RequestBody LogoutRequest request) {
 		authService.logout(request);
-		return ApiResponse.success();
+		return ResponseEntity.ok(ApiResponse.success());
 	}
 
 	@PostMapping("/email-verifications/confirm")
-	public ApiResponse<EmailVerificationResponse> confirmEmailVerification(
+	public ResponseEntity<ApiResponse<EmailVerificationResponse>> confirmEmailVerification(
 		@Valid @RequestBody EmailVerificationConfirmRequest request
 	) {
-		return ApiResponse.success(emailVerificationService.confirm(request));
+		EmailVerificationResponse response = emailVerificationService.confirm(request);
+		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 
 	@PostMapping("/email-verifications/resend")
-	public ApiResponse<EmailVerificationResponse> resendEmailVerification(
+	public ResponseEntity<ApiResponse<EmailVerificationResponse>> resendEmailVerification(
 		@Valid @RequestBody EmailVerificationResendRequest request
 	) {
-		return ApiResponse.success(emailVerificationService.resend(request));
+		EmailVerificationResponse response = emailVerificationService.resend(request);
+		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 }
