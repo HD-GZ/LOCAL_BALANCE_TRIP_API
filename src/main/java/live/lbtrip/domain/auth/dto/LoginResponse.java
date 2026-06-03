@@ -1,25 +1,10 @@
 package live.lbtrip.domain.auth.dto;
 
-import live.lbtrip.domain.user.model.User;
-
 public record LoginResponse(
-	Long userId,
-	String email,
-	String name,
-	String tokenType,
 	String accessToken,
-	String refreshToken,
-	long accessTokenExpiresIn
+	String refreshToken
 ) {
-	public static LoginResponse of(User user, String accessToken, String refreshToken, long accessTokenExpiresIn) {
-		return new LoginResponse(
-			user.getId(),
-			user.getEmail(),
-			user.getName(),
-			"Bearer",
-			accessToken,
-			refreshToken,
-			accessTokenExpiresIn
-		);
+	public static LoginResponse of(String accessToken, String refreshToken) {
+		return new LoginResponse(accessToken, refreshToken);
 	}
 }

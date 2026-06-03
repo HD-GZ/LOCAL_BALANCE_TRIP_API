@@ -80,7 +80,7 @@ public class AuthService {
 		refreshTokenRepository.deleteByUser(user);
 		refreshTokenRepository.save(refreshToken);
 
-		return LoginResponse.of(user, accessToken, refreshToken.getToken(), jwtTokenProvider.accessTokenExpiresIn());
+		return LoginResponse.of(accessToken, refreshToken.getToken());
 	}
 
 	@Transactional
