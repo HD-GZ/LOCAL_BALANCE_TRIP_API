@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import live.lbtrip.domain.auth.dto.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.EmailVerificationResendRequest;
 import live.lbtrip.domain.auth.dto.EmailVerificationResponse;
+import live.lbtrip.domain.auth.dto.LoginRequest;
+import live.lbtrip.domain.auth.dto.LoginResponse;
 import live.lbtrip.domain.auth.dto.SignupRequest;
 import live.lbtrip.domain.auth.dto.SignupResponse;
 import live.lbtrip.global.response.ApiResponse;
@@ -30,6 +32,11 @@ public class AuthController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResponse<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
 		return ApiResponse.success(authService.signup(request));
+	}
+
+	@PostMapping("/login")
+	public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+		return ApiResponse.success(authService.login(request));
 	}
 
 	@PostMapping("/email-verifications/confirm")

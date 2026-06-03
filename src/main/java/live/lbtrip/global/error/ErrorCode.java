@@ -16,6 +16,8 @@ public enum ErrorCode {
 	EMAIL_VERIFICATION_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "이메일 인증 토큰을 찾을 수 없습니다."),
 	EMAIL_VERIFICATION_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "이메일 인증 토큰이 만료되었습니다."),
 	EMAIL_VERIFICATION_TOKEN_USED(HttpStatus.BAD_REQUEST, "이미 사용된 이메일 인증 토큰입니다."),
+	INVALID_LOGIN_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),
+	EMAIL_NOT_VERIFIED(HttpStatus.FORBIDDEN, "이메일 인증이 필요합니다."),
 	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."),
 	;
 
