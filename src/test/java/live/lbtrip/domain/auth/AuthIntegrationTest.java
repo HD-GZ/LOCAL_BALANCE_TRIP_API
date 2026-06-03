@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 
 import live.lbtrip.domain.auth.dto.request.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.request.LoginRequest;
-import live.lbtrip.domain.auth.dto.request.LogoutRequest;
 import live.lbtrip.domain.auth.dto.request.SignupRequest;
 import live.lbtrip.domain.auth.dto.request.TokenRefreshRequest;
 import live.lbtrip.domain.auth.dto.response.LoginResponse;
@@ -125,7 +124,8 @@ class AuthIntegrationTest {
 		assertThat(reusedTokenResponse.refreshToken()).isEqualTo(loginResponse.refreshToken());
 		assertThat(refreshTokenRepository.findByToken(loginResponse.refreshToken())).isPresent();
 
-		authService.logout(new LogoutRequest(loginResponse.refreshToken()));
+		User user = userRepository.findByEmail("local@email.com").orElseThrow();
+		authService.logout(user.getId());
 
 		assertThat(refreshTokenRepository.findByToken(loginResponse.refreshToken())).isEmpty();
 	}

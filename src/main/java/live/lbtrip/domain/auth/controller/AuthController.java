@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import live.lbtrip.domain.auth.dto.request.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.request.EmailVerificationResendRequest;
 import live.lbtrip.domain.auth.dto.request.LoginRequest;
-import live.lbtrip.domain.auth.dto.request.LogoutRequest;
 import live.lbtrip.domain.auth.dto.request.SignupRequest;
 import live.lbtrip.domain.auth.dto.request.TokenRefreshRequest;
 import live.lbtrip.domain.auth.dto.response.EmailVerificationResponse;
@@ -14,6 +13,7 @@ import live.lbtrip.domain.auth.dto.response.TokenResponse;
 import live.lbtrip.domain.auth.service.AuthService;
 import live.lbtrip.domain.auth.service.EmailVerificationService;
 import live.lbtrip.global.response.ApiResponse;
+import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,8 +49,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<ApiResponse<Object>> logout(@Valid @RequestBody LogoutRequest request) {
-		authService.logout(request);
+	public ResponseEntity<ApiResponse<Object>> logout(@UserId Long userId) {
+		authService.logout(userId);
 		return ResponseEntity.ok(ApiResponse.success());
 	}
 

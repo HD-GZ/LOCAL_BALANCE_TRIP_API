@@ -3,7 +3,6 @@ package live.lbtrip.domain.auth.service;
 import java.util.Locale;
 
 import live.lbtrip.domain.auth.dto.request.LoginRequest;
-import live.lbtrip.domain.auth.dto.request.LogoutRequest;
 import live.lbtrip.domain.auth.dto.request.SignupRequest;
 import live.lbtrip.domain.auth.dto.request.TokenRefreshRequest;
 import live.lbtrip.domain.auth.dto.response.LoginResponse;
@@ -94,11 +93,8 @@ public class AuthService {
 	}
 
 	@Transactional
-	public void logout(LogoutRequest request) {
-		RefreshToken refreshToken = refreshTokenRepository.findByToken(request.refreshToken().trim())
-			.orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
-
-		refreshTokenRepository.delete(refreshToken);
+	public void logout(Long userId) {
+		refreshTokenRepository.deleteByUserId(userId);
 	}
 
 	private RefreshToken findUsableRefreshToken(String token) {
