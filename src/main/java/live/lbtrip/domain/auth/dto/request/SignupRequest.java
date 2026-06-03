@@ -1,4 +1,4 @@
-package live.lbtrip.domain.auth.dto;
+package live.lbtrip.domain.auth.dto.request;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;

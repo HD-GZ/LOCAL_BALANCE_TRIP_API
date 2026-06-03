@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 import java.security.SecureRandom;
 
-import live.lbtrip.domain.auth.dto.EmailVerificationConfirmRequest;
-import live.lbtrip.domain.auth.dto.EmailVerificationResendRequest;
-import live.lbtrip.domain.auth.dto.EmailVerificationResponse;
+import live.lbtrip.domain.auth.dto.request.EmailVerificationConfirmRequest;
+import live.lbtrip.domain.auth.dto.request.EmailVerificationResendRequest;
+import live.lbtrip.domain.auth.dto.response.EmailVerificationResponse;
 import live.lbtrip.domain.auth.model.EmailVerificationToken;
 import live.lbtrip.domain.auth.repository.EmailVerificationTokenRepository;
 import live.lbtrip.domain.user.model.User;

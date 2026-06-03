@@ -64,10 +64,6 @@ public class JwtTokenProvider {
 		return Instant.now().plus(refreshTokenExpiration);
 	}
 
-	public long accessTokenExpiresIn() {
-		return accessTokenExpiration.toSeconds();
-	}
-
 	private String createToken(User user, Duration expiration) {
 		Instant now = Instant.now();
 		Instant expiresAt = now.plus(expiration);

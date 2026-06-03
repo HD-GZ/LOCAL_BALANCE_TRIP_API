@@ -1,4 +1,4 @@
-package live.lbtrip.domain.user.dto;
+package live.lbtrip.domain.user.dto.response;
 
 public record EmailAvailabilityResponse(
 	boolean available

@@ -2,7 +2,7 @@ package live.lbtrip.domain.user.controller;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import live.lbtrip.domain.user.dto.EmailAvailabilityResponse;
+import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.service.UserService;
 import live.lbtrip.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;

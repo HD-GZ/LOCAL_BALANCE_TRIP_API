@@ -1,4 +1,4 @@
-package live.lbtrip.domain.auth.dto;
+package live.lbtrip.domain.auth.dto.response;
 
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.model.UserStatus;

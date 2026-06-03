@@ -1,4 +1,4 @@
-package live.lbtrip.domain.auth.dto;
+package live.lbtrip.domain.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

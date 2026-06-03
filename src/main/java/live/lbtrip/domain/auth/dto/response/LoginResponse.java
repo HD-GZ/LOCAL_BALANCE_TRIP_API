@@ -1,4 +1,4 @@
-package live.lbtrip.domain.auth.dto;
+package live.lbtrip.domain.auth.dto.response;
 
 public record LoginResponse(
 	String accessToken,

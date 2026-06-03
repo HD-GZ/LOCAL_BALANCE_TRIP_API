@@ -2,13 +2,13 @@ package live.lbtrip.domain.auth.service;
 
 import java.util.Locale;
 
-import live.lbtrip.domain.auth.dto.LoginRequest;
-import live.lbtrip.domain.auth.dto.LoginResponse;
-import live.lbtrip.domain.auth.dto.LogoutRequest;
-import live.lbtrip.domain.auth.dto.SignupRequest;
-import live.lbtrip.domain.auth.dto.SignupResponse;
-import live.lbtrip.domain.auth.dto.TokenRefreshRequest;
-import live.lbtrip.domain.auth.dto.TokenResponse;
+import live.lbtrip.domain.auth.dto.request.LoginRequest;
+import live.lbtrip.domain.auth.dto.request.LogoutRequest;
+import live.lbtrip.domain.auth.dto.request.SignupRequest;
+import live.lbtrip.domain.auth.dto.request.TokenRefreshRequest;
+import live.lbtrip.domain.auth.dto.response.LoginResponse;
+import live.lbtrip.domain.auth.dto.response.SignupResponse;
+import live.lbtrip.domain.auth.dto.response.TokenResponse;
 import live.lbtrip.domain.auth.model.RefreshToken;
 import live.lbtrip.domain.auth.repository.RefreshTokenRepository;
 import live.lbtrip.domain.user.model.User;
@@ -90,7 +90,7 @@ public class AuthService {
 
 		String newAccessToken = jwtTokenProvider.createAccessToken(user);
 
-		return TokenResponse.of(newAccessToken, refreshToken.getToken(), jwtTokenProvider.accessTokenExpiresIn());
+		return TokenResponse.of(newAccessToken, refreshToken.getToken());
 	}
 
 	@Transactional
