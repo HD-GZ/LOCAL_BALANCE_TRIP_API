@@ -6,6 +6,9 @@ import live.lbtrip.domain.auth.dto.EmailVerificationResendRequest;
 import live.lbtrip.domain.auth.dto.EmailVerificationResponse;
 import live.lbtrip.domain.auth.dto.LoginRequest;
 import live.lbtrip.domain.auth.dto.LoginResponse;
+import live.lbtrip.domain.auth.dto.LogoutRequest;
+import live.lbtrip.domain.auth.dto.TokenRefreshRequest;
+import live.lbtrip.domain.auth.dto.TokenResponse;
 import live.lbtrip.domain.auth.dto.SignupRequest;
 import live.lbtrip.domain.auth.dto.SignupResponse;
 import live.lbtrip.global.response.ApiResponse;
@@ -37,6 +40,17 @@ public class AuthController {
 	@PostMapping("/login")
 	public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
 		return ApiResponse.success(authService.login(request));
+	}
+
+	@PostMapping("/token/refresh")
+	public ApiResponse<TokenResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+		return ApiResponse.success(authService.refreshToken(request));
+	}
+
+	@PostMapping("/logout")
+	public ApiResponse<Object> logout(@Valid @RequestBody LogoutRequest request) {
+		authService.logout(request);
+		return ApiResponse.success();
 	}
 
 	@PostMapping("/email-verifications/confirm")

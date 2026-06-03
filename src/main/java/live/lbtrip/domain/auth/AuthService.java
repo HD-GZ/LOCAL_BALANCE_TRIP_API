@@ -4,8 +4,11 @@ import java.util.Locale;
 
 import live.lbtrip.domain.auth.dto.LoginRequest;
 import live.lbtrip.domain.auth.dto.LoginResponse;
+import live.lbtrip.domain.auth.dto.LogoutRequest;
 import live.lbtrip.domain.auth.dto.SignupRequest;
 import live.lbtrip.domain.auth.dto.SignupResponse;
+import live.lbtrip.domain.auth.dto.TokenRefreshRequest;
+import live.lbtrip.domain.auth.dto.TokenResponse;
 import live.lbtrip.domain.user.User;
 import live.lbtrip.domain.user.UserRepository;
 import live.lbtrip.domain.user.UserStatus;
@@ -88,6 +91,46 @@ public class AuthService {
 		refreshTokenRepository.save(refreshToken);
 
 		return LoginResponse.of(user, accessToken, refreshToken.getToken(), jwtTokenProvider.accessTokenExpiresIn());
+	}
+
+	@Transactional
+	public TokenResponse refreshToken(TokenRefreshRequest request) {
+		RefreshToken refreshToken = findUsableRefreshToken(request.refreshToken());
+		User user = refreshToken.getUser();
+
+		refreshToken.revoke();
+
+		String newAccessToken = jwtTokenProvider.createAccessToken(user);
+		RefreshToken newRefreshToken = RefreshToken.create(
+			user,
+			jwtTokenProvider.createRefreshToken(user),
+			jwtTokenProvider.refreshTokenExpiresAt()
+		);
+		refreshTokenRepository.save(newRefreshToken);
+
+		return TokenResponse.of(newAccessToken, newRefreshToken.getToken(), jwtTokenProvider.accessTokenExpiresIn());
+	}
+
+	@Transactional
+	public void logout(LogoutRequest request) {
+		RefreshToken refreshToken = refreshTokenRepository.findByToken(request.refreshToken().trim())
+			.orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
+
+		refreshToken.revoke();
+	}
+
+	private RefreshToken findUsableRefreshToken(String token) {
+		RefreshToken refreshToken = refreshTokenRepository.findByToken(token.trim())
+			.orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
+
+		if (refreshToken.isRevoked() || !jwtTokenProvider.isValid(refreshToken.getToken())) {
+			throw BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+		if (refreshToken.isExpired(java.time.Instant.now())) {
+			throw BusinessException.of(ErrorCode.EXPIRED_REFRESH_TOKEN);
+		}
+
+		return refreshToken;
 	}
 
 	private void validateSignupRequest(SignupRequest request) {
