@@ -1,4 +1,4 @@
-package live.lbtrip.domain.auth;
+package live.lbtrip.domain.auth.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -8,9 +8,11 @@ import java.util.UUID;
 import live.lbtrip.domain.auth.dto.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.EmailVerificationResendRequest;
 import live.lbtrip.domain.auth.dto.EmailVerificationResponse;
-import live.lbtrip.domain.user.User;
-import live.lbtrip.domain.user.UserRepository;
-import live.lbtrip.domain.user.UserStatus;
+import live.lbtrip.domain.auth.model.EmailVerificationToken;
+import live.lbtrip.domain.auth.repository.EmailVerificationTokenRepository;
+import live.lbtrip.domain.user.model.User;
+import live.lbtrip.domain.user.model.UserStatus;
+import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;

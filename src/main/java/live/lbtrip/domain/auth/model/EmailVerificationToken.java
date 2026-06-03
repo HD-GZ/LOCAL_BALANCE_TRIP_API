@@ -1,6 +1,5 @@
-package live.lbtrip.domain.auth;
+package live.lbtrip.domain.auth.model;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -13,11 +12,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import live.lbtrip.domain.user.User;
+import live.lbtrip.domain.user.model.User;
 
 @Entity
-@Table(name = "refresh_tokens")
-public class RefreshToken {
+@Table(name = "email_verification_tokens")
+public class EmailVerificationToken {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,30 +26,30 @@ public class RefreshToken {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(nullable = false, unique = true, length = 500)
+	@Column(nullable = false, unique = true, length = 100)
 	private String token;
 
 	@Column(nullable = false)
-	private Instant expiresAt;
+	private LocalDateTime expiresAt;
 
 	@Column(nullable = false)
-	private boolean revoked;
+	private boolean used;
 
 	@Column(nullable = false)
 	private LocalDateTime createdAt;
 
-	protected RefreshToken() {
+	protected EmailVerificationToken() {
 	}
 
-	private RefreshToken(User user, String token, Instant expiresAt) {
+	private EmailVerificationToken(User user, String token, LocalDateTime expiresAt) {
 		this.user = user;
 		this.token = token;
 		this.expiresAt = expiresAt;
-		this.revoked = false;
+		this.used = false;
 	}
 
-	public static RefreshToken create(User user, String token, Instant expiresAt) {
-		return new RefreshToken(user, token, expiresAt);
+	public static EmailVerificationToken create(User user, String token, LocalDateTime expiresAt) {
+		return new EmailVerificationToken(user, token, expiresAt);
 	}
 
 	@PrePersist
@@ -58,12 +57,12 @@ public class RefreshToken {
 		this.createdAt = LocalDateTime.now();
 	}
 
-	public boolean isExpired(Instant now) {
+	public boolean isExpired(LocalDateTime now) {
 		return expiresAt.isBefore(now);
 	}
 
-	public void revoke() {
-		this.revoked = true;
+	public void use() {
+		this.used = true;
 	}
 
 	public Long getId() {
@@ -78,12 +77,12 @@ public class RefreshToken {
 		return token;
 	}
 
-	public Instant getExpiresAt() {
+	public LocalDateTime getExpiresAt() {
 		return expiresAt;
 	}
 
-	public boolean isRevoked() {
-		return revoked;
+	public boolean isUsed() {
+		return used;
 	}
 
 	public LocalDateTime getCreatedAt() {

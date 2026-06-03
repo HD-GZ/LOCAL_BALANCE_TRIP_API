@@ -1,4 +1,4 @@
-package live.lbtrip.domain.user;
+package live.lbtrip.domain.user.model;
 
 import java.time.LocalDateTime;
 

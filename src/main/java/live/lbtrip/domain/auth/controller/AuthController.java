@@ -1,4 +1,4 @@
-package live.lbtrip.domain.auth;
+package live.lbtrip.domain.auth.controller;
 
 import jakarta.validation.Valid;
 import live.lbtrip.domain.auth.dto.EmailVerificationConfirmRequest;
@@ -11,6 +11,8 @@ import live.lbtrip.domain.auth.dto.TokenRefreshRequest;
 import live.lbtrip.domain.auth.dto.TokenResponse;
 import live.lbtrip.domain.auth.dto.SignupRequest;
 import live.lbtrip.domain.auth.dto.SignupResponse;
+import live.lbtrip.domain.auth.service.AuthService;
+import live.lbtrip.domain.auth.service.EmailVerificationService;
 import live.lbtrip.global.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;

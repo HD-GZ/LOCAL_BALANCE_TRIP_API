@@ -1,6 +1,6 @@
-package live.lbtrip.domain.auth;
+package live.lbtrip.domain.auth.service;
 
-import live.lbtrip.domain.user.User;
+import live.lbtrip.domain.user.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

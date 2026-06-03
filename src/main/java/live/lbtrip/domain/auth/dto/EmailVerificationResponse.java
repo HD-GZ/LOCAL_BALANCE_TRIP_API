@@ -1,7 +1,7 @@
 package live.lbtrip.domain.auth.dto;
 
-import live.lbtrip.domain.user.User;
-import live.lbtrip.domain.user.UserStatus;
+import live.lbtrip.domain.user.model.User;
+import live.lbtrip.domain.user.model.UserStatus;
 
 public record EmailVerificationResponse(
 	Long userId,

@@ -1,4 +1,4 @@
-package live.lbtrip.domain.auth;
+package live.lbtrip.domain.auth.service;
 
 import java.util.Locale;
 
@@ -9,9 +9,11 @@ import live.lbtrip.domain.auth.dto.SignupRequest;
 import live.lbtrip.domain.auth.dto.SignupResponse;
 import live.lbtrip.domain.auth.dto.TokenRefreshRequest;
 import live.lbtrip.domain.auth.dto.TokenResponse;
-import live.lbtrip.domain.user.User;
-import live.lbtrip.domain.user.UserRepository;
-import live.lbtrip.domain.user.UserStatus;
+import live.lbtrip.domain.auth.model.RefreshToken;
+import live.lbtrip.domain.auth.repository.RefreshTokenRepository;
+import live.lbtrip.domain.user.model.User;
+import live.lbtrip.domain.user.model.UserStatus;
+import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import org.springframework.security.crypto.password.PasswordEncoder;

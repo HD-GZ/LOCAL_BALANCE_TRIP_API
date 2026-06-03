@@ -1,4 +1,4 @@
-package live.lbtrip.domain.auth;
+package live.lbtrip.domain.auth.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -11,7 +11,8 @@ import javax.crypto.SecretKey;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import live.lbtrip.domain.user.User;
+import live.lbtrip.domain.auth.model.JwtTokenSubject;
+import live.lbtrip.domain.user.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

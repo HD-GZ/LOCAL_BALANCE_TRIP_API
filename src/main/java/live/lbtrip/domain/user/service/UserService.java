@@ -1,8 +1,9 @@
-package live.lbtrip.domain.user;
+package live.lbtrip.domain.user.service;
 
 import java.util.Locale;
 
 import live.lbtrip.domain.user.dto.EmailAvailabilityResponse;
+import live.lbtrip.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
