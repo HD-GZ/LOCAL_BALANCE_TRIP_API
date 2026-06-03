@@ -23,11 +23,11 @@ public class SecurityConfig {
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(
-					"/api/v1/auth/signup",
-					"/api/v1/auth/login",
-					"/api/v1/auth/email-verifications/**",
-					"/api/v1/auth/token/refresh",
-					"/api/v1/users/email-availability",
+					"/auth/signup",
+					"/auth/login",
+					"/auth/email-verifications/**",
+					"/auth/token/refresh",
+					"/users/email-availability",
 					"/v3/api-docs/**",
 					"/swagger-ui/**",
 					"/swagger-ui.html"
