@@ -17,10 +17,16 @@ public class AuthService {
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final EmailVerificationService emailVerificationService;
 
-	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public AuthService(
+		UserRepository userRepository,
+		PasswordEncoder passwordEncoder,
+		EmailVerificationService emailVerificationService
+	) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.emailVerificationService = emailVerificationService;
 	}
 
 	@Transactional
@@ -45,6 +51,7 @@ public class AuthService {
 		);
 
 		User savedUser = userRepository.save(user);
+		emailVerificationService.issue(savedUser);
 		return SignupResponse.from(savedUser);
 	}
 

@@ -1,6 +1,9 @@
 package live.lbtrip.domain.auth;
 
 import jakarta.validation.Valid;
+import live.lbtrip.domain.auth.dto.EmailVerificationConfirmRequest;
+import live.lbtrip.domain.auth.dto.EmailVerificationResendRequest;
+import live.lbtrip.domain.auth.dto.EmailVerificationResponse;
 import live.lbtrip.domain.auth.dto.SignupRequest;
 import live.lbtrip.domain.auth.dto.SignupResponse;
 import live.lbtrip.global.response.ApiResponse;
@@ -16,14 +19,30 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
 	private final AuthService authService;
+	private final EmailVerificationService emailVerificationService;
 
-	public AuthController(AuthService authService) {
+	public AuthController(AuthService authService, EmailVerificationService emailVerificationService) {
 		this.authService = authService;
+		this.emailVerificationService = emailVerificationService;
 	}
 
 	@PostMapping("/signup")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResponse<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
 		return ApiResponse.success(authService.signup(request));
+	}
+
+	@PostMapping("/email-verifications/confirm")
+	public ApiResponse<EmailVerificationResponse> confirmEmailVerification(
+		@Valid @RequestBody EmailVerificationConfirmRequest request
+	) {
+		return ApiResponse.success(emailVerificationService.confirm(request));
+	}
+
+	@PostMapping("/email-verifications/resend")
+	public ApiResponse<EmailVerificationResponse> resendEmailVerification(
+		@Valid @RequestBody EmailVerificationResendRequest request
+	) {
+		return ApiResponse.success(emailVerificationService.resend(request));
 	}
 }
