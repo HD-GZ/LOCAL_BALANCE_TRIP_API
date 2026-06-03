@@ -17,6 +17,6 @@ public class UserService {
 	@Transactional(readOnly = true)
 	public EmailAvailabilityResponse checkEmailAvailability(String email) {
 		String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
-		return new EmailAvailabilityResponse(!userRepository.existsByEmail(normalizedEmail));
+		return EmailAvailabilityResponse.of(!userRepository.existsByEmail(normalizedEmail));
 	}
 }
