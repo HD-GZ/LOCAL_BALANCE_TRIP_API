@@ -31,8 +31,8 @@ public class EmailVerificationToken extends BaseEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(nullable = false, unique = true, length = 100)
-	private String token;
+	@Column(name = "token", nullable = false, unique = true, length = 6)
+	private String code;
 
 	@Column(nullable = false)
 	private LocalDateTime expiresAt;
@@ -40,15 +40,15 @@ public class EmailVerificationToken extends BaseEntity {
 	@Column(nullable = false)
 	private boolean used;
 
-	private EmailVerificationToken(User user, String token, LocalDateTime expiresAt) {
+	private EmailVerificationToken(User user, String code, LocalDateTime expiresAt) {
 		this.user = user;
-		this.token = token;
+		this.code = code;
 		this.expiresAt = expiresAt;
 		this.used = false;
 	}
 
-	public static EmailVerificationToken create(User user, String token, LocalDateTime expiresAt) {
-		return new EmailVerificationToken(user, token, expiresAt);
+	public static EmailVerificationToken create(User user, String code, LocalDateTime expiresAt) {
+		return new EmailVerificationToken(user, code, expiresAt);
 	}
 
 	public boolean isExpired(LocalDateTime now) {

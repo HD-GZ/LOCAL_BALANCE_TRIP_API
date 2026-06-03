@@ -88,17 +88,9 @@ public class AuthService {
 		RefreshToken refreshToken = findUsableRefreshToken(request.refreshToken());
 		User user = refreshToken.getUser();
 
-		refreshToken.revoke();
-
 		String newAccessToken = jwtTokenProvider.createAccessToken(user);
-		RefreshToken newRefreshToken = RefreshToken.create(
-			user,
-			jwtTokenProvider.createRefreshToken(user),
-			jwtTokenProvider.refreshTokenExpiresAt()
-		);
-		refreshTokenRepository.save(newRefreshToken);
 
-		return TokenResponse.of(newAccessToken, newRefreshToken.getToken(), jwtTokenProvider.accessTokenExpiresIn());
+		return TokenResponse.of(newAccessToken, refreshToken.getToken(), jwtTokenProvider.accessTokenExpiresIn());
 	}
 
 	@Transactional
@@ -106,14 +98,14 @@ public class AuthService {
 		RefreshToken refreshToken = refreshTokenRepository.findByToken(request.refreshToken().trim())
 			.orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
 
-		refreshToken.revoke();
+		refreshTokenRepository.delete(refreshToken);
 	}
 
 	private RefreshToken findUsableRefreshToken(String token) {
 		RefreshToken refreshToken = refreshTokenRepository.findByToken(token.trim())
 			.orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
 
-		if (refreshToken.isRevoked() || !jwtTokenProvider.isValid(refreshToken.getToken())) {
+		if (!jwtTokenProvider.isValid(refreshToken.getToken())) {
 			throw BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN);
 		}
 		if (refreshToken.isExpired(java.time.Instant.now())) {

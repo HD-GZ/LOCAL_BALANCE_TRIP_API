@@ -3,7 +3,7 @@ package live.lbtrip.domain.auth.service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Locale;
-import java.util.UUID;
+import java.security.SecureRandom;
 
 import live.lbtrip.domain.auth.dto.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.EmailVerificationResendRequest;
@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class EmailVerificationService {
 
+	private static final SecureRandom RANDOM = new SecureRandom();
+
 	private final EmailVerificationTokenRepository tokenRepository;
 	private final UserRepository userRepository;
 	private final EmailService emailService;
@@ -31,7 +33,7 @@ public class EmailVerificationService {
 		EmailVerificationTokenRepository tokenRepository,
 		UserRepository userRepository,
 		EmailService emailService,
-		@Value("${app.email-verification.token-expiration}") Duration tokenExpiration
+		@Value("${app.email-verification.code-expiration}") Duration tokenExpiration
 	) {
 		this.tokenRepository = tokenRepository;
 		this.userRepository = userRepository;
@@ -43,19 +45,19 @@ public class EmailVerificationService {
 	public void issue(User user) {
 		EmailVerificationToken token = createToken(user);
 		tokenRepository.save(token);
-		emailService.sendVerificationEmail(user, token.getToken());
+		emailService.sendVerificationEmail(user, token.getCode());
 	}
 
 	@Transactional
 	public EmailVerificationResponse confirm(EmailVerificationConfirmRequest request) {
-		EmailVerificationToken token = tokenRepository.findByToken(request.token().trim())
-			.orElseThrow(() -> BusinessException.of(ErrorCode.EMAIL_VERIFICATION_TOKEN_NOT_FOUND));
+		EmailVerificationToken token = tokenRepository.findByCode(request.code().trim())
+			.orElseThrow(() -> BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
 
 		if (token.isUsed()) {
-			throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_TOKEN_USED);
+			throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_USED);
 		}
 		if (token.isExpired(LocalDateTime.now())) {
-			throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_TOKEN_EXPIRED);
+			throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_EXPIRED);
 		}
 
 		User user = token.getUser();
@@ -82,8 +84,16 @@ public class EmailVerificationService {
 	private EmailVerificationToken createToken(User user) {
 		return EmailVerificationToken.create(
 			user,
-			UUID.randomUUID().toString(),
+			generateCode(),
 			LocalDateTime.now().plus(tokenExpiration)
 		);
+	}
+
+	private String generateCode() {
+		String code;
+		do {
+			code = "%06d".formatted(RANDOM.nextInt(1_000_000));
+		} while (tokenRepository.existsByCode(code));
+		return code;
 	}
 }

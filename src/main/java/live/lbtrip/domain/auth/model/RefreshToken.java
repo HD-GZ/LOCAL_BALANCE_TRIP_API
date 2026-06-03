@@ -37,14 +37,10 @@ public class RefreshToken extends BaseEntity {
 	@Column(nullable = false)
 	private Instant expiresAt;
 
-	@Column(nullable = false)
-	private boolean revoked;
-
 	private RefreshToken(User user, String token, Instant expiresAt) {
 		this.user = user;
 		this.token = token;
 		this.expiresAt = expiresAt;
-		this.revoked = false;
 	}
 
 	public static RefreshToken create(User user, String token, Instant expiresAt) {
@@ -53,10 +49,6 @@ public class RefreshToken extends BaseEntity {
 
 	public boolean isExpired(Instant now) {
 		return expiresAt.isBefore(now);
-	}
-
-	public void revoke() {
-		this.revoked = true;
 	}
 
 }

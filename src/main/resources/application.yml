@@ -22,8 +22,6 @@ spring:
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
-  frontend:
-    base-url: ${FRONTEND_BASE_URL}
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
@@ -31,4 +29,4 @@ app:
   mail:
     from: ${MAIL_FROM}
   email-verification:
-    token-expiration: ${EMAIL_VERIFICATION_TOKEN_EXPIRATION}
+    code-expiration: ${EMAIL_VERIFICATION_CODE_EXPIRATION}
