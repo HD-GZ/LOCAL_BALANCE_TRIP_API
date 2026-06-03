@@ -10,9 +10,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
+import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "email_verification_tokens")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class EmailVerificationToken {
+public class EmailVerificationToken extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,9 +40,6 @@ public class EmailVerificationToken {
 	@Column(nullable = false)
 	private boolean used;
 
-	@Column(nullable = false)
-	private LocalDateTime createdAt;
-
 	private EmailVerificationToken(User user, String token, LocalDateTime expiresAt) {
 		this.user = user;
 		this.token = token;
@@ -52,11 +49,6 @@ public class EmailVerificationToken {
 
 	public static EmailVerificationToken create(User user, String token, LocalDateTime expiresAt) {
 		return new EmailVerificationToken(user, token, expiresAt);
-	}
-
-	@PrePersist
-	void prePersist() {
-		this.createdAt = LocalDateTime.now();
 	}
 
 	public boolean isExpired(LocalDateTime now) {

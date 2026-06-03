@@ -1,7 +1,6 @@
 package live.lbtrip.domain.auth.model;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,9 +10,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
+import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "refresh_tokens")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class RefreshToken {
+public class RefreshToken extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,9 +40,6 @@ public class RefreshToken {
 	@Column(nullable = false)
 	private boolean revoked;
 
-	@Column(nullable = false)
-	private LocalDateTime createdAt;
-
 	private RefreshToken(User user, String token, Instant expiresAt) {
 		this.user = user;
 		this.token = token;
@@ -53,11 +49,6 @@ public class RefreshToken {
 
 	public static RefreshToken create(User user, String token, Instant expiresAt) {
 		return new RefreshToken(user, token, expiresAt);
-	}
-
-	@PrePersist
-	void prePersist() {
-		this.createdAt = LocalDateTime.now();
 	}
 
 	public boolean isExpired(Instant now) {
