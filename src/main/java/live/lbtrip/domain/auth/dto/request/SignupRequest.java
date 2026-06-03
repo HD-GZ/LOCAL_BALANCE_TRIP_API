@@ -5,12 +5,12 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import live.lbtrip.domain.user.model.Gender;
 
 public record SignupRequest(
@@ -42,11 +42,10 @@ public record SignupRequest(
     @Pattern(regexp = "^010-?\\d{4}-?\\d{4}$", message = "전화번호 형식이 올바르지 않습니다.")
     String phoneNumber,
 
-    @Schema(description = "나이", example = "30", minimum = "1", maximum = "120", requiredMode = REQUIRED)
-    @NotNull(message = "나이는 필수입니다.")
-    @Min(value = 1, message = "나이는 1 이상이어야 합니다.")
-    @Max(value = 120, message = "나이는 120 이하여야 합니다.")
-    Integer age,
+    @Schema(description = "생년월일", example = "1995-05-20", type = "string", format = "date", requiredMode = REQUIRED)
+    @NotNull(message = "생년월일은 필수입니다.")
+    @PastOrPresent(message = "생년월일은 미래 날짜일 수 없습니다.")
+    LocalDate birthDate,
 
     @Schema(description = "성별. MALE, FEMALE, NOT_SPECIFIED 중 하나", example = "NOT_SPECIFIED", requiredMode = REQUIRED)
     @NotNull(message = "성별은 필수입니다.")

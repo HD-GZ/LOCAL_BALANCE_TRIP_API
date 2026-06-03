@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -36,7 +37,7 @@ public class User extends BaseEntity {
 	private String phoneNumber;
 
 	@Column(nullable = false)
-	private Integer age;
+	private LocalDate birthDate;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
@@ -60,7 +61,7 @@ public class User extends BaseEntity {
 		String email,
 		String password,
 		String phoneNumber,
-		Integer age,
+		LocalDate birthDate,
 		Gender gender,
 		boolean termsAgreed,
 		boolean privacyAgreed,
@@ -70,7 +71,7 @@ public class User extends BaseEntity {
 		this.email = email;
 		this.password = password;
 		this.phoneNumber = phoneNumber;
-		this.age = age;
+		this.birthDate = birthDate;
 		this.gender = gender;
 		this.status = UserStatus.PENDING_EMAIL_VERIFICATION;
 		this.termsAgreed = termsAgreed;
@@ -83,7 +84,7 @@ public class User extends BaseEntity {
 		String email,
 		String encodedPassword,
 		String phoneNumber,
-		Integer age,
+		LocalDate birthDate,
 		Gender gender,
 		boolean termsAgreed,
 		boolean privacyAgreed,
@@ -94,7 +95,7 @@ public class User extends BaseEntity {
 			email,
 			encodedPassword,
 			phoneNumber,
-			age,
+			birthDate,
 			gender,
 			termsAgreed,
 			privacyAgreed,

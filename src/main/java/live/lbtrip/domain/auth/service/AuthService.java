@@ -44,7 +44,7 @@ public class AuthService {
 			email,
 			passwordEncoder.encode(request.password()),
 			request.phoneNumber().trim(),
-			request.age(),
+			request.birthDate(),
 			request.gender(),
 			request.termsAgreed(),
 			request.privacyAgreed(),

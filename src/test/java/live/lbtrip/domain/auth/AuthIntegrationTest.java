@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDate;
 import live.lbtrip.domain.auth.dto.request.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.request.LoginRequest;
 import live.lbtrip.domain.auth.dto.request.SignupRequest;
@@ -137,7 +138,7 @@ class AuthIntegrationTest {
 			"password1",
 			"password1",
 			"010-1234-5678",
-			25,
+			LocalDate.of(1999, 1, 1),
 			Gender.NOT_SPECIFIED,
 			true,
 			true,
