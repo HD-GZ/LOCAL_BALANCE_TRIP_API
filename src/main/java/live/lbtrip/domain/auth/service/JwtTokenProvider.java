@@ -57,10 +57,7 @@ public class JwtTokenProvider {
 			.parseSignedClaims(token)
 			.getPayload();
 
-		return new JwtTokenSubject(
-			Long.parseLong(claims.getSubject()),
-			claims.get("email", String.class)
-		);
+		return new JwtTokenSubject(Long.parseLong(claims.getSubject()));
 	}
 
 	public Instant refreshTokenExpiresAt() {
@@ -78,7 +75,6 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 			.subject(String.valueOf(user.getId()))
 			.id(UUID.randomUUID().toString())
-			.claim("email", user.getEmail())
 			.issuedAt(Date.from(now))
 			.expiration(Date.from(expiresAt))
 			.signWith(secretKey)

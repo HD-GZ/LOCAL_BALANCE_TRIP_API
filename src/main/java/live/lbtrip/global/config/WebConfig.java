@@ -1,6 +1,10 @@
 package live.lbtrip.global.config;
 
+import java.util.List;
+
+import live.lbtrip.global.web.UserIdArgumentResolver;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -10,15 +14,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final CorsProperties corsProperties;
+	private final CorsProperties corsProperties;
+	private final UserIdArgumentResolver userIdArgumentResolver;
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-            .allowedOrigins(corsProperties.allowedOrigins().toArray(new String[0]))
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-            .allowedHeaders("*")
-            .allowCredentials(true)
-            .maxAge(3600);
-    }
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/**")
+			.allowedOrigins(corsProperties.allowedOrigins().toArray(new String[0]))
+			.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+			.allowedHeaders("*")
+			.allowCredentials(true)
+			.maxAge(3600);
+	}
+
+	@Override
+	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+		resolvers.add(userIdArgumentResolver);
+	}
 }
