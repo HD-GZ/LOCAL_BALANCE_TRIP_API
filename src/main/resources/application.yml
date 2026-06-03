@@ -7,6 +7,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO}
+  flyway:
+    enabled: ${FLYWAY_ENABLED}
+    locations: classpath:db/migration
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
