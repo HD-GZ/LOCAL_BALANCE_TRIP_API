@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -75,6 +76,7 @@ public class JwtTokenProvider {
 
 		return Jwts.builder()
 			.subject(String.valueOf(user.getId()))
+			.id(UUID.randomUUID().toString())
 			.claim("email", user.getEmail())
 			.issuedAt(Date.from(now))
 			.expiration(Date.from(expiresAt))
