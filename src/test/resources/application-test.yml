@@ -27,3 +27,6 @@ app:
     from: no-reply@test.local
   email-verification:
     code-expiration: 24h
+
+swagger:
+  server-url: http://localhost

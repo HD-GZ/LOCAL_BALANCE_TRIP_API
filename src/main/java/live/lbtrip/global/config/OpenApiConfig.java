@@ -4,6 +4,8 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,6 +14,12 @@ public class OpenApiConfig {
 
 	private static final String BEARER_AUTH = "bearerAuth";
 
+	private final String serverUrl;
+
+	public OpenApiConfig(@Value("${swagger.server-url}") String serverUrl) {
+		this.serverUrl = serverUrl;
+	}
+
 	@Bean
 	public OpenAPI openAPI() {
 		return new OpenAPI()
@@ -19,6 +27,7 @@ public class OpenApiConfig {
 				.title("Local Balance Trip API")
 				.description("Local Balance Trip API documentation")
 				.version("v1"))
+			.addServersItem(new Server().url(serverUrl))
 			.components(new Components()
 				.addSecuritySchemes(BEARER_AUTH, new SecurityScheme()
 					.type(SecurityScheme.Type.HTTP)

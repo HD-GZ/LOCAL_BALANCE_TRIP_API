@@ -33,3 +33,6 @@ app:
     from: ${MAIL_FROM}
   email-verification:
     code-expiration: ${EMAIL_VERIFICATION_CODE_EXPIRATION}
+
+swagger:
+  server-url: ${SWAGGER_SERVER_URL}
