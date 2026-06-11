@@ -3,9 +3,16 @@ package live.lbtrip.domain.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Map;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
 import live.lbtrip.domain.auth.dto.request.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.request.LoginRequest;
 import live.lbtrip.domain.auth.dto.request.SignupRequest;
@@ -28,8 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -53,26 +58,28 @@ class AuthIntegrationTest {
 	private RefreshTokenRepository refreshTokenRepository;
 
 	@MockitoBean
-	private JavaMailSender mailSender;
+	private SendGrid sendGrid;
 
 	@BeforeEach
-	void setUp() {
+	void setUp() throws IOException {
+		when(sendGrid.api(any(Request.class))).thenReturn(new Response(202, "", Map.of()));
 		refreshTokenRepository.deleteAll();
 		emailVerificationTokenRepository.deleteAll();
 		userRepository.deleteAll();
 	}
 
 	@Test
-	void signupCreatesPendingUserAndSendsVerificationEmail() {
+	void signupCreatesPendingUserAndSendsVerificationEmail() throws IOException {
 		SignupResponse response = authService.signup(signupRequest("local@email.com"));
 
 		assertThat(response.status()).isEqualTo(UserStatus.PENDING_EMAIL_VERIFICATION);
 		assertThat(userRepository.existsByEmail("local@email.com")).isTrue();
 		assertThat(emailVerificationTokenRepository.findAll()).hasSize(1);
 
-		ArgumentCaptor<SimpleMailMessage> mailCaptor = forClass(SimpleMailMessage.class);
-		verify(mailSender).send(mailCaptor.capture());
-		assertThat(mailCaptor.getValue().getText()).containsPattern("인증 코드: \\d{6}");
+		ArgumentCaptor<Request> requestCaptor = forClass(Request.class);
+		verify(sendGrid).api(requestCaptor.capture());
+		assertThat(requestCaptor.getValue().getBody()).contains("local@email.com");
+		assertThat(requestCaptor.getValue().getBody()).containsPattern("인증 코드: \\d{6}");
 	}
 
 	@Test
