@@ -9,12 +9,6 @@ spring:
       ddl-auto: create-drop
   flyway:
     enabled: false
-  mail:
-    host: localhost
-    port: 2525
-    username: test
-    password: test
-
 app:
   cors:
     allowed-origins:
@@ -27,3 +21,9 @@ app:
     from: no-reply@test.local
   email-verification:
     code-expiration: 24h
+
+swagger:
+  server-url: http://localhost
+
+sendgrid:
+  api-key: test-sendgrid-api-key
