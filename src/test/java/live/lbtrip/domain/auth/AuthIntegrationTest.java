@@ -73,6 +73,7 @@ class AuthIntegrationTest {
 		SignupResponse response = authService.signup(signupRequest("local@email.com"));
 
 		assertThat(response.status()).isEqualTo(UserStatus.PENDING_EMAIL_VERIFICATION);
+		assertThat(response.verificationCodeExpiresIn()).isEqualTo(86_400L);
 		assertThat(userRepository.existsByEmail("local@email.com")).isTrue();
 		assertThat(emailVerificationTokenRepository.findAll()).hasSize(1);
 
