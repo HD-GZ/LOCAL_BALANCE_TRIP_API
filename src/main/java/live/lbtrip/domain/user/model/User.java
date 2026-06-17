@@ -33,9 +33,6 @@ public class User extends BaseEntity {
 	@Column(nullable = false)
 	private String password;
 
-	@Column(nullable = false, length = 20)
-	private String phoneNumber;
-
 	@Column(nullable = false)
 	private LocalDate birthDate;
 
@@ -60,7 +57,6 @@ public class User extends BaseEntity {
 		String name,
 		String email,
 		String password,
-		String phoneNumber,
 		LocalDate birthDate,
 		Gender gender,
 		boolean termsAgreed,
@@ -70,7 +66,6 @@ public class User extends BaseEntity {
 		this.name = name;
 		this.email = email;
 		this.password = password;
-		this.phoneNumber = phoneNumber;
 		this.birthDate = birthDate;
 		this.gender = gender;
 		this.status = UserStatus.PENDING_EMAIL_VERIFICATION;
@@ -83,7 +78,6 @@ public class User extends BaseEntity {
 		String name,
 		String email,
 		String encodedPassword,
-		String phoneNumber,
 		LocalDate birthDate,
 		Gender gender,
 		boolean termsAgreed,
@@ -94,7 +88,6 @@ public class User extends BaseEntity {
 			name,
 			email,
 			encodedPassword,
-			phoneNumber,
 			birthDate,
 			gender,
 			termsAgreed,

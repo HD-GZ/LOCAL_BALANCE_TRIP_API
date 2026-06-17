@@ -156,7 +156,6 @@ class AuthIntegrationTest {
 			email,
 			"password1",
 			"password1",
-			"010-1234-5678",
 			LocalDate.of(1999, 1, 1),
 			Gender.NOT_SPECIFIED,
 			true,

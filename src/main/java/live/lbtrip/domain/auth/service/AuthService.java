@@ -43,7 +43,6 @@ public class AuthService {
 			request.name().trim(),
 			email,
 			passwordEncoder.encode(request.password()),
-			request.phoneNumber().trim(),
 			request.birthDate(),
 			request.gender(),
 			request.termsAgreed(),
