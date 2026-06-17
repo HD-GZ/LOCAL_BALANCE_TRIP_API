@@ -42,10 +42,11 @@ public class EmailVerificationService {
 	}
 
 	@Transactional
-	public void issue(User user) {
+	public long issue(User user) {
 		EmailVerificationToken token = createToken(user);
 		tokenRepository.save(token);
 		emailService.sendVerificationEmail(user, token.getCode());
+		return tokenExpiration.toSeconds();
 	}
 
 	@Transactional

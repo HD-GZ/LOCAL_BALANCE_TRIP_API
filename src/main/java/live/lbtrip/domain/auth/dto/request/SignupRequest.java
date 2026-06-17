@@ -37,11 +37,6 @@ public record SignupRequest(
     @NotBlank(message = "비밀번호 확인은 필수입니다.")
     String passwordConfirm,
 
-    @Schema(description = "휴대폰 번호", example = "010-1234-5678", requiredMode = REQUIRED)
-    @NotBlank(message = "전화번호는 필수입니다.")
-    @Pattern(regexp = "^010-?\\d{4}-?\\d{4}$", message = "전화번호 형식이 올바르지 않습니다.")
-    String phoneNumber,
-
     @Schema(description = "생년월일", example = "1995-05-20", type = "string", format = "date", requiredMode = REQUIRED)
     @NotNull(message = "생년월일은 필수입니다.")
     @PastOrPresent(message = "생년월일은 미래 날짜일 수 없습니다.")
