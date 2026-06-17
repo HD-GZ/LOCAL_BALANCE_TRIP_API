@@ -56,7 +56,8 @@ public interface AuthApi {
                   "data": {
                     "userId": 1,
                     "email": "user@example.com",
-                    "status": "PENDING_EMAIL_VERIFICATION"
+                    "status": "PENDING_EMAIL_VERIFICATION",
+                    "verificationCodeExpiresIn": 86400
                   },
                   "error": null
                 }

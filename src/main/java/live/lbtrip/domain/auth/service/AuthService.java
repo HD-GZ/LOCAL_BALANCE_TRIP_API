@@ -51,8 +51,8 @@ public class AuthService {
 		);
 
 		User savedUser = userRepository.save(user);
-		emailVerificationService.issue(savedUser);
-		return SignupResponse.from(savedUser);
+		long verificationCodeExpiresIn = emailVerificationService.issue(savedUser);
+		return SignupResponse.from(savedUser, verificationCodeExpiresIn);
 	}
 
 	@Transactional
