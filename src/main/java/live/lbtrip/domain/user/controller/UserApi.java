@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 
 @Tag(name = "User", description = "사용자 API")
@@ -52,6 +54,8 @@ public interface UserApi {
     })
     ResponseEntity<live.lbtrip.global.response.ApiResponse<EmailAvailabilityResponse>> checkEmailAvailability(
         @Parameter(description = "중복 확인할 이메일", example = "user@example.com", required = true)
+        @NotBlank(message = "이메일은 필수입니다.")
+        @Email(message = "이메일 형식이 올바르지 않습니다.")
         @RequestParam String email
     );
 }
