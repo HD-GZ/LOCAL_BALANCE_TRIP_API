@@ -1,6 +1,7 @@
 package live.lbtrip.domain.propensity.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import live.lbtrip.domain.propensity.model.Propensity;
 
 public record PropensityResponse(
     @Schema(description = "진단 결과(라벨 + 설명)")
@@ -32,5 +33,17 @@ public record PropensityResponse(
         @Schema(description = "진단 유형 설명", example = "럭셔리보다 실속을, 유명 명소보다 골목 상권을, 빡빡한 일정보다 감성 여백을 즐기는 1인 여행자예요.")
         String description
     ) {
+    }
+
+    public static PropensityResponse of(Propensity propensity, Result result) {
+        return new PropensityResponse(
+            result,
+            propensity.getLocality(),
+            propensity.getFrugality(),
+            propensity.getFlexibility(),
+            propensity.getExperientiality(),
+            propensity.getVitality(),
+            propensity.getSociality()
+        );
     }
 }

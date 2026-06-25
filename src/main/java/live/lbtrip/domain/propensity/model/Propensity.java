@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -47,49 +48,22 @@ public class Propensity extends BaseEntity {
 	@Column(nullable = false)
 	private int sociality;
 
-	private Propensity(
-		User user,
-		int locality,
-		int frugality,
-		int flexibility,
-		int experientiality,
-		int vitality,
-		int sociality
-	) {
+	@Builder
+	private Propensity(User user, PropensityScores scores) {
 		this.user = user;
-		this.locality = locality;
-		this.frugality = frugality;
-		this.flexibility = flexibility;
-		this.experientiality = experientiality;
-		this.vitality = vitality;
-		this.sociality = sociality;
+		applyScores(scores);
 	}
 
-	public static Propensity create(
-		User user,
-		int locality,
-		int frugality,
-		int flexibility,
-		int experientiality,
-		int vitality,
-		int sociality
-	) {
-		return new Propensity(user, locality, frugality, flexibility, experientiality, vitality, sociality);
+	public void updateScores(PropensityScores scores) {
+		applyScores(scores);
 	}
 
-	public void updateScores(
-		int locality,
-		int frugality,
-		int flexibility,
-		int experientiality,
-		int vitality,
-		int sociality
-	) {
-		this.locality = locality;
-		this.frugality = frugality;
-		this.flexibility = flexibility;
-		this.experientiality = experientiality;
-		this.vitality = vitality;
-		this.sociality = sociality;
+	private void applyScores(PropensityScores scores) {
+		this.locality = scores.locality();
+		this.frugality = scores.frugality();
+		this.flexibility = scores.flexibility();
+		this.experientiality = scores.experientiality();
+		this.vitality = scores.vitality();
+		this.sociality = scores.sociality();
 	}
 }
