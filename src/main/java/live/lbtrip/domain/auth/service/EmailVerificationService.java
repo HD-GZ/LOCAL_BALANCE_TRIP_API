@@ -46,7 +46,11 @@ public class EmailVerificationService {
 
     @Transactional
     public long issue(User user) {
-        EmailVerificationToken token = createToken(user);
+        EmailVerificationToken token = EmailVerificationToken.create(
+            user,
+            generateCode(),
+            LocalDateTime.now().plus(tokenExpiration)
+        );
         tokenRepository.save(token);
         emailService.sendVerificationEmail(user.getEmail(), token.getCode());
         return tokenExpiration.toSeconds();
@@ -83,14 +87,6 @@ public class EmailVerificationService {
 
         issue(user);
         return EmailVerificationResponse.from(user);
-    }
-
-    private EmailVerificationToken createToken(User user) {
-        return EmailVerificationToken.create(
-            user,
-            generateCode(),
-            LocalDateTime.now().plus(tokenExpiration)
-        );
     }
 
     private String generateCode() {
