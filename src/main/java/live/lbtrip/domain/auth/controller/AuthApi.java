@@ -106,7 +106,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    ResponseEntity<live.lbtrip.global.response.ApiResponse<SignupResponse>> signup(
+    ResponseEntity<SignupResponse> signup(
         @Valid @RequestBody SignupRequest request
     );
 
@@ -158,7 +158,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    ResponseEntity<live.lbtrip.global.response.ApiResponse<LoginResponse>> login(
+    LoginResponse login(
         @Valid @RequestBody LoginRequest request
     );
 
@@ -209,7 +209,7 @@ public interface AuthApi {
             }
         ))
     })
-    ResponseEntity<live.lbtrip.global.response.ApiResponse<TokenResponse>> refreshToken(
+    TokenResponse refreshToken(
         @Valid @RequestBody TokenRefreshRequest request
     );
 
@@ -241,7 +241,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    ResponseEntity<live.lbtrip.global.response.ApiResponse<Object>> logout(@UserId Long userId);
+    void logout(@UserId Long userId);
 
     @Operation(summary = "이메일 인증 확인", description = "6자리 이메일 인증 코드를 확인하고 사용자를 활성화합니다.")
     @ApiResponses({
@@ -302,7 +302,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    ResponseEntity<live.lbtrip.global.response.ApiResponse<EmailVerificationResponse>> confirmEmailVerification(
+    EmailVerificationResponse confirmEmailVerification(
         @Valid @RequestBody EmailVerificationConfirmRequest request
     );
 
@@ -355,7 +355,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    ResponseEntity<live.lbtrip.global.response.ApiResponse<EmailVerificationResponse>> resendEmailVerification(
+    EmailVerificationResponse resendEmailVerification(
         @Valid @RequestBody EmailVerificationResendRequest request
     );
 }
