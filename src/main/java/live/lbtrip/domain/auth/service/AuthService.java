@@ -33,12 +33,10 @@ public class AuthService {
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
-        validateSignupRequest(request);
+        validatePasswordConfirmation(request);
 
         String email = normalizeEmail(request.email());
-        if (userRepository.existsByEmail(email)) {
-            throw BusinessException.of(ErrorCode.DUPLICATE_EMAIL);
-        }
+        validateEmailNotDuplicated(email);
 
         User user = User.create(
             request.name().trim(),
@@ -111,9 +109,15 @@ public class AuthService {
         return refreshToken;
     }
 
-    private void validateSignupRequest(SignupRequest request) {
+    private void validatePasswordConfirmation(SignupRequest request) {
         if (!request.password().equals(request.passwordConfirm())) {
             throw BusinessException.of(ErrorCode.PASSWORD_CONFIRM_MISMATCH);
+        }
+    }
+
+    private void validateEmailNotDuplicated(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw BusinessException.of(ErrorCode.DUPLICATE_EMAIL);
         }
     }
 
