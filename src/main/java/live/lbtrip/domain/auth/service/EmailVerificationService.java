@@ -3,7 +3,6 @@ package live.lbtrip.domain.auth.service;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ import live.lbtrip.domain.user.model.UserStatus;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.util.StringNormalizer;
 
 @Service
 public class EmailVerificationService {
@@ -71,7 +71,7 @@ public class EmailVerificationService {
 
     @Transactional
     public EmailVerificationResponse resend(EmailVerificationResendRequest request) {
-        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        String email = StringNormalizer.trimToLowerCase(request.email());
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
 

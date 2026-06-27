@@ -1,12 +1,11 @@
 package live.lbtrip.domain.user.service;
 
-import java.util.Locale;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.global.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -17,7 +16,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public EmailAvailabilityResponse checkEmailAvailability(String email) {
-        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        String normalizedEmail = StringNormalizer.trimToLowerCase(email);
         return EmailAvailabilityResponse.of(!userRepository.existsByEmail(normalizedEmail));
     }
 }

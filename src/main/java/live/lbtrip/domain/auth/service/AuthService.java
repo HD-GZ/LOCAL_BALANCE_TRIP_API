@@ -1,7 +1,5 @@
 package live.lbtrip.domain.auth.service;
 
-import java.util.Locale;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +17,7 @@ import live.lbtrip.domain.user.model.UserStatus;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -35,7 +34,7 @@ public class AuthService {
     public SignupResponse signup(SignupRequest request) {
         validatePasswordConfirmation(request);
 
-        String email = normalizeEmail(request.email());
+        String email = StringNormalizer.trimToLowerCase(request.email());
         validateEmailNotDuplicated(email);
 
         User user = User.create(
@@ -56,7 +55,7 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        String email = normalizeEmail(request.email());
+        String email = StringNormalizer.trimToLowerCase(request.email());
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_LOGIN_CREDENTIALS));
 
@@ -119,9 +118,5 @@ public class AuthService {
         if (userRepository.existsByEmail(email)) {
             throw BusinessException.of(ErrorCode.DUPLICATE_EMAIL);
         }
-    }
-
-    private String normalizeEmail(String email) {
-        return email.trim().toLowerCase(Locale.ROOT);
     }
 }
