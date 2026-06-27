@@ -11,7 +11,6 @@ import live.lbtrip.domain.auth.dto.response.LoginResponse;
 import live.lbtrip.domain.auth.dto.response.SignupResponse;
 import live.lbtrip.domain.auth.dto.response.TokenResponse;
 import live.lbtrip.domain.auth.model.RefreshToken;
-import live.lbtrip.domain.auth.repository.RefreshTokenRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
@@ -27,7 +26,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -64,21 +63,14 @@ public class AuthService {
         }
 
         String accessToken = jwtTokenProvider.createAccessToken(user);
-        RefreshToken refreshToken = RefreshToken.create(
-            user,
-            jwtTokenProvider.createRefreshToken(user),
-            jwtTokenProvider.refreshTokenExpiresAt()
-        );
+        String refreshToken = refreshTokenService.issue(user);
 
-        refreshTokenRepository.deleteByUser(user);
-        refreshTokenRepository.save(refreshToken);
-
-        return LoginResponse.of(accessToken, refreshToken.getToken());
+        return LoginResponse.of(accessToken, refreshToken);
     }
 
     @Transactional
     public TokenResponse refreshToken(TokenRefreshRequest request) {
-        RefreshToken refreshToken = findUsableRefreshToken(request.refreshToken());
+        RefreshToken refreshToken = refreshTokenService.findUsable(request.refreshToken());
         User user = refreshToken.getUser();
 
         String newAccessToken = jwtTokenProvider.createAccessToken(user);
@@ -88,19 +80,7 @@ public class AuthService {
 
     @Transactional
     public void logout(Long userId) {
-        refreshTokenRepository.deleteByUserId(userId);
-    }
-
-    private RefreshToken findUsableRefreshToken(String token) {
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(StringNormalizer.trim(token))
-            .orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
-
-        if (!jwtTokenProvider.isValid(refreshToken.getToken())) {
-            throw BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN);
-        }
-        refreshToken.validateNotExpired(java.time.LocalDateTime.now());
-
-        return refreshToken;
+        refreshTokenService.deleteByUserId(userId);
     }
 
     private void validateEmailNotDuplicated(String email) {
