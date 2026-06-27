@@ -123,6 +123,10 @@ public class User extends BaseEntity {
         this.status = UserStatus.ACTIVE;
     }
 
+    public boolean isActive() {
+        return status == UserStatus.ACTIVE;
+    }
+
     private void validateRequiredAgreements(boolean termsAgreed, boolean privacyAgreed) {
         if (!termsAgreed || !privacyAgreed) {
             throw BusinessException.of(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);

@@ -31,6 +31,7 @@ class UserTest {
         assertThat(user.getBirthDate()).isEqualTo(LocalDate.of(1999, 1, 1));
         assertThat(user.getGender()).isEqualTo(Gender.NOT_SPECIFIED);
         assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_EMAIL_VERIFICATION);
+        assertThat(user.isActive()).isFalse();
         assertThat(user.isTermsAgreed()).isTrue();
         assertThat(user.isPrivacyAgreed()).isTrue();
         assertThat(user.isMarketingAgreed()).isFalse();
@@ -68,5 +69,24 @@ class UserTest {
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);
+    }
+
+    @Test
+    void verifyEmailActivatesUser() {
+        User user = User.create(
+            "홍길동",
+            "user@example.com",
+            "encoded-password",
+            LocalDate.of(1999, 1, 1),
+            Gender.NOT_SPECIFIED,
+            true,
+            true,
+            false
+        );
+
+        user.verifyEmail();
+
+        assertThat(user.isActive()).isTrue();
+        assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
     }
 }

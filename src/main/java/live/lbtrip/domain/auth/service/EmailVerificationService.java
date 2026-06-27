@@ -14,7 +14,6 @@ import live.lbtrip.domain.auth.dto.response.EmailVerificationResponse;
 import live.lbtrip.domain.auth.model.EmailVerificationToken;
 import live.lbtrip.domain.auth.repository.EmailVerificationTokenRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.model.UserStatus;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -81,7 +80,7 @@ public class EmailVerificationService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getStatus() == UserStatus.ACTIVE) {
+        if (user.isActive()) {
             throw BusinessException.of(ErrorCode.EMAIL_ALREADY_VERIFIED);
         }
 

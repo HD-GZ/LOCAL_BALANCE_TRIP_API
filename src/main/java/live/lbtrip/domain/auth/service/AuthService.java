@@ -13,7 +13,6 @@ import live.lbtrip.domain.auth.dto.response.TokenResponse;
 import live.lbtrip.domain.auth.model.RefreshToken;
 import live.lbtrip.domain.auth.repository.RefreshTokenRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.model.UserStatus;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -60,7 +59,7 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw BusinessException.of(ErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
-        if (user.getStatus() != UserStatus.ACTIVE) {
+        if (!user.isActive()) {
             throw BusinessException.of(ErrorCode.EMAIL_NOT_VERIFIED);
         }
 
