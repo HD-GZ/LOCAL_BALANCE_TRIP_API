@@ -11,5 +11,5 @@ import live.lbtrip.global.error.ErrorCode;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiErrorCodeResponses {
 
-	ErrorCode[] value();
+    ErrorCode[] value();
 }

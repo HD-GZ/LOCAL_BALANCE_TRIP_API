@@ -9,8 +9,8 @@ import com.sendgrid.SendGrid;
 @Configuration
 public class SendGridConfig {
 
-	@Bean
-	public SendGrid sendGrid(@Value("${sendgrid.api-key}") String apiKey) {
-		return new SendGrid(apiKey);
-	}
+    @Bean
+    public SendGrid sendGrid(@Value("${sendgrid.api-key}") String apiKey) {
+        return new SendGrid(apiKey);
+    }
 }

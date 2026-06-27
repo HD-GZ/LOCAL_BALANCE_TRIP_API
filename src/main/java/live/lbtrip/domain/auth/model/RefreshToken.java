@@ -23,32 +23,32 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
-	private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-	@Column(nullable = false, unique = true, length = 500)
-	private String token;
+    @Column(nullable = false, unique = true, length = 500)
+    private String token;
 
-	@Column(nullable = false)
-	private Instant expiresAt;
+    @Column(nullable = false)
+    private Instant expiresAt;
 
-	private RefreshToken(User user, String token, Instant expiresAt) {
-		this.user = user;
-		this.token = token;
-		this.expiresAt = expiresAt;
-	}
+    private RefreshToken(User user, String token, Instant expiresAt) {
+        this.user = user;
+        this.token = token;
+        this.expiresAt = expiresAt;
+    }
 
-	public static RefreshToken create(User user, String token, Instant expiresAt) {
-		return new RefreshToken(user, token, expiresAt);
-	}
+    public static RefreshToken create(User user, String token, Instant expiresAt) {
+        return new RefreshToken(user, token, expiresAt);
+    }
 
-	public boolean isExpired(Instant now) {
-		return expiresAt.isBefore(now);
-	}
+    public boolean isExpired(Instant now) {
+        return expiresAt.isBefore(now);
+    }
 
 }

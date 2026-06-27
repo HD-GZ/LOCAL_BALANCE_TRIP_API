@@ -2,6 +2,12 @@ package live.lbtrip.domain.auth.controller;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import jakarta.validation.Valid;
 import live.lbtrip.domain.auth.dto.request.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.request.EmailVerificationResendRequest;
@@ -16,57 +22,52 @@ import live.lbtrip.domain.auth.service.AuthService;
 import live.lbtrip.domain.auth.service.EmailVerificationService;
 import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController implements AuthApi {
 
-	private final AuthService authService;
-	private final EmailVerificationService emailVerificationService;
+    private final AuthService authService;
+    private final EmailVerificationService emailVerificationService;
 
-	@PostMapping("/signup")
-	public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
-		SignupResponse response = authService.signup(request);
-		return ResponseEntity.status(CREATED).body(response);
-	}
+    @PostMapping("/signup")
+    public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
+        SignupResponse response = authService.signup(request);
+        return ResponseEntity.status(CREATED).body(response);
+    }
 
-	@PostMapping("/login")
-	public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-		LoginResponse response = authService.login(request);
-		return ResponseEntity.ok(response);
-	}
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
 
-	@PostMapping("/refresh")
-	public ResponseEntity<TokenResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
-		TokenResponse response = authService.refreshToken(request);
-		return ResponseEntity.ok(response);
-	}
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+        TokenResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(response);
+    }
 
-	@PostMapping("/logout")
-	public ResponseEntity<Void> logout(@UserId Long userId) {
-		authService.logout(userId);
-		return ResponseEntity.ok().build();
-	}
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@UserId Long userId) {
+        authService.logout(userId);
+        return ResponseEntity.ok().build();
+    }
 
-	@PostMapping("/email-verifications/confirm")
-	public ResponseEntity<EmailVerificationResponse> confirmEmailVerification(
-		@Valid @RequestBody EmailVerificationConfirmRequest request
-	) {
-		EmailVerificationResponse response = emailVerificationService.confirm(request);
-		return ResponseEntity.ok(response);
-	}
+    @PostMapping("/email-verifications/confirm")
+    public ResponseEntity<EmailVerificationResponse> confirmEmailVerification(
+        @Valid @RequestBody EmailVerificationConfirmRequest request
+    ) {
+        EmailVerificationResponse response = emailVerificationService.confirm(request);
+        return ResponseEntity.ok(response);
+    }
 
-	@PostMapping("/email-verifications/resend")
-	public ResponseEntity<EmailVerificationResponse> resendEmailVerification(
-		@Valid @RequestBody EmailVerificationResendRequest request
-	) {
-		EmailVerificationResponse response = emailVerificationService.resend(request);
-		return ResponseEntity.ok(response);
-	}
+    @PostMapping("/email-verifications/resend")
+    public ResponseEntity<EmailVerificationResponse> resendEmailVerification(
+        @Valid @RequestBody EmailVerificationResendRequest request
+    ) {
+        EmailVerificationResponse response = emailVerificationService.resend(request);
+        return ResponseEntity.ok(response);
+    }
 }

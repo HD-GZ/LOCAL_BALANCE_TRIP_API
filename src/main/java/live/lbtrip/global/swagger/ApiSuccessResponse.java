@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiSuccessResponse {
 
-	HttpStatus status() default OK;
+    HttpStatus status() default OK;
 
-	String description() default "요청 성공";
+    String description() default "요청 성공";
 }
