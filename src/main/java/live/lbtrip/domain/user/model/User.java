@@ -16,6 +16,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -83,6 +85,7 @@ public class User extends BaseEntity {
         boolean privacyAgreed,
         boolean marketingAgreed
     ) {
+        validateRequiredAgreements(termsAgreed, privacyAgreed);
         this.name = name;
         this.email = email;
         this.password = password;
@@ -118,6 +121,12 @@ public class User extends BaseEntity {
 
     public void verifyEmail() {
         this.status = UserStatus.ACTIVE;
+    }
+
+    private void validateRequiredAgreements(boolean termsAgreed, boolean privacyAgreed) {
+        if (!termsAgreed || !privacyAgreed) {
+            throw BusinessException.of(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);
+        }
     }
 
 }

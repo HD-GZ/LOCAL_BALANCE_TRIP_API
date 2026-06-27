@@ -115,9 +115,6 @@ public class AuthService {
         if (!request.password().equals(request.passwordConfirm())) {
             throw BusinessException.of(ErrorCode.PASSWORD_CONFIRM_MISMATCH);
         }
-        if (!request.termsAgreed() || !request.privacyAgreed()) {
-            throw BusinessException.of(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);
-        }
     }
 
     private String normalizeEmail(String email) {
