@@ -46,9 +46,9 @@ public class JwtTokenProvider {
     public boolean isValid(String token) {
         try {
             parseSubject(token);
-            return false;
-        } catch (JwtException | IllegalArgumentException exception) {
             return true;
+        } catch (JwtException | IllegalArgumentException exception) {
+            return false;
         }
     }
 

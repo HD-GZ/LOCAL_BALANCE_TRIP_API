@@ -40,7 +40,7 @@ public class UserIdArgumentResolver implements HandlerMethodArgumentResolver {
         }
 
         String token = authorization.substring(BEARER_PREFIX.length());
-        if (jwtTokenProvider.isValid(token)) {
+        if (!jwtTokenProvider.isValid(token)) {
             throw BusinessException.of(ErrorCode.INVALID_ACCESS_TOKEN);
         }
 
