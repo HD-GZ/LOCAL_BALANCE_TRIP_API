@@ -1,6 +1,5 @@
 package live.lbtrip.domain.auth.service;
 
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -22,24 +21,23 @@ import live.lbtrip.global.util.StringNormalizer;
 @Service
 public class EmailVerificationService {
 
-    private static final SecureRandom RANDOM = new SecureRandom();
-    private static final String VERIFICATION_CODE_FORMAT = "%06d";
-    private static final int VERIFICATION_CODE_BOUND = 1_000_000;
-
     private final EmailVerificationTokenRepository tokenRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final EmailVerificationCodeGenerator codeGenerator;
     private final Duration tokenExpiration;
 
     public EmailVerificationService(
         EmailVerificationTokenRepository tokenRepository,
         UserRepository userRepository,
         EmailService emailService,
+        EmailVerificationCodeGenerator codeGenerator,
         @Value("${app.email-verification.code-expiration}") Duration tokenExpiration
     ) {
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.codeGenerator = codeGenerator;
         this.tokenExpiration = tokenExpiration;
     }
 
@@ -47,7 +45,7 @@ public class EmailVerificationService {
     public long issue(User user) {
         EmailVerificationToken token = EmailVerificationToken.create(
             user,
-            generateCode(),
+            codeGenerator.generate(),
             LocalDateTime.now().plus(tokenExpiration)
         );
         tokenRepository.save(token);
@@ -82,11 +80,4 @@ public class EmailVerificationService {
         return EmailVerificationResponse.from(user);
     }
 
-    private String generateCode() {
-        String code;
-        do {
-            code = VERIFICATION_CODE_FORMAT.formatted(RANDOM.nextInt(VERIFICATION_CODE_BOUND));
-        } while (tokenRepository.existsByCode(code));
-        return code;
-    }
 }
