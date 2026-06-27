@@ -24,6 +24,8 @@ import live.lbtrip.global.util.StringNormalizer;
 public class EmailVerificationService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final String VERIFICATION_CODE_FORMAT = "%06d";
+    private static final int VERIFICATION_CODE_BOUND = 1_000_000;
 
     private final EmailVerificationTokenRepository tokenRepository;
     private final UserRepository userRepository;
@@ -94,7 +96,7 @@ public class EmailVerificationService {
     private String generateCode() {
         String code;
         do {
-            code = "%06d".formatted(RANDOM.nextInt(1_000_000));
+            code = VERIFICATION_CODE_FORMAT.formatted(RANDOM.nextInt(VERIFICATION_CODE_BOUND));
         } while (tokenRepository.existsByCode(code));
         return code;
     }
