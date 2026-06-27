@@ -1,19 +1,6 @@
 package live.lbtrip.domain.auth.controller;
 
-import static live.lbtrip.global.error.ErrorCode.DUPLICATE_EMAIL;
-import static live.lbtrip.global.error.ErrorCode.EMAIL_ALREADY_VERIFIED;
-import static live.lbtrip.global.error.ErrorCode.EMAIL_NOT_VERIFIED;
-import static live.lbtrip.global.error.ErrorCode.EMAIL_VERIFICATION_CODE_EXPIRED;
-import static live.lbtrip.global.error.ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND;
-import static live.lbtrip.global.error.ErrorCode.EMAIL_VERIFICATION_CODE_USED;
-import static live.lbtrip.global.error.ErrorCode.EXPIRED_REFRESH_TOKEN;
-import static live.lbtrip.global.error.ErrorCode.INVALID_ACCESS_TOKEN;
-import static live.lbtrip.global.error.ErrorCode.INVALID_INPUT_VALUE;
-import static live.lbtrip.global.error.ErrorCode.INVALID_LOGIN_CREDENTIALS;
-import static live.lbtrip.global.error.ErrorCode.INVALID_REFRESH_TOKEN;
-import static live.lbtrip.global.error.ErrorCode.PASSWORD_CONFIRM_MISMATCH;
-import static live.lbtrip.global.error.ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED;
-import static live.lbtrip.global.error.ErrorCode.USER_NOT_FOUND;
+import static live.lbtrip.global.error.ErrorCode.*;
 import static org.springframework.http.HttpStatus.CREATED;
 
 import org.springframework.http.ResponseEntity;
@@ -39,69 +26,69 @@ import live.lbtrip.global.web.UserId;
 @Tag(name = "Auth", description = "회원가입, 로그인, 토큰, 이메일 인증 API")
 public interface AuthApi {
 
-	@Operation(
-		summary = "회원가입",
-		description = "회원가입 후 6자리 이메일 인증 코드를 발송합니다. 요청 body의 gender는 MALE, FEMALE, NOT_SPECIFIED 중 하나입니다."
-	)
-	@ApiSuccessResponse(status = CREATED, description = "회원가입 성공")
-	@ApiErrorCodeResponses({
-		INVALID_INPUT_VALUE,
-		PASSWORD_CONFIRM_MISMATCH,
-		REQUIRED_AGREEMENT_NOT_ACCEPTED,
-		DUPLICATE_EMAIL
-	})
-	ResponseEntity<SignupResponse> signup(
-		@Valid @RequestBody SignupRequest request
-	);
+    @Operation(
+        summary = "회원가입",
+        description = "회원가입 후 6자리 이메일 인증 코드를 발송합니다. 요청 body의 gender는 MALE, FEMALE, NOT_SPECIFIED 중 하나입니다."
+    )
+    @ApiSuccessResponse(status = CREATED, description = "회원가입 성공")
+    @ApiErrorCodeResponses({
+        INVALID_INPUT_VALUE,
+        PASSWORD_CONFIRM_MISMATCH,
+        REQUIRED_AGREEMENT_NOT_ACCEPTED,
+        DUPLICATE_EMAIL
+    })
+    ResponseEntity<SignupResponse> signup(
+        @Valid @RequestBody SignupRequest request
+    );
 
-	@Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하고 access token과 refresh token을 반환합니다.")
-	@ApiSuccessResponse(description = "로그인 성공")
-	@ApiErrorCodeResponses({
-		INVALID_INPUT_VALUE,
-		INVALID_LOGIN_CREDENTIALS,
-		EMAIL_NOT_VERIFIED
-	})
-	ResponseEntity<LoginResponse> login(
-		@Valid @RequestBody LoginRequest request
-	);
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하고 access token과 refresh token을 반환합니다.")
+    @ApiSuccessResponse(description = "로그인 성공")
+    @ApiErrorCodeResponses({
+        INVALID_INPUT_VALUE,
+        INVALID_LOGIN_CREDENTIALS,
+        EMAIL_NOT_VERIFIED
+    })
+    ResponseEntity<LoginResponse> login(
+        @Valid @RequestBody LoginRequest request
+    );
 
-	@Operation(summary = "토큰 갱신", description = "refresh token으로 새 access token을 발급합니다.")
-	@ApiSuccessResponse(description = "토큰 갱신 성공")
-	@ApiErrorCodeResponses({
-		INVALID_INPUT_VALUE,
-		INVALID_REFRESH_TOKEN,
-		EXPIRED_REFRESH_TOKEN
-	})
-	ResponseEntity<TokenResponse> refreshToken(
-		@Valid @RequestBody TokenRefreshRequest request
-	);
+    @Operation(summary = "토큰 갱신", description = "refresh token으로 새 access token을 발급합니다.")
+    @ApiSuccessResponse(description = "토큰 갱신 성공")
+    @ApiErrorCodeResponses({
+        INVALID_INPUT_VALUE,
+        INVALID_REFRESH_TOKEN,
+        EXPIRED_REFRESH_TOKEN
+    })
+    ResponseEntity<TokenResponse> refreshToken(
+        @Valid @RequestBody TokenRefreshRequest request
+    );
 
-	@SecurityRequirement(name = "bearerAuth")
-	@Operation(summary = "로그아웃", description = "로그인한 사용자를 로그아웃 처리합니다.")
-	@ApiSuccessResponse(description = "로그아웃 성공")
-	@ApiErrorCodeResponses(INVALID_ACCESS_TOKEN)
-	ResponseEntity<Void> logout(@UserId Long userId);
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "로그아웃", description = "로그인한 사용자를 로그아웃 처리합니다.")
+    @ApiSuccessResponse(description = "로그아웃 성공")
+    @ApiErrorCodeResponses(INVALID_ACCESS_TOKEN)
+    ResponseEntity<Void> logout(@UserId Long userId);
 
-	@Operation(summary = "이메일 인증 확인", description = "6자리 이메일 인증 코드를 확인하고 사용자를 활성화합니다.")
-	@ApiSuccessResponse(description = "이메일 인증 성공")
-	@ApiErrorCodeResponses({
-		INVALID_INPUT_VALUE,
-		EMAIL_VERIFICATION_CODE_EXPIRED,
-		EMAIL_VERIFICATION_CODE_USED,
-		EMAIL_VERIFICATION_CODE_NOT_FOUND
-	})
-	ResponseEntity<EmailVerificationResponse> confirmEmailVerification(
-		@Valid @RequestBody EmailVerificationConfirmRequest request
-	);
+    @Operation(summary = "이메일 인증 확인", description = "6자리 이메일 인증 코드를 확인하고 사용자를 활성화합니다.")
+    @ApiSuccessResponse(description = "이메일 인증 성공")
+    @ApiErrorCodeResponses({
+        INVALID_INPUT_VALUE,
+        EMAIL_VERIFICATION_CODE_EXPIRED,
+        EMAIL_VERIFICATION_CODE_USED,
+        EMAIL_VERIFICATION_CODE_NOT_FOUND
+    })
+    ResponseEntity<EmailVerificationResponse> confirmEmailVerification(
+        @Valid @RequestBody EmailVerificationConfirmRequest request
+    );
 
-	@Operation(summary = "이메일 인증 코드 재발송", description = "미인증 사용자에게 6자리 이메일 인증 코드를 다시 발송합니다.")
-	@ApiSuccessResponse(description = "인증 코드 재발송 성공")
-	@ApiErrorCodeResponses({
-		INVALID_INPUT_VALUE,
-		USER_NOT_FOUND,
-		EMAIL_ALREADY_VERIFIED
-	})
-	ResponseEntity<EmailVerificationResponse> resendEmailVerification(
-		@Valid @RequestBody EmailVerificationResendRequest request
-	);
+    @Operation(summary = "이메일 인증 코드 재발송", description = "미인증 사용자에게 6자리 이메일 인증 코드를 다시 발송합니다.")
+    @ApiSuccessResponse(description = "인증 코드 재발송 성공")
+    @ApiErrorCodeResponses({
+        INVALID_INPUT_VALUE,
+        USER_NOT_FOUND,
+        EMAIL_ALREADY_VERIFIED
+    })
+    ResponseEntity<EmailVerificationResponse> resendEmailVerification(
+        @Valid @RequestBody EmailVerificationResendRequest request
+    );
 }
