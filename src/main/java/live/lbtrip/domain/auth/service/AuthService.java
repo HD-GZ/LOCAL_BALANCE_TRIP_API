@@ -36,7 +36,7 @@ public class AuthService {
         validateEmailNotDuplicated(email);
 
         User user = User.create(
-            request.name().trim(),
+            StringNormalizer.trim(request.name()),
             email,
             passwordEncoder.encode(request.password()),
             request.birthDate(),
@@ -93,7 +93,7 @@ public class AuthService {
     }
 
     private RefreshToken findUsableRefreshToken(String token) {
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(token.trim())
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(StringNormalizer.trim(token))
             .orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
 
         if (!jwtTokenProvider.isValid(refreshToken.getToken())) {

@@ -52,7 +52,7 @@ public class EmailVerificationService {
 
     @Transactional
     public EmailVerificationResponse confirm(EmailVerificationConfirmRequest request) {
-        EmailVerificationToken token = tokenRepository.findByCode(request.code().trim())
+        EmailVerificationToken token = tokenRepository.findByCode(StringNormalizer.trim(request.code()))
             .orElseThrow(() -> BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
 
         if (token.isUsed()) {
