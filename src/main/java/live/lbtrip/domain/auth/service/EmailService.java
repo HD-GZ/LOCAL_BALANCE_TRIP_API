@@ -13,8 +13,6 @@ import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 
-import live.lbtrip.domain.user.model.User;
-
 @Service
 public class EmailService {
 
@@ -33,11 +31,11 @@ public class EmailService {
         this.from = from;
     }
 
-    public void sendVerificationEmail(User user, String code) {
+    public void sendVerificationEmail(String toEmail, String code) {
         Mail mail = new Mail(
             new Email(from),
             "[로컬밸런스 트립] 이메일 인증을 완료해 주세요",
-            new Email(user.getEmail()),
+            new Email(toEmail),
             new Content("text/plain", """
                 로컬밸런스 트립 회원가입을 완료하려면 아래 인증 코드를 입력해 주세요.
                 

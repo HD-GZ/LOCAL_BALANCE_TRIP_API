@@ -46,7 +46,7 @@ public class EmailVerificationService {
     public long issue(User user) {
         EmailVerificationToken token = createToken(user);
         tokenRepository.save(token);
-        emailService.sendVerificationEmail(user, token.getCode());
+        emailService.sendVerificationEmail(user.getEmail(), token.getCode());
         return tokenExpiration.toSeconds();
     }
 
