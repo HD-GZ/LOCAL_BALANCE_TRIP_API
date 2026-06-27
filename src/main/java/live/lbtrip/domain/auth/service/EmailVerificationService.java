@@ -60,16 +60,10 @@ public class EmailVerificationService {
         EmailVerificationToken token = tokenRepository.findByCode(StringNormalizer.trim(request.code()))
             .orElseThrow(() -> BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_NOT_FOUND));
 
-        if (token.isUsed()) {
-            throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_USED);
-        }
-        if (token.isExpired(LocalDateTime.now())) {
-            throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_EXPIRED);
-        }
+        token.use(LocalDateTime.now());
 
         User user = token.getUser();
         user.verifyEmail();
-        token.use();
 
         return EmailVerificationResponse.from(user);
     }

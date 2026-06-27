@@ -12,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -51,11 +53,18 @@ public class EmailVerificationToken extends BaseEntity {
         return new EmailVerificationToken(user, code, expiresAt);
     }
 
-    public boolean isExpired(LocalDateTime now) {
+    private boolean isExpired(LocalDateTime now) {
         return expiresAt.isBefore(now);
     }
 
-    public void use() {
+    public void use(LocalDateTime now) {
+        if (used) {
+            throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_USED);
+        }
+        if (isExpired(now)) {
+            throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_EXPIRED);
+        }
+
         this.used = true;
     }
 
