@@ -2,6 +2,9 @@ package live.lbtrip.domain.auth.dto.request;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
+import java.time.LocalDate;
+import java.util.Objects;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
@@ -10,8 +13,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDate;
 import live.lbtrip.domain.user.model.Gender;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 
 public record SignupRequest(
     @Schema(description = "사용자 이름", example = "홍길동", requiredMode = REQUIRED)
@@ -57,4 +61,9 @@ public record SignupRequest(
     @Schema(description = "마케팅 정보 수신 동의 여부. 선택값입니다.", example = "false")
     boolean marketingAgreed
 ) {
+    public SignupRequest {
+        if (!Objects.equals(password, passwordConfirm)) {
+            throw BusinessException.of(ErrorCode.PASSWORD_CONFIRM_MISMATCH);
+        }
+    }
 }

@@ -1,6 +1,8 @@
 package live.lbtrip.domain.auth.service;
 
-import java.util.Locale;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.auth.dto.request.LoginRequest;
 import live.lbtrip.domain.auth.dto.request.SignupRequest;
@@ -9,117 +11,82 @@ import live.lbtrip.domain.auth.dto.response.LoginResponse;
 import live.lbtrip.domain.auth.dto.response.SignupResponse;
 import live.lbtrip.domain.auth.dto.response.TokenResponse;
 import live.lbtrip.domain.auth.model.RefreshToken;
-import live.lbtrip.domain.auth.repository.RefreshTokenRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.model.UserStatus;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthService {
 
-	private final UserRepository userRepository;
-	private final PasswordEncoder passwordEncoder;
-	private final EmailVerificationService emailVerificationService;
-	private final JwtTokenProvider jwtTokenProvider;
-	private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
-	@Transactional
-	public SignupResponse signup(SignupRequest request) {
-		validateSignupRequest(request);
+    @Transactional
+    public SignupResponse signup(SignupRequest request) {
+        String email = StringNormalizer.trimToLowerCase(request.email());
+        validateEmailNotDuplicated(email);
 
-		String email = normalizeEmail(request.email());
-		if (userRepository.existsByEmail(email)) {
-			throw BusinessException.of(ErrorCode.DUPLICATE_EMAIL);
-		}
+        User user = User.create(
+            StringNormalizer.trim(request.name()),
+            email,
+            passwordEncoder.encode(request.password()),
+            request.birthDate(),
+            request.gender(),
+            request.termsAgreed(),
+            request.privacyAgreed(),
+            request.marketingAgreed()
+        );
 
-		User user = User.create(
-			request.name().trim(),
-			email,
-			passwordEncoder.encode(request.password()),
-			request.birthDate(),
-			request.gender(),
-			request.termsAgreed(),
-			request.privacyAgreed(),
-			request.marketingAgreed()
-		);
+        User savedUser = userRepository.save(user);
+        long verificationCodeExpiresIn = emailVerificationService.issue(savedUser);
+        return SignupResponse.from(savedUser, verificationCodeExpiresIn);
+    }
 
-		User savedUser = userRepository.save(user);
-		long verificationCodeExpiresIn = emailVerificationService.issue(savedUser);
-		return SignupResponse.from(savedUser, verificationCodeExpiresIn);
-	}
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        String email = StringNormalizer.trimToLowerCase(request.email());
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_LOGIN_CREDENTIALS));
 
-	@Transactional
-	public LoginResponse login(LoginRequest request) {
-		String email = normalizeEmail(request.email());
-		User user = userRepository.findByEmail(email)
-			.orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_LOGIN_CREDENTIALS));
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw BusinessException.of(ErrorCode.INVALID_LOGIN_CREDENTIALS);
+        }
+        if (!user.isActive()) {
+            throw BusinessException.of(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
 
-		if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-			throw BusinessException.of(ErrorCode.INVALID_LOGIN_CREDENTIALS);
-		}
-		if (user.getStatus() != UserStatus.ACTIVE) {
-			throw BusinessException.of(ErrorCode.EMAIL_NOT_VERIFIED);
-		}
+        String accessToken = jwtTokenProvider.createAccessToken(user);
+        String refreshToken = refreshTokenService.issue(user);
 
-		String accessToken = jwtTokenProvider.createAccessToken(user);
-		RefreshToken refreshToken = RefreshToken.create(
-			user,
-			jwtTokenProvider.createRefreshToken(user),
-			jwtTokenProvider.refreshTokenExpiresAt()
-		);
+        return LoginResponse.of(accessToken, refreshToken);
+    }
 
-		refreshTokenRepository.deleteByUser(user);
-		refreshTokenRepository.save(refreshToken);
+    @Transactional
+    public TokenResponse refreshToken(TokenRefreshRequest request) {
+        RefreshToken refreshToken = refreshTokenService.findUsable(request.refreshToken());
+        User user = refreshToken.getUser();
 
-		return LoginResponse.of(accessToken, refreshToken.getToken());
-	}
+        String newAccessToken = jwtTokenProvider.createAccessToken(user);
 
-	@Transactional
-	public TokenResponse refreshToken(TokenRefreshRequest request) {
-		RefreshToken refreshToken = findUsableRefreshToken(request.refreshToken());
-		User user = refreshToken.getUser();
+        return TokenResponse.of(newAccessToken, refreshToken.getToken());
+    }
 
-		String newAccessToken = jwtTokenProvider.createAccessToken(user);
+    @Transactional
+    public void logout(Long userId) {
+        refreshTokenService.deleteByUserId(userId);
+    }
 
-		return TokenResponse.of(newAccessToken, refreshToken.getToken());
-	}
-
-	@Transactional
-	public void logout(Long userId) {
-		refreshTokenRepository.deleteByUserId(userId);
-	}
-
-	private RefreshToken findUsableRefreshToken(String token) {
-		RefreshToken refreshToken = refreshTokenRepository.findByToken(token.trim())
-			.orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
-
-		if (!jwtTokenProvider.isValid(refreshToken.getToken())) {
-			throw BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN);
-		}
-		if (refreshToken.isExpired(java.time.Instant.now())) {
-			throw BusinessException.of(ErrorCode.EXPIRED_REFRESH_TOKEN);
-		}
-
-		return refreshToken;
-	}
-
-	private void validateSignupRequest(SignupRequest request) {
-		if (!request.password().equals(request.passwordConfirm())) {
-			throw BusinessException.of(ErrorCode.PASSWORD_CONFIRM_MISMATCH);
-		}
-		if (!request.termsAgreed() || !request.privacyAgreed()) {
-			throw BusinessException.of(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);
-		}
-	}
-
-	private String normalizeEmail(String email) {
-		return email.trim().toLowerCase(Locale.ROOT);
-	}
+    private void validateEmailNotDuplicated(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw BusinessException.of(ErrorCode.DUPLICATE_EMAIL);
+        }
+    }
 }
