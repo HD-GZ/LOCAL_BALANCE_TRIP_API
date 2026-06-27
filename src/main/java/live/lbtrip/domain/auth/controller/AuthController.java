@@ -37,31 +37,36 @@ public class AuthController implements AuthApi {
 	}
 
 	@PostMapping("/login")
-	public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-		return authService.login(request);
+	public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+		LoginResponse response = authService.login(request);
+		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping("/refresh")
-	public TokenResponse refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
-		return authService.refreshToken(request);
+	public ResponseEntity<TokenResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+		TokenResponse response = authService.refreshToken(request);
+		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping("/logout")
-	public void logout(@UserId Long userId) {
+	public ResponseEntity<Void> logout(@UserId Long userId) {
 		authService.logout(userId);
+		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/email-verifications/confirm")
-	public EmailVerificationResponse confirmEmailVerification(
+	public ResponseEntity<EmailVerificationResponse> confirmEmailVerification(
 		@Valid @RequestBody EmailVerificationConfirmRequest request
 	) {
-		return emailVerificationService.confirm(request);
+		EmailVerificationResponse response = emailVerificationService.confirm(request);
+		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping("/email-verifications/resend")
-	public EmailVerificationResponse resendEmailVerification(
+	public ResponseEntity<EmailVerificationResponse> resendEmailVerification(
 		@Valid @RequestBody EmailVerificationResendRequest request
 	) {
-		return emailVerificationService.resend(request);
+		EmailVerificationResponse response = emailVerificationService.resend(request);
+		return ResponseEntity.ok(response);
 	}
 }

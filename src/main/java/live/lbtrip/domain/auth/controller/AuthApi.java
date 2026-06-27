@@ -158,7 +158,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    LoginResponse login(
+    ResponseEntity<LoginResponse> login(
         @Valid @RequestBody LoginRequest request
     );
 
@@ -209,7 +209,7 @@ public interface AuthApi {
             }
         ))
     })
-    TokenResponse refreshToken(
+    ResponseEntity<TokenResponse> refreshToken(
         @Valid @RequestBody TokenRefreshRequest request
     );
 
@@ -241,7 +241,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    void logout(@UserId Long userId);
+    ResponseEntity<Void> logout(@UserId Long userId);
 
     @Operation(summary = "이메일 인증 확인", description = "6자리 이메일 인증 코드를 확인하고 사용자를 활성화합니다.")
     @ApiResponses({
@@ -302,7 +302,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    EmailVerificationResponse confirmEmailVerification(
+    ResponseEntity<EmailVerificationResponse> confirmEmailVerification(
         @Valid @RequestBody EmailVerificationConfirmRequest request
     );
 
@@ -355,7 +355,7 @@ public interface AuthApi {
                 """)
         ))
     })
-    EmailVerificationResponse resendEmailVerification(
+    ResponseEntity<EmailVerificationResponse> resendEmailVerification(
         @Valid @RequestBody EmailVerificationResendRequest request
     );
 }

@@ -1,6 +1,7 @@
 package live.lbtrip.domain.user.controller;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,7 +52,7 @@ public interface UserApi {
                 """)
         ))
     })
-    EmailAvailabilityResponse checkEmailAvailability(
+    ResponseEntity<EmailAvailabilityResponse> checkEmailAvailability(
         @Parameter(description = "중복 확인할 이메일", example = "user@example.com", required = true)
         @NotBlank(message = "이메일은 필수입니다.")
         @Email(message = "이메일 형식이 올바르지 않습니다.")
