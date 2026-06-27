@@ -2,15 +2,16 @@ package live.lbtrip.domain.auth.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+
 import live.lbtrip.domain.auth.model.RefreshToken;
 import live.lbtrip.domain.user.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
-	Optional<RefreshToken> findByToken(String token);
+    Optional<RefreshToken> findByToken(String token);
 
-	void deleteByUser(User user);
+    void deleteByUser(User user);
 
-	void deleteByUserId(Long userId);
+    void deleteByUserId(Long userId);
 }

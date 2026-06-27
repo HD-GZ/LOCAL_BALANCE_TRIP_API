@@ -12,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,40 +25,47 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EmailVerificationToken extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
-	private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-	@Column(name = "token", nullable = false, unique = true, length = 6)
-	private String code;
+    @Column(name = "token", nullable = false, unique = true, length = 6)
+    private String code;
 
-	@Column(nullable = false)
-	private LocalDateTime expiresAt;
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
 
-	@Column(nullable = false)
-	private boolean used;
+    @Column(nullable = false)
+    private boolean used;
 
-	private EmailVerificationToken(User user, String code, LocalDateTime expiresAt) {
-		this.user = user;
-		this.code = code;
-		this.expiresAt = expiresAt;
-		this.used = false;
-	}
+    private EmailVerificationToken(User user, String code, LocalDateTime expiresAt) {
+        this.user = user;
+        this.code = code;
+        this.expiresAt = expiresAt;
+        this.used = false;
+    }
 
-	public static EmailVerificationToken create(User user, String code, LocalDateTime expiresAt) {
-		return new EmailVerificationToken(user, code, expiresAt);
-	}
+    public static EmailVerificationToken create(User user, String code, LocalDateTime expiresAt) {
+        return new EmailVerificationToken(user, code, expiresAt);
+    }
 
-	public boolean isExpired(LocalDateTime now) {
-		return expiresAt.isBefore(now);
-	}
+    private boolean isExpired(LocalDateTime now) {
+        return expiresAt.isBefore(now);
+    }
 
-	public void use() {
-		this.used = true;
-	}
+    public void use(LocalDateTime now) {
+        if (used) {
+            throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_USED);
+        }
+        if (isExpired(now)) {
+            throw BusinessException.of(ErrorCode.EMAIL_VERIFICATION_CODE_EXPIRED);
+        }
+
+        this.used = true;
+    }
 
 }
