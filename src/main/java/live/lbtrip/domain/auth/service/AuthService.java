@@ -98,9 +98,7 @@ public class AuthService {
         if (!jwtTokenProvider.isValid(refreshToken.getToken())) {
             throw BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN);
         }
-        if (refreshToken.isExpired(java.time.Instant.now())) {
-            throw BusinessException.of(ErrorCode.EXPIRED_REFRESH_TOKEN);
-        }
+        refreshToken.validateNotExpired(java.time.Instant.now());
 
         return refreshToken;
     }

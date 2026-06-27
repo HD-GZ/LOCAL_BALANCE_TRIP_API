@@ -12,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -47,8 +49,14 @@ public class RefreshToken extends BaseEntity {
         return new RefreshToken(user, token, expiresAt);
     }
 
-    public boolean isExpired(Instant now) {
+    private boolean isExpired(Instant now) {
         return expiresAt.isBefore(now);
+    }
+
+    public void validateNotExpired(Instant now) {
+        if (isExpired(now)) {
+            throw BusinessException.of(ErrorCode.EXPIRED_REFRESH_TOKEN);
+        }
     }
 
 }
