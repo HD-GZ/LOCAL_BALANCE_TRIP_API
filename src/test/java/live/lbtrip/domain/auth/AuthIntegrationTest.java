@@ -91,8 +91,9 @@ class AuthIntegrationTest {
         when(sendGrid.api(any(Request.class))).thenReturn(new Response(500, "send failed", Map.of()));
 
         assertThatThrownBy(() -> authService.signup(signupRequest("local@email.com")))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("SendGrid email send failed");
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.EMAIL_SEND_FAILED);
 
         assertThat(userRepository.existsByEmail("local@email.com")).isFalse();
         assertThat(emailVerificationTokenRepository.findAll()).isEmpty();
