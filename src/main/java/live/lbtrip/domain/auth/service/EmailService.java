@@ -13,6 +13,9 @@ import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
+
 @Service
 public class EmailService {
 
@@ -53,15 +56,10 @@ public class EmailService {
 
             Response response = sendGrid.api(request);
             if (response.getStatusCode() < SUCCESS_STATUS_MIN || response.getStatusCode() > SUCCESS_STATUS_MAX) {
-                throw new IllegalStateException(
-                    "SendGrid email send failed. statusCode=%d, body=%s".formatted(
-                        response.getStatusCode(),
-                        response.getBody()
-                    )
-                );
+                throw BusinessException.of(ErrorCode.EMAIL_SEND_FAILED);
             }
         } catch (IOException exception) {
-            throw new IllegalStateException("SendGrid email send failed.", exception);
+            throw BusinessException.of(ErrorCode.EMAIL_SEND_FAILED);
         }
     }
 }
