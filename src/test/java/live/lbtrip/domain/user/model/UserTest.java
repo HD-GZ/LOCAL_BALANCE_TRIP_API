@@ -3,90 +3,80 @@ package live.lbtrip.domain.user.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.time.LocalDate;
-
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.fixture.UserFixture;
 
 class UserTest {
 
-    @Test
-    void createUser() {
-        User user = User.create(
-            "홍길동",
-            "user@example.com",
-            "encoded-password",
-            LocalDate.of(1999, 1, 1),
-            Gender.NOT_SPECIFIED,
-            true,
-            true,
-            false
-        );
+    @Nested
+    class 생성 {
 
-        assertThat(user.getName()).isEqualTo("홍길동");
-        assertThat(user.getEmail()).isEqualTo("user@example.com");
-        assertThat(user.getPassword()).isEqualTo("encoded-password");
-        assertThat(user.getBirthDate()).isEqualTo(LocalDate.of(1999, 1, 1));
-        assertThat(user.getGender()).isEqualTo(Gender.NOT_SPECIFIED);
-        assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_EMAIL_VERIFICATION);
-        assertThat(user.isActive()).isFalse();
-        assertThat(user.isTermsAgreed()).isTrue();
-        assertThat(user.isPrivacyAgreed()).isTrue();
-        assertThat(user.isMarketingAgreed()).isFalse();
+        @Test
+        void 사용자를_생성한다() {
+            User user = UserFixture.user();
+
+            assertThat(user.getName()).isEqualTo(UserFixture.NAME);
+            assertThat(user.getEmail()).isEqualTo(UserFixture.EMAIL);
+            assertThat(user.getPassword()).isEqualTo(UserFixture.ENCODED_PASSWORD);
+            assertThat(user.getBirthDate()).isEqualTo(UserFixture.BIRTH_DATE);
+            assertThat(user.getGender()).isEqualTo(UserFixture.GENDER);
+            assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_EMAIL_VERIFICATION);
+            assertThat(user.isActive()).isFalse();
+            assertThat(user.isTermsAgreed()).isTrue();
+            assertThat(user.isPrivacyAgreed()).isTrue();
+            assertThat(user.isMarketingAgreed()).isFalse();
+        }
+
+        @Test
+        void 서비스_이용약관에_동의하지_않으면_예외를_던진다() {
+            assertThatThrownBy(() -> User.create(
+                UserFixture.NAME,
+                UserFixture.EMAIL,
+                UserFixture.ENCODED_PASSWORD,
+                UserFixture.BIRTH_DATE,
+                UserFixture.GENDER,
+                false,
+                true,
+                false
+            ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);
+        }
+
+        @Test
+        void 개인정보_수집_이용에_동의하지_않으면_예외를_던진다() {
+            assertThatThrownBy(() -> User.create(
+                UserFixture.NAME,
+                UserFixture.EMAIL,
+                UserFixture.ENCODED_PASSWORD,
+                UserFixture.BIRTH_DATE,
+                UserFixture.GENDER,
+                true,
+                false,
+                false
+            ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);
+        }
     }
 
-    @Test
-    void createRejectsMissingTermsAgreement() {
-        assertThatThrownBy(() -> User.create(
-            "홍길동",
-            "user@example.com",
-            "encoded-password",
-            LocalDate.of(1999, 1, 1),
-            Gender.NOT_SPECIFIED,
-            false,
-            true,
-            false
-        ))
-            .isInstanceOf(BusinessException.class)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);
-    }
+    @Nested
+    class 이메일_인증 {
 
-    @Test
-    void createRejectsMissingPrivacyAgreement() {
-        assertThatThrownBy(() -> User.create(
-            "홍길동",
-            "user@example.com",
-            "encoded-password",
-            LocalDate.of(1999, 1, 1),
-            Gender.NOT_SPECIFIED,
-            true,
-            false,
-            false
-        ))
-            .isInstanceOf(BusinessException.class)
-            .extracting("errorCode")
-            .isEqualTo(ErrorCode.REQUIRED_AGREEMENT_NOT_ACCEPTED);
-    }
+        @Test
+        void 이메일_인증을_완료하면_사용자가_활성화된다() {
+            User user = UserFixture.user();
 
-    @Test
-    void verifyEmailActivatesUser() {
-        User user = User.create(
-            "홍길동",
-            "user@example.com",
-            "encoded-password",
-            LocalDate.of(1999, 1, 1),
-            Gender.NOT_SPECIFIED,
-            true,
-            true,
-            false
-        );
+            user.verifyEmail();
 
-        user.verifyEmail();
-
-        assertThat(user.isActive()).isTrue();
-        assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+            assertThat(user.isActive()).isTrue();
+            assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        }
     }
 }
