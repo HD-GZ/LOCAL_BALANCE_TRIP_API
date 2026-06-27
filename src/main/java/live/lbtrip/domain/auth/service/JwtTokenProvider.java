@@ -3,6 +3,7 @@ package live.lbtrip.domain.auth.service;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -45,9 +46,9 @@ public class JwtTokenProvider {
     public boolean isValid(String token) {
         try {
             parseSubject(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException exception) {
             return false;
+        } catch (JwtException | IllegalArgumentException exception) {
+            return true;
         }
     }
 
@@ -58,11 +59,11 @@ public class JwtTokenProvider {
             .parseSignedClaims(token)
             .getPayload();
 
-        return new JwtTokenSubject(Long.parseLong(claims.getSubject()));
+        return JwtTokenSubject.of(Long.parseLong(claims.getSubject()));
     }
 
-    public Instant refreshTokenExpiresAt() {
-        return Instant.now().plus(refreshTokenExpiration);
+    public LocalDateTime refreshTokenExpiresAt() {
+        return LocalDateTime.now().plus(refreshTokenExpiration);
     }
 
     private String createToken(User user, Duration expiration) {

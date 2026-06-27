@@ -95,10 +95,10 @@ public class AuthService {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(StringNormalizer.trim(token))
             .orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));
 
-        if (!jwtTokenProvider.isValid(refreshToken.getToken())) {
+        if (jwtTokenProvider.isValid(refreshToken.getToken())) {
             throw BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN);
         }
-        refreshToken.validateNotExpired(java.time.Instant.now());
+        refreshToken.validateNotExpired(java.time.LocalDateTime.now());
 
         return refreshToken;
     }

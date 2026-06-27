@@ -3,8 +3,8 @@ package live.lbtrip.domain.auth.model;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +17,7 @@ class RefreshTokenTest {
 
     @Test
     void validateNotExpiredPassesUsableToken() {
-        Instant now = Instant.parse("2026-01-01T12:00:00Z");
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 12, 0);
         RefreshToken refreshToken = RefreshToken.create(user(), "refresh-token", now.plusSeconds(60));
 
         assertThatCode(() -> refreshToken.validateNotExpired(now))
@@ -26,7 +26,7 @@ class RefreshTokenTest {
 
     @Test
     void validateNotExpiredRejectsExpiredToken() {
-        Instant now = Instant.parse("2026-01-01T12:00:00Z");
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 12, 0);
         RefreshToken refreshToken = RefreshToken.create(user(), "refresh-token", now.minusSeconds(1));
 
         assertThatThrownBy(() -> refreshToken.validateNotExpired(now))

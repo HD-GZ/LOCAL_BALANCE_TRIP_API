@@ -1,6 +1,6 @@
 package live.lbtrip.domain.auth.model;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,23 +37,23 @@ public class RefreshToken extends BaseEntity {
     private String token;
 
     @Column(nullable = false)
-    private Instant expiresAt;
+    private LocalDateTime expiresAt;
 
-    private RefreshToken(User user, String token, Instant expiresAt) {
+    private RefreshToken(User user, String token, LocalDateTime expiresAt) {
         this.user = user;
         this.token = token;
         this.expiresAt = expiresAt;
     }
 
-    public static RefreshToken create(User user, String token, Instant expiresAt) {
+    public static RefreshToken create(User user, String token, LocalDateTime expiresAt) {
         return new RefreshToken(user, token, expiresAt);
     }
 
-    private boolean isExpired(Instant now) {
+    private boolean isExpired(LocalDateTime now) {
         return expiresAt.isBefore(now);
     }
 
-    public void validateNotExpired(Instant now) {
+    public void validateNotExpired(LocalDateTime now) {
         if (isExpired(now)) {
             throw BusinessException.of(ErrorCode.EXPIRED_REFRESH_TOKEN);
         }
