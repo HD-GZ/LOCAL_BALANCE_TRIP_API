@@ -22,48 +22,48 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Propensity extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false, unique = true)
-	private User user;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
-	@Column(nullable = false)
-	private int locality;
+    @Column(nullable = false)
+    private int locality;
 
-	@Column(nullable = false)
-	private int frugality;
+    @Column(nullable = false)
+    private int frugality;
 
-	@Column(nullable = false)
-	private int flexibility;
+    @Column(nullable = false)
+    private int flexibility;
 
-	@Column(nullable = false)
-	private int experientiality;
+    @Column(nullable = false)
+    private int experientiality;
 
-	@Column(nullable = false)
-	private int vitality;
+    @Column(nullable = false)
+    private int vitality;
 
-	@Column(nullable = false)
-	private int sociality;
+    @Column(nullable = false)
+    private int sociality;
 
-	@Builder
-	private Propensity(User user, PropensityScores scores) {
-		this.user = user;
-		applyScores(scores);
-	}
+    @Builder
+    private Propensity(User user, PropensityScores scores) {
+        this.user = user;
+        applyScores(scores);
+    }
 
-	public void updateScores(PropensityScores scores) {
-		applyScores(scores);
-	}
+    public void updateScores(PropensityScores scores) {
+        applyScores(scores);
+    }
 
-	private void applyScores(PropensityScores scores) {
-		this.locality = scores.locality();
-		this.frugality = scores.frugality();
-		this.flexibility = scores.flexibility();
-		this.experientiality = scores.experientiality();
-		this.vitality = scores.vitality();
-		this.sociality = scores.sociality();
-	}
+    private void applyScores(PropensityScores scores) {
+        this.locality = scores.locality();
+        this.frugality = scores.frugality();
+        this.flexibility = scores.flexibility();
+        this.experientiality = scores.experientiality();
+        this.vitality = scores.vitality();
+        this.sociality = scores.sociality();
+    }
 }

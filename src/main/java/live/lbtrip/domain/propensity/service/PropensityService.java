@@ -18,38 +18,38 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PropensityService {
 
-	private final PropensityRepository propensityRepository;
-	private final UserRepository userRepository;
-	private final PropensityClassifier classifier;
+    private final PropensityRepository propensityRepository;
+    private final UserRepository userRepository;
+    private final PropensityClassifier classifier;
 
-	@Transactional
-	public PropensityResponse setPropensity(Long userId, PropensityRequest request) {
-		PropensityScores scores = PropensityScores.from(request);
+    @Transactional
+    public PropensityResponse setPropensity(Long userId, PropensityRequest request) {
+        PropensityScores scores = PropensityScores.from(request);
 
-		Propensity propensity = propensityRepository.findByUserId(userId)
-			.map(existing -> {
-				existing.updateScores(scores);
-				return existing;
-			})
-			.orElseGet(() -> {
-				User userRef = userRepository.getReferenceById(userId);
-				return propensityRepository.save(Propensity.builder()
-					.user(userRef)
-					.scores(scores)
-					.build());
-			});
+        Propensity propensity = propensityRepository.findByUserId(userId)
+            .map(existing -> {
+                existing.updateScores(scores);
+                return existing;
+            })
+            .orElseGet(() -> {
+                User userRef = userRepository.getReferenceById(userId);
+                return propensityRepository.save(Propensity.builder()
+                    .user(userRef)
+                    .scores(scores)
+                    .build());
+            });
 
-		return PropensityResponse.of(propensity, classifier.classify(scores));
-	}
+        return PropensityResponse.of(propensity, classifier.classify(scores));
+    }
 
-	@Transactional(readOnly = true)
-	public PropensityResponse getPropensity(Long userId) {
-		Propensity propensity = propensityRepository.findByUserId(userId)
-			.orElseThrow(() -> BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND));
+    @Transactional(readOnly = true)
+    public PropensityResponse getPropensity(Long userId) {
+        Propensity propensity = propensityRepository.findByUserId(userId)
+            .orElseThrow(() -> BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND));
 
-		return PropensityResponse.of(
-			propensity,
-			classifier.classify(PropensityScores.from(propensity))
-		);
-	}
+        return PropensityResponse.of(
+            propensity,
+            classifier.classify(PropensityScores.from(propensity))
+        );
+    }
 }

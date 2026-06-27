@@ -8,5 +8,5 @@ import live.lbtrip.domain.propensity.model.Propensity;
 
 public interface PropensityRepository extends JpaRepository<Propensity, Long> {
 
-	Optional<Propensity> findByUserId(Long userId);
+    Optional<Propensity> findByUserId(Long userId);
 }
