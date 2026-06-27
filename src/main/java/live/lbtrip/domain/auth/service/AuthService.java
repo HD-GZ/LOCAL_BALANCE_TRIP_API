@@ -32,8 +32,6 @@ public class AuthService {
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
-        validatePasswordConfirmation(request);
-
         String email = StringNormalizer.trimToLowerCase(request.email());
         validateEmailNotDuplicated(email);
 
@@ -106,12 +104,6 @@ public class AuthService {
         }
 
         return refreshToken;
-    }
-
-    private void validatePasswordConfirmation(SignupRequest request) {
-        if (!request.password().equals(request.passwordConfirm())) {
-            throw BusinessException.of(ErrorCode.PASSWORD_CONFIRM_MISMATCH);
-        }
     }
 
     private void validateEmailNotDuplicated(String email) {
