@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
@@ -34,7 +35,6 @@ public class RefreshTokenService {
         return refreshToken.getToken();
     }
 
-    @Transactional(readOnly = true)
     public RefreshToken findUsable(String token) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(StringNormalizer.trim(token))
             .orElseThrow(() -> BusinessException.of(ErrorCode.INVALID_REFRESH_TOKEN));

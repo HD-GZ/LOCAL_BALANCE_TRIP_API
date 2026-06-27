@@ -10,11 +10,11 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
     public EmailAvailabilityResponse checkEmailAvailability(String email) {
         String normalizedEmail = StringNormalizer.trimToLowerCase(email);
         return EmailAvailabilityResponse.of(!userRepository.existsByEmail(normalizedEmail));

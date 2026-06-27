@@ -19,6 +19,7 @@ import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.util.StringNormalizer;
 
 @Service
+@Transactional(readOnly = true)
 public class EmailVerificationService {
 
     private final EmailVerificationTokenRepository tokenRepository;
