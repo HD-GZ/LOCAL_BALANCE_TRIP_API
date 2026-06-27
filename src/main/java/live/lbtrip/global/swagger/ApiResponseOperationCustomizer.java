@@ -189,7 +189,7 @@ public class ApiResponseOperationCustomizer implements OperationCustomizer {
 		}
 		return errorCodes.stream()
 			.map(errorCode -> errorCode.name() + ": " + errorCode.getMessage())
-			.collect(Collectors.joining(", "));
+			.collect(Collectors.joining("<br/>"));
 	}
 
 	private Map<String, Object> errorExample(ErrorCode errorCode) {
