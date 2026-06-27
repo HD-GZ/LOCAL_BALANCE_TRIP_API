@@ -184,9 +184,6 @@ public class ApiResponseOperationCustomizer implements OperationCustomizer {
 	}
 
 	private String errorDescription(List<ErrorCode> errorCodes) {
-		if (errorCodes.size() == 1) {
-			return errorCodes.get(0).getMessage();
-		}
 		return errorCodes.stream()
 			.map(errorCode -> errorCode.name() + ": " + errorCode.getMessage())
 			.collect(Collectors.joining("<br/>"));
