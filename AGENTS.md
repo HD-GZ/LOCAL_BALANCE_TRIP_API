@@ -1,75 +1,75 @@
 # Project Coding Agent Rules
 
-이 문서는 이 저장소에서 코딩 에이전트가 따라야 할 프로젝트 규칙의 단일 원본이다.
-`CLAUDE.md` 등 다른 에이전트 전용 규칙 파일을 만들 때는 이 문서를 복제하지 말고 이 파일을 참조하도록 작성한다.
+This document is the single source of truth for coding agent rules in this repository.
+When adding agent-specific rule files such as `CLAUDE.md`, do not duplicate these rules; link to this file instead.
 
-## 범위
+## Scope
 
-- Java/Spring Boot API 코드는 `src/main/java/live/lbtrip` 아래의 기존 패키지 구조를 따른다.
+- Java/Spring Boot API code should follow the existing package structure under `src/main/java/live/lbtrip`.
 
-## API 계층
+## API Layer
 
-- 컨트롤러 구현체는 라우팅, 요청 검증 애너테이션, 서비스 호출, `ResponseEntity` 생성만 담당한다.
-- Swagger 문서화는 컨트롤러 구현체가 아니라 `*Api` 인터페이스에 작성한다.
-- 신규 API를 추가할 때는 같은 패키지에 `XxxApi` 인터페이스를 만들고, `XxxController implements XxxApi` 구조를 따른다.
-- `*Api` 메서드에는 `@Operation`, `@ApiSuccessResponse`, `@ApiErrorCodeResponses`를 작성한다.
-- 인증이 필요한 API에는 `@SecurityRequirement(name = "bearerAuth")`와 필요한 경우 `@UserId`를 사용한다.
+- Controller implementations should only handle routing, request validation annotations, service calls, and `ResponseEntity` creation.
+- Put Swagger documentation in `*Api` interfaces, not in controller implementations.
+- When adding a new API, create an `XxxApi` interface in the same package and use the `XxxController implements XxxApi` structure.
+- Add `@Operation`, `@ApiSuccessResponse`, and `@ApiErrorCodeResponses` to `*Api` methods.
+- For authenticated APIs, use `@SecurityRequirement(name = "bearerAuth")` and `@UserId` when needed.
 
-## 응답과 예외
+## Responses and Exceptions
 
-- 모든 JSON API 응답은 `ApiResponse` 래핑 구조를 따른다.
-- 일반 성공 응답은 컨트롤러에서 직접 `ApiResponse.success(...)`로 감싸지 않는다. `ApiResponseAdvice`가 자동으로 래핑한다.
-- 비즈니스 예외는 `BusinessException.of(ErrorCode.X)`로 던진다.
-- 새로운 비즈니스 예외가 필요하면 먼저 `ErrorCode`에 HTTP 상태와 한국어 메시지를 추가한다.
-- 임의의 `RuntimeException`, 하드코딩된 에러 응답, 컨트롤러 내부 예외 응답 생성을 피한다.
-- validation 실패는 `GlobalExceptionHandler`의 `INVALID_INPUT_VALUE` 응답 흐름을 사용한다.
+- All JSON API responses must follow the `ApiResponse` wrapper structure.
+- Do not wrap normal success responses manually with `ApiResponse.success(...)` in controllers. `ApiResponseAdvice` performs wrapping automatically.
+- Throw business exceptions with `BusinessException.of(ErrorCode.X)`.
+- When a new business error is needed, add an `ErrorCode` entry first with the HTTP status and Korean message.
+- Avoid arbitrary `RuntimeException`s, hard-coded error responses, and controller-local exception response creation.
+- Validation failures should use the `INVALID_INPUT_VALUE` response flow in `GlobalExceptionHandler`.
 
-## 서비스 계층
+## Service Layer
 
-- 서비스 클래스에는 기본적으로 `@Service`, `@RequiredArgsConstructor`, `@Transactional(readOnly = true)`를 사용한다.
-- 저장, 수정, 삭제가 있는 메서드에만 별도로 `@Transactional`을 붙인다.
-- 사용자 입력 문자열은 서비스 진입 지점에서 정규화한다.
-- 이메일 조회/중복 체크 전에는 `StringNormalizer.trimToLowerCase(...)`를 사용한다.
-- 이름, 인증 코드 등 단순 문자열은 필요한 경우 `StringNormalizer.trim(...)`을 사용한다.
-- 서비스는 도메인 객체의 상태를 직접 세팅하기보다 엔티티 메서드를 호출한다.
+- Service classes should generally use `@Service`, `@RequiredArgsConstructor`, and `@Transactional(readOnly = true)`.
+- Add method-level `@Transactional` only to methods that create, update, or delete data.
+- Normalize user-input strings at the service boundary.
+- Before email lookup or duplicate checks, use `StringNormalizer.trimToLowerCase(...)`.
+- For simple strings such as names and verification codes, use `StringNormalizer.trim(...)` when normalization is needed.
+- Services should call entity methods for domain state changes instead of setting entity state directly.
 
-## DTO 규칙
+## DTO Rules
 
-- 요청/응답 DTO는 `record`로 작성한다.
-- 요청 DTO에는 Bean Validation 애너테이션과 한국어 validation 메시지를 작성한다.
-- 요청 body DTO에는 `@Schema`를 사용하고, query/model attribute DTO에는 필요에 따라 `@Parameter`를 사용한다.
-- 응답 DTO는 엔티티를 그대로 노출하지 않고 필요한 필드만 담는다.
-- 응답 DTO 생성은 `from(...)` 또는 `of(...)` 정적 팩토리 메서드를 사용한다.
+- Use `record` for request and response DTOs.
+- Request DTOs should include Bean Validation annotations and Korean validation messages.
+- Use `@Schema` for request body DTOs. Use `@Parameter` where appropriate for query or model attribute DTOs.
+- Response DTOs should expose only the fields needed by the API, not whole entities.
+- Create response DTOs through `from(...)` or `of(...)` static factory methods.
 
-## 도메인과 JPA
+## Domain and JPA
 
-- JPA 엔티티는 `@Getter`, `@Entity`, `@Table`, `@NoArgsConstructor(access = AccessLevel.PROTECTED)` 패턴을 따른다.
-- 엔티티 생성자는 `private`으로 두고, 외부 생성은 `create(...)` 정적 팩토리로 제한한다.
-- 신규 엔티티는 특별한 이유가 없으면 `BaseEntity`를 상속해 `created_at`, `updated_at`을 사용한다.
-- 연관관계는 기본적으로 지연 로딩(`FetchType.LAZY`)을 우선한다.
-- enum 필드는 `@Enumerated(EnumType.STRING)`을 사용한다.
-- 도메인 검증과 상태 변경은 엔티티 메서드에 둔다.
-- 도메인 규칙 위반도 `BusinessException.of(ErrorCode.X)`를 사용한다.
+- JPA entities should follow the `@Getter`, `@Entity`, `@Table`, and `@NoArgsConstructor(access = AccessLevel.PROTECTED)` pattern.
+- Keep entity constructors `private` and expose creation through `create(...)` static factory methods.
+- New entities should extend `BaseEntity` and use `created_at` and `updated_at` unless there is a specific reason not to.
+- Prefer lazy loading (`FetchType.LAZY`) for associations.
+- Use `@Enumerated(EnumType.STRING)` for enum fields.
+- Put domain validation and state changes in entity methods.
+- Domain rule violations should also use `BusinessException.of(ErrorCode.X)`.
 
-## 데이터베이스
+## Database
 
-- 스키마 변경은 Flyway 마이그레이션 파일로 관리한다.
-- 신규 마이그레이션은 `src/main/resources/db/migration`에 `V{번호}__{설명}.sql` 형식으로 추가한다.
-- 엔티티 컬럼 제약과 마이그레이션의 `NOT NULL`, 길이, unique 제약이 서로 어긋나지 않게 유지한다.
-- `BaseEntity`를 상속하는 테이블에는 `created_at`, `updated_at` 컬럼을 포함한다.
+- Manage schema changes with Flyway migration files.
+- Add new migrations under `src/main/resources/db/migration` using the `V{number}__{description}.sql` naming format.
+- Keep entity column constraints aligned with migration constraints such as `NOT NULL`, length, and unique constraints.
+- Tables for entities that extend `BaseEntity` must include `created_at` and `updated_at` columns.
 
-## 테스트
+## Tests
 
-- 컨트롤러 테스트는 `@WebMvcTest`와 `MockMvc`를 사용한다.
-- 컨트롤러 테스트에서는 HTTP status뿐 아니라 `$.result`, `$.data`, `$.error.code` 등 공통 응답 포맷을 검증한다.
-- 서비스 테스트는 `@ExtendWith(MockitoExtension.class)`, `@Mock`, `@InjectMocks` 기반 단위 테스트를 우선한다.
-- 비즈니스 예외 테스트는 예외 타입뿐 아니라 `errorCode`까지 검증한다.
-- 테스트 데이터는 `src/test/java/live/lbtrip/support/fixture`의 fixture 클래스를 우선 사용하고, 중복 하드코딩을 피한다.
-- 테스트 이름은 기존처럼 한국어 메서드명과 `@Nested` 그룹을 사용한다.
+- Use `@WebMvcTest` and `MockMvc` for controller tests.
+- Controller tests should verify the common response format, including fields such as `$.result`, `$.data`, and `$.error.code`, in addition to HTTP status.
+- Prefer unit tests with `@ExtendWith(MockitoExtension.class)`, `@Mock`, and `@InjectMocks` for service tests.
+- Business exception tests should verify both the exception type and the `errorCode`.
+- Prefer fixture classes under `src/test/java/live/lbtrip/support/fixture` for test data and avoid duplicated hard-coded values.
+- Follow the existing style of Korean test method names and `@Nested` test grouping.
 
-## 스타일
+## Style
 
-- 기존 패키지 구조(`domain/{도메인}/controller|service|model|repository|dto`, `global/*`)를 유지한다.
-- Lombok은 기존 패턴에 맞춰 사용하되, 엔티티에는 setter를 만들지 않는다.
-- 새 공통 기능은 `global` 아래에 두고, 특정 도메인 전용 로직은 해당 `domain` 패키지 안에 둔다.
-- 운영 설정값은 `application.yml`에서 환경변수로 받고, 테스트 전용 값은 `application-test.yml`에 둔다.
+- Preserve the existing package structure: `domain/{domain}/controller|service|model|repository|dto` and `global/*`.
+- Use Lombok consistently with the existing patterns, but do not add setters to entities.
+- Put new shared functionality under `global`; keep domain-specific logic inside the relevant `domain` package.
+- Read production configuration values from environment variables through `application.yml`, and keep test-only values in `application-test.yml`.
