@@ -133,7 +133,6 @@ PROMPT_EOF
 echo "Generating PR metadata with Codex..."
 codex exec \
   --sandbox read-only \
-  --ask-for-approval never \
   --ephemeral \
   --output-schema "$SCHEMA_FILE" \
   --output-last-message "$AI_OUTPUT_FILE" \
