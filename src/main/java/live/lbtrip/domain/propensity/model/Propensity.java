@@ -12,7 +12,6 @@ import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -48,10 +47,13 @@ public class Propensity extends BaseEntity {
     @Column(nullable = false)
     private int sociality;
 
-    @Builder
     private Propensity(User user, PropensityScores scores) {
         this.user = user;
         applyScores(scores);
+    }
+
+    public static Propensity create(User user, PropensityScores scores) {
+        return new Propensity(user, scores);
     }
 
     public void updateScores(PropensityScores scores) {

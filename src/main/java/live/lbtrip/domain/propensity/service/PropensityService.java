@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PropensityService {
 
     private final PropensityRepository propensityRepository;
@@ -33,16 +34,12 @@ public class PropensityService {
             })
             .orElseGet(() -> {
                 User userRef = userRepository.getReferenceById(userId);
-                return propensityRepository.save(Propensity.builder()
-                    .user(userRef)
-                    .scores(scores)
-                    .build());
+                return propensityRepository.save(Propensity.create(userRef, scores));
             });
 
         return PropensityResponse.of(propensity, classifier.classify(scores));
     }
 
-    @Transactional(readOnly = true)
     public PropensityResponse getPropensity(Long userId) {
         Propensity propensity = propensityRepository.findByUserId(userId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND));
