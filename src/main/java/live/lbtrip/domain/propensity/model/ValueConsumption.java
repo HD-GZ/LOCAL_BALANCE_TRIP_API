@@ -2,7 +2,6 @@ package live.lbtrip.domain.propensity.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import live.lbtrip.domain.propensity.dto.request.PropensityRequest;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,15 +48,5 @@ public class ValueConsumption {
         int cafeExhibition
     ) {
         return new ValueConsumption(accommodation, food, experience, transportation, cafeExhibition);
-    }
-
-    public static ValueConsumption from(PropensityRequest.InnerValueConsumptionRequest request) {
-        return of(
-            request.accommodation(),
-            request.food(),
-            request.experience(),
-            request.transportation(),
-            request.cafeExhibition()
-        );
     }
 }

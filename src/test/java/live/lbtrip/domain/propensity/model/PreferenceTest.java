@@ -14,7 +14,7 @@ class PreferenceTest {
 
         @Test
         void 요청에서_취향_진단_값_객체로_변환한다() {
-            Preference preference = Preference.from(PropensityRequestFixture.propensityRequest().preference());
+            Preference preference = PropensityRequestFixture.propensityRequest().toPreference();
 
             assertThat(preference.getLocality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(preference.getFrugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);

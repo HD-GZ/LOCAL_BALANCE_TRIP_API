@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import live.lbtrip.domain.propensity.model.Preference;
+import live.lbtrip.domain.propensity.model.ValueConsumption;
 
 public record PropensityRequest(
     @Schema(description = "5축 취향 진단 점수", requiredMode = REQUIRED)
@@ -19,6 +21,26 @@ public record PropensityRequest(
     @Valid
     InnerValueConsumptionRequest valueConsumption
 ) {
+
+    public Preference toPreference() {
+        return Preference.of(
+            preference.locality(),
+            preference.frugality(),
+            preference.experientiality(),
+            preference.vitality(),
+            preference.sociality()
+        );
+    }
+
+    public ValueConsumption toValueConsumption() {
+        return ValueConsumption.of(
+            valueConsumption.accommodation(),
+            valueConsumption.food(),
+            valueConsumption.experience(),
+            valueConsumption.transportation(),
+            valueConsumption.cafeExhibition()
+        );
+    }
 
     public record InnerPreferenceRequest(
         @Schema(description = "여행지 선택 점수. 1(핫플·유명 명소) ~ 5(로컬·골목 상권), 정수.", example = "4", requiredMode = REQUIRED)

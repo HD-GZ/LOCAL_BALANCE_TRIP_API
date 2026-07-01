@@ -11,19 +11,19 @@ public final class PropensityFixture {
     }
 
     public static Preference preference() {
-        return Preference.from(PropensityRequestFixture.propensityRequest().preference());
+        return PropensityRequestFixture.propensityRequest().toPreference();
     }
 
     public static ValueConsumption valueConsumption() {
-        return ValueConsumption.from(PropensityRequestFixture.propensityRequest().valueConsumption());
+        return PropensityRequestFixture.propensityRequest().toValueConsumption();
     }
 
     public static Preference updatedPreference() {
-        return Preference.from(PropensityRequestFixture.updatedPropensityRequest().preference());
+        return PropensityRequestFixture.updatedPropensityRequest().toPreference();
     }
 
     public static ValueConsumption updatedValueConsumption() {
-        return ValueConsumption.from(PropensityRequestFixture.updatedPropensityRequest().valueConsumption());
+        return PropensityRequestFixture.updatedPropensityRequest().toValueConsumption();
     }
 
     public static Propensity propensity() {

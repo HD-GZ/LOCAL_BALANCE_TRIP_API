@@ -26,8 +26,8 @@ public class PropensityService {
 
     @Transactional
     public PropensityResponse setPropensity(Long userId, PropensityRequest request) {
-        Preference preference = Preference.from(request.preference());
-        ValueConsumption valueConsumption = ValueConsumption.from(request.valueConsumption());
+        Preference preference = request.toPreference();
+        ValueConsumption valueConsumption = request.toValueConsumption();
 
         Propensity propensity = propensityRepository.findByUserId(userId)
             .map(existing -> {

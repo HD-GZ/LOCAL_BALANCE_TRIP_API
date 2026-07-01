@@ -2,7 +2,6 @@ package live.lbtrip.domain.propensity.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import live.lbtrip.domain.propensity.dto.request.PropensityRequest;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,15 +48,5 @@ public class Preference {
         int sociality
     ) {
         return new Preference(locality, frugality, experientiality, vitality, sociality);
-    }
-
-    public static Preference from(PropensityRequest.InnerPreferenceRequest request) {
-        return of(
-            request.locality(),
-            request.frugality(),
-            request.experientiality(),
-            request.vitality(),
-            request.sociality()
-        );
     }
 }

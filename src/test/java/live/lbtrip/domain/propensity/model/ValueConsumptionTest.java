@@ -14,9 +14,7 @@ class ValueConsumptionTest {
 
         @Test
         void 요청에서_가치소비_값_객체로_변환한다() {
-            ValueConsumption valueConsumption = ValueConsumption.from(
-                PropensityRequestFixture.propensityRequest().valueConsumption()
-            );
+            ValueConsumption valueConsumption = PropensityRequestFixture.propensityRequest().toValueConsumption();
 
             assertThat(valueConsumption.getAccommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
             assertThat(valueConsumption.getFood()).isEqualTo(PropensityRequestFixture.FOOD);
