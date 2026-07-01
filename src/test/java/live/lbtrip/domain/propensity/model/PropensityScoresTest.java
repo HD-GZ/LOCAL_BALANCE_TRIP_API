@@ -19,10 +19,14 @@ class PropensityScoresTest {
 
             assertThat(scores.locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(scores.frugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
-            assertThat(scores.flexibility()).isEqualTo(PropensityRequestFixture.FLEXIBILITY);
             assertThat(scores.experientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);
             assertThat(scores.vitality()).isEqualTo(PropensityRequestFixture.VITALITY);
             assertThat(scores.sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
+            assertThat(scores.accommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
+            assertThat(scores.food()).isEqualTo(PropensityRequestFixture.FOOD);
+            assertThat(scores.experience()).isEqualTo(PropensityRequestFixture.EXPERIENCE);
+            assertThat(scores.transportation()).isEqualTo(PropensityRequestFixture.TRANSPORTATION);
+            assertThat(scores.cafeExhibition()).isEqualTo(PropensityRequestFixture.CAFE_EXHIBITION);
         }
 
         @Test
@@ -33,10 +37,14 @@ class PropensityScoresTest {
 
             assertThat(scores.locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(scores.frugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
-            assertThat(scores.flexibility()).isEqualTo(PropensityRequestFixture.FLEXIBILITY);
             assertThat(scores.experientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);
             assertThat(scores.vitality()).isEqualTo(PropensityRequestFixture.VITALITY);
             assertThat(scores.sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
+            assertThat(scores.accommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
+            assertThat(scores.food()).isEqualTo(PropensityRequestFixture.FOOD);
+            assertThat(scores.experience()).isEqualTo(PropensityRequestFixture.EXPERIENCE);
+            assertThat(scores.transportation()).isEqualTo(PropensityRequestFixture.TRANSPORTATION);
+            assertThat(scores.cafeExhibition()).isEqualTo(PropensityRequestFixture.CAFE_EXHIBITION);
         }
     }
 }

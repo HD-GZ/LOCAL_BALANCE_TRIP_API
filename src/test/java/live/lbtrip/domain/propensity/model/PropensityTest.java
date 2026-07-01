@@ -21,10 +21,14 @@ class PropensityTest {
             assertThat(propensity.getUser().getEmail()).isEqualTo(UserFixture.EMAIL);
             assertThat(propensity.getLocality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(propensity.getFrugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
-            assertThat(propensity.getFlexibility()).isEqualTo(PropensityRequestFixture.FLEXIBILITY);
             assertThat(propensity.getExperientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);
             assertThat(propensity.getVitality()).isEqualTo(PropensityRequestFixture.VITALITY);
             assertThat(propensity.getSociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
+            assertThat(propensity.getAccommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
+            assertThat(propensity.getFood()).isEqualTo(PropensityRequestFixture.FOOD);
+            assertThat(propensity.getExperience()).isEqualTo(PropensityRequestFixture.EXPERIENCE);
+            assertThat(propensity.getTransportation()).isEqualTo(PropensityRequestFixture.TRANSPORTATION);
+            assertThat(propensity.getCafeExhibition()).isEqualTo(PropensityRequestFixture.CAFE_EXHIBITION);
         }
     }
 
@@ -39,10 +43,14 @@ class PropensityTest {
 
             assertThat(propensity.getLocality()).isEqualTo(PropensityRequestFixture.UPDATED_LOCALITY);
             assertThat(propensity.getFrugality()).isEqualTo(PropensityRequestFixture.UPDATED_FRUGALITY);
-            assertThat(propensity.getFlexibility()).isEqualTo(PropensityRequestFixture.UPDATED_FLEXIBILITY);
             assertThat(propensity.getExperientiality()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENTIALITY);
             assertThat(propensity.getVitality()).isEqualTo(PropensityRequestFixture.UPDATED_VITALITY);
             assertThat(propensity.getSociality()).isEqualTo(PropensityRequestFixture.UPDATED_SOCIALITY);
+            assertThat(propensity.getAccommodation()).isEqualTo(PropensityRequestFixture.UPDATED_ACCOMMODATION);
+            assertThat(propensity.getFood()).isEqualTo(PropensityRequestFixture.UPDATED_FOOD);
+            assertThat(propensity.getExperience()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENCE);
+            assertThat(propensity.getTransportation()).isEqualTo(PropensityRequestFixture.UPDATED_TRANSPORTATION);
+            assertThat(propensity.getCafeExhibition()).isEqualTo(PropensityRequestFixture.UPDATED_CAFE_EXHIBITION);
         }
     }
 }

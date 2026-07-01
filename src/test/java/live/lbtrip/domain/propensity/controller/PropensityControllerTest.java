@@ -67,12 +67,16 @@ class PropensityControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.result.type").value(PropensityResponseFixture.TYPE))
-                .andExpect(jsonPath("$.data.locality").value(PropensityRequestFixture.LOCALITY))
-                .andExpect(jsonPath("$.data.frugality").value(PropensityRequestFixture.FRUGALITY))
-                .andExpect(jsonPath("$.data.flexibility").value(PropensityRequestFixture.FLEXIBILITY))
-                .andExpect(jsonPath("$.data.experientiality").value(PropensityRequestFixture.EXPERIENTIALITY))
-                .andExpect(jsonPath("$.data.vitality").value(PropensityRequestFixture.VITALITY))
-                .andExpect(jsonPath("$.data.sociality").value(PropensityRequestFixture.SOCIALITY));
+                .andExpect(jsonPath("$.data.preference.locality").value(PropensityRequestFixture.LOCALITY))
+                .andExpect(jsonPath("$.data.preference.frugality").value(PropensityRequestFixture.FRUGALITY))
+                .andExpect(jsonPath("$.data.preference.experientiality").value(PropensityRequestFixture.EXPERIENTIALITY))
+                .andExpect(jsonPath("$.data.preference.vitality").value(PropensityRequestFixture.VITALITY))
+                .andExpect(jsonPath("$.data.preference.sociality").value(PropensityRequestFixture.SOCIALITY))
+                .andExpect(jsonPath("$.data.valueConsumption.accommodation").value(PropensityRequestFixture.ACCOMMODATION))
+                .andExpect(jsonPath("$.data.valueConsumption.food").value(PropensityRequestFixture.FOOD))
+                .andExpect(jsonPath("$.data.valueConsumption.experience").value(PropensityRequestFixture.EXPERIENCE))
+                .andExpect(jsonPath("$.data.valueConsumption.transportation").value(PropensityRequestFixture.TRANSPORTATION))
+                .andExpect(jsonPath("$.data.valueConsumption.cafeExhibition").value(PropensityRequestFixture.CAFE_EXHIBITION));
         }
 
         @Test
@@ -80,12 +84,51 @@ class PropensityControllerTest {
             인증된_사용자();
             String request = """
                 {
-                  "locality": 0,
-                  "frugality": 5,
-                  "flexibility": 3,
-                  "experientiality": 4,
-                  "vitality": 2,
-                  "sociality": 1
+                  "preference": {
+                    "locality": 0,
+                    "frugality": 5,
+                    "experientiality": 4,
+                    "vitality": 2,
+                    "sociality": 4
+                  },
+                  "valueConsumption": {
+                    "accommodation": 2,
+                    "food": 4,
+                    "experience": 5,
+                    "transportation": 2,
+                    "cafeExhibition": 4
+                  }
+                }
+                """;
+
+            mockMvc.perform(post("/propensity")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(APPLICATION_JSON)
+                    .content(request))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
+        }
+
+        @Test
+        void 가치소비_점수가_범위를_벗어나면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+            String request = """
+                {
+                  "preference": {
+                    "locality": 4,
+                    "frugality": 5,
+                    "experientiality": 4,
+                    "vitality": 2,
+                    "sociality": 4
+                  },
+                  "valueConsumption": {
+                    "accommodation": 2,
+                    "food": 4,
+                    "experience": 6,
+                    "transportation": 2,
+                    "cafeExhibition": 4
+                  }
                 }
                 """;
 
@@ -113,8 +156,10 @@ class PropensityControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.result.type").value(PropensityResponseFixture.TYPE))
-                .andExpect(jsonPath("$.data.locality").value(PropensityRequestFixture.LOCALITY))
-                .andExpect(jsonPath("$.data.sociality").value(PropensityRequestFixture.SOCIALITY));
+                .andExpect(jsonPath("$.data.preference.locality").value(PropensityRequestFixture.LOCALITY))
+                .andExpect(jsonPath("$.data.preference.sociality").value(PropensityRequestFixture.SOCIALITY))
+                .andExpect(jsonPath("$.data.valueConsumption.accommodation").value(PropensityRequestFixture.ACCOMMODATION))
+                .andExpect(jsonPath("$.data.valueConsumption.cafeExhibition").value(PropensityRequestFixture.CAFE_EXHIBITION));
         }
 
         @Test
