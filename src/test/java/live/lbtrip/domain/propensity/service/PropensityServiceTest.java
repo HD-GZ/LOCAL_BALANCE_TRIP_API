@@ -17,7 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
+import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
+import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
@@ -50,11 +52,16 @@ class PropensityServiceTest {
         @Test
         void 기존_결과가_없으면_새_결과를_저장한다() {
             User user = UserFixture.user();
-            Propensity propensity = PropensityFixture.propensity(user, PropensityFixture.scores());
+            Propensity propensity = PropensityFixture.propensity(
+                user,
+                PropensityFixture.preference(),
+                PropensityFixture.valueConsumption()
+            );
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.empty());
             when(userRepository.getReferenceById(AuthResponseFixture.USER_ID)).thenReturn(user);
             when(propensityRepository.save(any(Propensity.class))).thenReturn(propensity);
-            when(classifier.classify(PropensityFixture.scores())).thenReturn(PropensityResponseFixture.result());
+            when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
+                .thenReturn(PropensityResponseFixture.propensityResult());
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -62,16 +69,20 @@ class PropensityServiceTest {
             );
 
             verify(propensityRepository).save(any(Propensity.class));
-            assertThat(response.result()).isEqualTo(PropensityResponseFixture.result());
-            assertThat(response.locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
-            assertThat(response.sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
+            assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
+            assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
+            assertThat(response.preference().sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
+            assertThat(response.valueConsumption().accommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
+            assertThat(response.valueConsumption().cafeExhibition()).isEqualTo(PropensityRequestFixture.CAFE_EXHIBITION);
         }
 
         @Test
         void 기존_결과가_있으면_점수를_갱신한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(classifier.classify(PropensityFixture.updatedScores())).thenReturn(PropensityResponseFixture.result());
+            when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
+                .thenReturn(PropensityResponseFixture.propensityResult());
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -79,13 +90,18 @@ class PropensityServiceTest {
             );
 
             verify(propensityRepository, never()).save(any(Propensity.class));
-            assertThat(response.result()).isEqualTo(PropensityResponseFixture.result());
-            assertThat(response.locality()).isEqualTo(PropensityRequestFixture.UPDATED_LOCALITY);
-            assertThat(response.frugality()).isEqualTo(PropensityRequestFixture.UPDATED_FRUGALITY);
-            assertThat(response.flexibility()).isEqualTo(PropensityRequestFixture.UPDATED_FLEXIBILITY);
-            assertThat(response.experientiality()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENTIALITY);
-            assertThat(response.vitality()).isEqualTo(PropensityRequestFixture.UPDATED_VITALITY);
-            assertThat(response.sociality()).isEqualTo(PropensityRequestFixture.UPDATED_SOCIALITY);
+            assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
+            assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.UPDATED_LOCALITY);
+            assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.UPDATED_FRUGALITY);
+            assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENTIALITY);
+            assertThat(response.preference().vitality()).isEqualTo(PropensityRequestFixture.UPDATED_VITALITY);
+            assertThat(response.preference().sociality()).isEqualTo(PropensityRequestFixture.UPDATED_SOCIALITY);
+            assertThat(response.valueConsumption().accommodation()).isEqualTo(PropensityRequestFixture.UPDATED_ACCOMMODATION);
+            assertThat(response.valueConsumption().food()).isEqualTo(PropensityRequestFixture.UPDATED_FOOD);
+            assertThat(response.valueConsumption().experience()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENCE);
+            assertThat(response.valueConsumption().transportation()).isEqualTo(PropensityRequestFixture.UPDATED_TRANSPORTATION);
+            assertThat(response.valueConsumption().cafeExhibition()).isEqualTo(PropensityRequestFixture.UPDATED_CAFE_EXHIBITION);
         }
     }
 
@@ -96,17 +112,23 @@ class PropensityServiceTest {
         void 취향_진단_결과를_조회한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(classifier.classify(PropensityFixture.scores())).thenReturn(PropensityResponseFixture.result());
+            when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
+                .thenReturn(PropensityResponseFixture.propensityResult());
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
 
-            assertThat(response.result()).isEqualTo(PropensityResponseFixture.result());
-            assertThat(response.locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
-            assertThat(response.frugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
-            assertThat(response.flexibility()).isEqualTo(PropensityRequestFixture.FLEXIBILITY);
-            assertThat(response.experientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);
-            assertThat(response.vitality()).isEqualTo(PropensityRequestFixture.VITALITY);
-            assertThat(response.sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
+            assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
+            assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
+            assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
+            assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);
+            assertThat(response.preference().vitality()).isEqualTo(PropensityRequestFixture.VITALITY);
+            assertThat(response.preference().sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
+            assertThat(response.valueConsumption().accommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
+            assertThat(response.valueConsumption().food()).isEqualTo(PropensityRequestFixture.FOOD);
+            assertThat(response.valueConsumption().experience()).isEqualTo(PropensityRequestFixture.EXPERIENCE);
+            assertThat(response.valueConsumption().transportation()).isEqualTo(PropensityRequestFixture.TRANSPORTATION);
+            assertThat(response.valueConsumption().cafeExhibition()).isEqualTo(PropensityRequestFixture.CAFE_EXHIBITION);
         }
 
         @Test

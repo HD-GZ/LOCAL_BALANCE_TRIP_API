@@ -18,13 +18,13 @@ import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
 import live.lbtrip.global.web.UserId;
 
-@Tag(name = "Propensity", description = "6측 취향 진단 (여행지 선택, 소비 기준, 코스 설계, 활동 방식, 여행 강도, 동행 유형)")
+@Tag(name = "Propensity", description = "5축 취향 진단과 가치소비 진단")
 public interface PropensityApi {
 
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
-        summary = "6측 취향 진단 등록",
-        description = "6측 취향 진단 결과를 등록하거나 재진단 시 기존 결과를 덮어씁니다. 진단 유형 라벨/설명과 6축 점수를 함께 반환합니다."
+        summary = "취향 진단과 가치소비 등록",
+        description = "5축 취향 진단과 가치소비 결과를 등록하거나 재진단 시 기존 결과를 덮어씁니다. 진단 유형 라벨/설명과 점수를 함께 반환합니다."
     )
     @ApiSuccessResponse(status = CREATED, description = "진단 결과 등록 성공")
     @ApiErrorCodeResponses({
@@ -38,8 +38,8 @@ public interface PropensityApi {
 
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
-        summary = "6측 취향 진단 결과 조회",
-        description = "현재 로그인한 사용자의 진단 유형 라벨/설명과 6축 점수를 조회합니다."
+        summary = "취향 진단과 가치소비 결과 조회",
+        description = "현재 로그인한 사용자의 진단 유형 라벨/설명, 5축 취향 진단 점수, 가치소비 점수를 조회합니다."
     )
     @ApiSuccessResponse(description = "진단 결과 조회 성공")
     @ApiErrorCodeResponses({
