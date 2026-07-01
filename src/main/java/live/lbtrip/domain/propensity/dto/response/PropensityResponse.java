@@ -1,7 +1,9 @@
 package live.lbtrip.domain.propensity.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
+import live.lbtrip.domain.propensity.model.ValueConsumption;
 
 public record PropensityResponse(
     @Schema(description = "취향 결과(라벨 + 설명)")
@@ -60,8 +62,8 @@ public record PropensityResponse(
     }
 
     public static PropensityResponse of(Propensity propensity, InnerPropensityResultResponse propensityResult) {
-        live.lbtrip.domain.propensity.model.Preference preference = propensity.getPreference();
-        live.lbtrip.domain.propensity.model.ValueConsumption valueConsumption = propensity.getValueConsumption();
+        Preference preference = propensity.getPreference();
+        ValueConsumption valueConsumption = propensity.getValueConsumption();
 
         return new PropensityResponse(
             propensityResult,
