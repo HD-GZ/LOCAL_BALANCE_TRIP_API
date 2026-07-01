@@ -17,7 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
+import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
+import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
@@ -50,11 +52,16 @@ class PropensityServiceTest {
         @Test
         void 기존_결과가_없으면_새_결과를_저장한다() {
             User user = UserFixture.user();
-            Propensity propensity = PropensityFixture.propensity(user, PropensityFixture.scores());
+            Propensity propensity = PropensityFixture.propensity(
+                user,
+                PropensityFixture.preference(),
+                PropensityFixture.valueConsumption()
+            );
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.empty());
             when(userRepository.getReferenceById(AuthResponseFixture.USER_ID)).thenReturn(user);
             when(propensityRepository.save(any(Propensity.class))).thenReturn(propensity);
-            when(classifier.classify(PropensityFixture.scores())).thenReturn(PropensityResponseFixture.result());
+            when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
+                .thenReturn(PropensityResponseFixture.result());
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -73,7 +80,8 @@ class PropensityServiceTest {
         void 기존_결과가_있으면_점수를_갱신한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(classifier.classify(PropensityFixture.updatedScores())).thenReturn(PropensityResponseFixture.result());
+            when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
+                .thenReturn(PropensityResponseFixture.result());
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -102,7 +110,8 @@ class PropensityServiceTest {
         void 취향_진단_결과를_조회한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(classifier.classify(PropensityFixture.scores())).thenReturn(PropensityResponseFixture.result());
+            when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
+                .thenReturn(PropensityResponseFixture.result());
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
 
