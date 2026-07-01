@@ -31,14 +31,14 @@ public final class PropensityRequestFixture {
 
     public static PropensityRequest propensityRequest() {
         return new PropensityRequest(
-            new PropensityRequest.Preference(
+            new PropensityRequest.InnerPreferenceRequest(
                 LOCALITY,
                 FRUGALITY,
                 EXPERIENTIALITY,
                 VITALITY,
                 SOCIALITY
             ),
-            new PropensityRequest.ValueConsumption(
+            new PropensityRequest.InnerValueConsumptionRequest(
                 ACCOMMODATION,
                 FOOD,
                 EXPERIENCE,
@@ -50,14 +50,14 @@ public final class PropensityRequestFixture {
 
     public static PropensityRequest updatedPropensityRequest() {
         return new PropensityRequest(
-            new PropensityRequest.Preference(
+            new PropensityRequest.InnerPreferenceRequest(
                 UPDATED_LOCALITY,
                 UPDATED_FRUGALITY,
                 UPDATED_EXPERIENTIALITY,
                 UPDATED_VITALITY,
                 UPDATED_SOCIALITY
             ),
-            new PropensityRequest.ValueConsumption(
+            new PropensityRequest.InnerValueConsumptionRequest(
                 UPDATED_ACCOMMODATION,
                 UPDATED_FOOD,
                 UPDATED_EXPERIENCE,

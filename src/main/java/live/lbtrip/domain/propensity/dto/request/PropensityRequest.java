@@ -12,15 +12,15 @@ public record PropensityRequest(
     @Schema(description = "5축 취향 진단 점수", requiredMode = REQUIRED)
     @NotNull(message = "취향 진단 점수는 필수입니다.")
     @Valid
-    Preference preference,
+    InnerPreferenceRequest preference,
 
     @Schema(description = "가치소비 점수", requiredMode = REQUIRED)
     @NotNull(message = "가치소비 점수는 필수입니다.")
     @Valid
-    ValueConsumption valueConsumption
+    InnerValueConsumptionRequest valueConsumption
 ) {
 
-    public record Preference(
+    public record InnerPreferenceRequest(
         @Schema(description = "여행지 선택 점수. 1(핫플·유명 명소) ~ 5(로컬·골목 상권), 정수.", example = "4", requiredMode = REQUIRED)
         @NotNull(message = "여행지 선택 점수는 필수입니다.")
         @Min(value = 1, message = "여행지 선택 점수는 1 이상이어야 합니다.")
@@ -53,7 +53,7 @@ public record PropensityRequest(
     ) {
     }
 
-    public record ValueConsumption(
+    public record InnerValueConsumptionRequest(
         @Schema(description = "숙소 가치소비 점수. 1(아끼기) ~ 5(투자), 정수.", example = "2", requiredMode = REQUIRED)
         @NotNull(message = "숙소 가치소비 점수는 필수입니다.")
         @Min(value = 1, message = "숙소 가치소비 점수는 1 이상이어야 합니다.")
