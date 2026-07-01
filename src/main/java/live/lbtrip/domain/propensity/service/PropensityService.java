@@ -5,8 +5,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.propensity.dto.request.PropensityRequest;
 import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
+import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.model.PropensityScores;
+import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
@@ -25,19 +26,20 @@ public class PropensityService {
 
     @Transactional
     public PropensityResponse setPropensity(Long userId, PropensityRequest request) {
-        PropensityScores scores = PropensityScores.from(request);
+        Preference preference = Preference.from(request.preference());
+        ValueConsumption valueConsumption = ValueConsumption.from(request.valueConsumption());
 
         Propensity propensity = propensityRepository.findByUserId(userId)
             .map(existing -> {
-                existing.updateScores(scores);
+                existing.update(preference, valueConsumption);
                 return existing;
             })
             .orElseGet(() -> {
                 User userRef = userRepository.getReferenceById(userId);
-                return propensityRepository.save(Propensity.create(userRef, scores));
+                return propensityRepository.save(Propensity.create(userRef, preference, valueConsumption));
             });
 
-        return PropensityResponse.of(propensity, classifier.classify(scores));
+        return PropensityResponse.of(propensity, classifier.classify(preference, valueConsumption));
     }
 
     public PropensityResponse getPropensity(Long userId) {
@@ -46,7 +48,7 @@ public class PropensityService {
 
         return PropensityResponse.of(
             propensity,
-            classifier.classify(PropensityScores.from(propensity))
+            classifier.classify(propensity.getPreference(), propensity.getValueConsumption())
         );
     }
 }

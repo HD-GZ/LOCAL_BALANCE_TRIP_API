@@ -60,21 +60,24 @@ public record PropensityResponse(
     }
 
     public static PropensityResponse of(Propensity propensity, Result result) {
+        live.lbtrip.domain.propensity.model.Preference preference = propensity.getPreference();
+        live.lbtrip.domain.propensity.model.ValueConsumption valueConsumption = propensity.getValueConsumption();
+
         return new PropensityResponse(
             result,
-            new Preference(
-                propensity.getLocality(),
-                propensity.getFrugality(),
-                propensity.getExperientiality(),
-                propensity.getVitality(),
-                propensity.getSociality()
+            new PropensityResponse.Preference(
+                preference.getLocality(),
+                preference.getFrugality(),
+                preference.getExperientiality(),
+                preference.getVitality(),
+                preference.getSociality()
             ),
-            new ValueConsumption(
-                propensity.getAccommodation(),
-                propensity.getFood(),
-                propensity.getExperience(),
-                propensity.getTransportation(),
-                propensity.getCafeExhibition()
+            new PropensityResponse.ValueConsumption(
+                valueConsumption.getAccommodation(),
+                valueConsumption.getFood(),
+                valueConsumption.getExperience(),
+                valueConsumption.getTransportation(),
+                valueConsumption.getCafeExhibition()
             )
         );
     }

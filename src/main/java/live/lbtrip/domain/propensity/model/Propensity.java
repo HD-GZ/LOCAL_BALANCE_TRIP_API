@@ -1,6 +1,6 @@
 package live.lbtrip.domain.propensity.model;
 
-import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -29,59 +29,23 @@ public class Propensity extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(nullable = false)
-    private int locality;
+    @Embedded
+    private Preference preference;
 
-    @Column(nullable = false)
-    private int frugality;
+    @Embedded
+    private ValueConsumption valueConsumption;
 
-    @Column(nullable = false)
-    private int experientiality;
-
-    @Column(nullable = false)
-    private int vitality;
-
-    @Column(nullable = false)
-    private int sociality;
-
-    @Column(nullable = false)
-    private int accommodation;
-
-    @Column(nullable = false)
-    private int food;
-
-    @Column(nullable = false)
-    private int experience;
-
-    @Column(nullable = false)
-    private int transportation;
-
-    @Column(nullable = false)
-    private int cafeExhibition;
-
-    private Propensity(User user, PropensityScores scores) {
+    private Propensity(User user, Preference preference, ValueConsumption valueConsumption) {
         this.user = user;
-        applyScores(scores);
+        update(preference, valueConsumption);
     }
 
-    public static Propensity create(User user, PropensityScores scores) {
-        return new Propensity(user, scores);
+    public static Propensity create(User user, Preference preference, ValueConsumption valueConsumption) {
+        return new Propensity(user, preference, valueConsumption);
     }
 
-    public void updateScores(PropensityScores scores) {
-        applyScores(scores);
-    }
-
-    private void applyScores(PropensityScores scores) {
-        this.locality = scores.locality();
-        this.frugality = scores.frugality();
-        this.experientiality = scores.experientiality();
-        this.vitality = scores.vitality();
-        this.sociality = scores.sociality();
-        this.accommodation = scores.accommodation();
-        this.food = scores.food();
-        this.experience = scores.experience();
-        this.transportation = scores.transportation();
-        this.cafeExhibition = scores.cafeExhibition();
+    public void update(Preference preference, ValueConsumption valueConsumption) {
+        this.preference = preference;
+        this.valueConsumption = valueConsumption;
     }
 }
