@@ -1,6 +1,7 @@
 package live.lbtrip.support.fixture;
 
 import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
+import live.lbtrip.domain.propensity.model.PropensityResult;
 
 public final class PropensityResponseFixture {
 
@@ -10,13 +11,13 @@ public final class PropensityResponseFixture {
     private PropensityResponseFixture() {
     }
 
-    public static PropensityResponse.InnerPropensityResultResponse propensityResult() {
-        return new PropensityResponse.InnerPropensityResultResponse(TYPE, DESCRIPTION);
+    public static PropensityResult propensityResult() {
+        return PropensityResult.of(TYPE, DESCRIPTION);
     }
 
     public static PropensityResponse propensityResponse() {
         return new PropensityResponse(
-            propensityResult(),
+            new PropensityResponse.InnerPropensityResultResponse(TYPE, DESCRIPTION),
             new PropensityResponse.InnerPreferenceResponse(
                 PropensityRequestFixture.LOCALITY,
                 PropensityRequestFixture.FRUGALITY,

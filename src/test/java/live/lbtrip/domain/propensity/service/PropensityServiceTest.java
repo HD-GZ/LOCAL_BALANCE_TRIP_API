@@ -69,7 +69,8 @@ class PropensityServiceTest {
             );
 
             verify(propensityRepository).save(any(Propensity.class));
-            assertThat(response.propensityResult()).isEqualTo(PropensityResponseFixture.propensityResult());
+            assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(response.preference().sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
             assertThat(response.valueConsumption().accommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
@@ -89,7 +90,8 @@ class PropensityServiceTest {
             );
 
             verify(propensityRepository, never()).save(any(Propensity.class));
-            assertThat(response.propensityResult()).isEqualTo(PropensityResponseFixture.propensityResult());
+            assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.UPDATED_LOCALITY);
             assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.UPDATED_FRUGALITY);
             assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENTIALITY);
@@ -115,7 +117,8 @@ class PropensityServiceTest {
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
 
-            assertThat(response.propensityResult()).isEqualTo(PropensityResponseFixture.propensityResult());
+            assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
             assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);

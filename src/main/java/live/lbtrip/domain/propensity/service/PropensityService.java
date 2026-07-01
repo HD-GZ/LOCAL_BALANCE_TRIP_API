@@ -5,9 +5,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.propensity.dto.request.PropensityRequest;
 import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
-import live.lbtrip.domain.propensity.dto.response.PropensityResponse.InnerPropensityResultResponse;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
+import live.lbtrip.domain.propensity.model.PropensityResult;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
 import live.lbtrip.domain.user.model.User;
@@ -40,19 +40,19 @@ public class PropensityService {
                 return propensityRepository.save(Propensity.create(userRef, preference, valueConsumption));
             });
 
-        InnerPropensityResultResponse propensityResult = classifier.classify(preference, valueConsumption);
-        return PropensityResponse.of(propensity, propensityResult.type(), propensityResult.description());
+        PropensityResult propensityResult = classifier.classify(preference, valueConsumption);
+        return PropensityResponse.of(propensity, propensityResult);
     }
 
     public PropensityResponse getPropensity(Long userId) {
         Propensity propensity = propensityRepository.findByUserId(userId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND));
 
-        InnerPropensityResultResponse propensityResult = classifier.classify(
+        PropensityResult propensityResult = classifier.classify(
             propensity.getPreference(),
             propensity.getValueConsumption()
         );
 
-        return PropensityResponse.of(propensity, propensityResult.type(), propensityResult.description());
+        return PropensityResponse.of(propensity, propensityResult);
     }
 }
