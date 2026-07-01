@@ -61,12 +61,12 @@ public record PropensityResponse(
     ) {
     }
 
-    public static PropensityResponse of(Propensity propensity, InnerPropensityResultResponse propensityResult) {
+    public static PropensityResponse of(Propensity propensity, String type, String description) {
         Preference preference = propensity.getPreference();
         ValueConsumption valueConsumption = propensity.getValueConsumption();
 
         return new PropensityResponse(
-            propensityResult,
+            new InnerPropensityResultResponse(type, description),
             new InnerPreferenceResponse(
                 preference.getLocality(),
                 preference.getFrugality(),
