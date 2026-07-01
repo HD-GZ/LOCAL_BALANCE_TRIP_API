@@ -61,7 +61,7 @@ class PropensityServiceTest {
             when(userRepository.getReferenceById(AuthResponseFixture.USER_ID)).thenReturn(user);
             when(propensityRepository.save(any(Propensity.class))).thenReturn(propensity);
             when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
-                .thenReturn(PropensityResponseFixture.result());
+                .thenReturn(PropensityResponseFixture.propensityResult());
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -69,7 +69,7 @@ class PropensityServiceTest {
             );
 
             verify(propensityRepository).save(any(Propensity.class));
-            assertThat(response.result()).isEqualTo(PropensityResponseFixture.result());
+            assertThat(response.propensityResult()).isEqualTo(PropensityResponseFixture.propensityResult());
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(response.preference().sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
             assertThat(response.valueConsumption().accommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
@@ -81,7 +81,7 @@ class PropensityServiceTest {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
             when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
-                .thenReturn(PropensityResponseFixture.result());
+                .thenReturn(PropensityResponseFixture.propensityResult());
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -89,7 +89,7 @@ class PropensityServiceTest {
             );
 
             verify(propensityRepository, never()).save(any(Propensity.class));
-            assertThat(response.result()).isEqualTo(PropensityResponseFixture.result());
+            assertThat(response.propensityResult()).isEqualTo(PropensityResponseFixture.propensityResult());
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.UPDATED_LOCALITY);
             assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.UPDATED_FRUGALITY);
             assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENTIALITY);
@@ -111,11 +111,11 @@ class PropensityServiceTest {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
             when(classifier.classify(any(Preference.class), any(ValueConsumption.class)))
-                .thenReturn(PropensityResponseFixture.result());
+                .thenReturn(PropensityResponseFixture.propensityResult());
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
 
-            assertThat(response.result()).isEqualTo(PropensityResponseFixture.result());
+            assertThat(response.propensityResult()).isEqualTo(PropensityResponseFixture.propensityResult());
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
             assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);

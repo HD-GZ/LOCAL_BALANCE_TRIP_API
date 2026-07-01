@@ -10,21 +10,21 @@ public final class PropensityResponseFixture {
     private PropensityResponseFixture() {
     }
 
-    public static PropensityResponse.Result result() {
-        return new PropensityResponse.Result(TYPE, DESCRIPTION);
+    public static PropensityResponse.InnerPropensityResultResponse propensityResult() {
+        return new PropensityResponse.InnerPropensityResultResponse(TYPE, DESCRIPTION);
     }
 
     public static PropensityResponse propensityResponse() {
         return new PropensityResponse(
-            result(),
-            new PropensityResponse.Preference(
+            propensityResult(),
+            new PropensityResponse.InnerPreferenceResponse(
                 PropensityRequestFixture.LOCALITY,
                 PropensityRequestFixture.FRUGALITY,
                 PropensityRequestFixture.EXPERIENTIALITY,
                 PropensityRequestFixture.VITALITY,
                 PropensityRequestFixture.SOCIALITY
             ),
-            new PropensityResponse.ValueConsumption(
+            new PropensityResponse.InnerValueConsumptionResponse(
                 PropensityRequestFixture.ACCOMMODATION,
                 PropensityRequestFixture.FOOD,
                 PropensityRequestFixture.EXPERIENCE,

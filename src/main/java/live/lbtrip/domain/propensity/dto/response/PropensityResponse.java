@@ -4,17 +4,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import live.lbtrip.domain.propensity.model.Propensity;
 
 public record PropensityResponse(
-    @Schema(description = "진단 결과(라벨 + 설명)")
-    Result result,
+    @Schema(description = "취향 결과(라벨 + 설명)")
+    InnerPropensityResultResponse propensityResult,
 
     @Schema(description = "5축 취향 진단 점수")
-    Preference preference,
+    InnerPreferenceResponse preference,
 
     @Schema(description = "가치소비 점수")
-    ValueConsumption valueConsumption
+    InnerValueConsumptionResponse valueConsumption
 ) {
 
-    public record Result(
+    public record InnerPropensityResultResponse(
         @Schema(description = "진단 유형 라벨", example = "실속형 로컬 감성 여행자")
         String type,
 
@@ -23,7 +23,7 @@ public record PropensityResponse(
     ) {
     }
 
-    public record Preference(
+    public record InnerPreferenceResponse(
         @Schema(description = "여행지 선택 점수. 1(핫플·유명 명소) ~ 5(로컬·골목 상권).", example = "4")
         int locality,
 
@@ -41,7 +41,7 @@ public record PropensityResponse(
     ) {
     }
 
-    public record ValueConsumption(
+    public record InnerValueConsumptionResponse(
         @Schema(description = "숙소 가치소비 점수. 1(아끼기) ~ 5(투자).", example = "2")
         int accommodation,
 
@@ -59,20 +59,20 @@ public record PropensityResponse(
     ) {
     }
 
-    public static PropensityResponse of(Propensity propensity, Result result) {
+    public static PropensityResponse of(Propensity propensity, InnerPropensityResultResponse propensityResult) {
         live.lbtrip.domain.propensity.model.Preference preference = propensity.getPreference();
         live.lbtrip.domain.propensity.model.ValueConsumption valueConsumption = propensity.getValueConsumption();
 
         return new PropensityResponse(
-            result,
-            new PropensityResponse.Preference(
+            propensityResult,
+            new InnerPreferenceResponse(
                 preference.getLocality(),
                 preference.getFrugality(),
                 preference.getExperientiality(),
                 preference.getVitality(),
                 preference.getSociality()
             ),
-            new PropensityResponse.ValueConsumption(
+            new InnerValueConsumptionResponse(
                 valueConsumption.getAccommodation(),
                 valueConsumption.getFood(),
                 valueConsumption.getExperience(),
