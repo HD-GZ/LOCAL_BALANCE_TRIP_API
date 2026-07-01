@@ -36,9 +36,6 @@ public class Propensity extends BaseEntity {
     private int frugality;
 
     @Column(nullable = false)
-    private int flexibility;
-
-    @Column(nullable = false)
     private int experientiality;
 
     @Column(nullable = false)
@@ -46,6 +43,21 @@ public class Propensity extends BaseEntity {
 
     @Column(nullable = false)
     private int sociality;
+
+    @Column(nullable = false)
+    private int accommodation;
+
+    @Column(nullable = false)
+    private int food;
+
+    @Column(nullable = false)
+    private int experience;
+
+    @Column(nullable = false)
+    private int transportation;
+
+    @Column(nullable = false)
+    private int cafeExhibition;
 
     private Propensity(User user, PropensityScores scores) {
         this.user = user;
@@ -63,9 +75,13 @@ public class Propensity extends BaseEntity {
     private void applyScores(PropensityScores scores) {
         this.locality = scores.locality();
         this.frugality = scores.frugality();
-        this.flexibility = scores.flexibility();
         this.experientiality = scores.experientiality();
         this.vitality = scores.vitality();
         this.sociality = scores.sociality();
+        this.accommodation = scores.accommodation();
+        this.food = scores.food();
+        this.experience = scores.experience();
+        this.transportation = scores.transportation();
+        this.cafeExhibition = scores.cafeExhibition();
     }
 }
