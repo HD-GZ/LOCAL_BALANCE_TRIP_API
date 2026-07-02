@@ -1,7 +1,6 @@
 package live.lbtrip.support.fixture;
 
 import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
-import live.lbtrip.domain.propensity.model.PropensityResult;
 
 public final class PropensityResponseFixture {
 
@@ -9,10 +8,6 @@ public final class PropensityResponseFixture {
     public static final String DESCRIPTION = "럭셔리보다 실속을, 유명 명소보다 골목 상권을, 구경보다 직접 체험을 즐기는 세대 동행 여행자예요.";
 
     private PropensityResponseFixture() {
-    }
-
-    public static PropensityResult propensityResult() {
-        return PropensityResult.of(TYPE, DESCRIPTION);
     }
 
     public static PropensityResponse propensityResponse() {
