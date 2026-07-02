@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import live.lbtrip.domain.user.dto.request.EmailAvailabilityRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
+import live.lbtrip.domain.user.dto.response.UserResponse;
 import live.lbtrip.domain.user.service.UserService;
+import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,6 +26,14 @@ public class UserController implements UserApi {
         @Valid @ModelAttribute EmailAvailabilityRequest request
     ) {
         EmailAvailabilityResponse response = userService.checkEmailAvailability(request.email());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getUser(
+        @UserId Long userId
+    ) {
+        UserResponse response = userService.getUser(userId);
         return ResponseEntity.ok(response);
     }
 }

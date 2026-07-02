@@ -18,11 +18,17 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.service.UserService;
 import live.lbtrip.global.config.CorsProperties;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.fixture.AuthResponseFixture;
+import live.lbtrip.support.fixture.TokenFixture;
 import live.lbtrip.support.fixture.UserFixture;
+import live.lbtrip.support.fixture.UserResponseFixture;
 
 @WebMvcTest(UserController.class)
 @Import(UserControllerTest.TestCorsConfig.class)
@@ -63,6 +69,55 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
         }
+    }
+
+    @Nested
+    class 내_정보_조회 {
+
+        @Test
+        void 사용자_정보를_응답한다() throws Exception {
+            인증된_사용자();
+            when(userService.getUser(AuthResponseFixture.USER_ID))
+                .thenReturn(UserResponseFixture.userResponse());
+
+            mockMvc.perform(get("/users/me")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.userId").value(AuthResponseFixture.USER_ID))
+                .andExpect(jsonPath("$.data.name").value(UserFixture.NAME))
+                .andExpect(jsonPath("$.data.email").value(UserFixture.EMAIL))
+                .andExpect(jsonPath("$.data.gender").value(UserFixture.GENDER.name()))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.marketingAgreed").value(UserResponseFixture.MARKETING_AGREED));
+        }
+
+        @Test
+        void 인증_토큰이_없으면_예외를_응답한다() throws Exception {
+            mockMvc.perform(get("/users/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
+        }
+
+        @Test
+        void 사용자가_존재하지_않으면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+            when(userService.getUser(AuthResponseFixture.USER_ID))
+                .thenThrow(BusinessException.of(ErrorCode.USER_NOT_FOUND));
+
+            mockMvc.perform(get("/users/me")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("USER_NOT_FOUND"));
+        }
+    }
+
+    private void 인증된_사용자() {
+        when(jwtTokenProvider.isValid(TokenFixture.ACCESS_TOKEN)).thenReturn(true);
+        when(jwtTokenProvider.parseSubject(TokenFixture.ACCESS_TOKEN))
+            .thenReturn(JwtTokenSubject.of(AuthResponseFixture.USER_ID));
     }
 
     @TestConfiguration

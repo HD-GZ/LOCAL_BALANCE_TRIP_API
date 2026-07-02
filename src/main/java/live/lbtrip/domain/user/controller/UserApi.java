@@ -1,18 +1,21 @@
 package live.lbtrip.domain.user.controller;
 
-import static live.lbtrip.global.error.ErrorCode.INVALID_INPUT_VALUE;
+import static live.lbtrip.global.error.ErrorCode.*;
 
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import live.lbtrip.domain.user.dto.request.EmailAvailabilityRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
+import live.lbtrip.domain.user.dto.response.UserResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
+import live.lbtrip.global.web.UserId;
 
 @Tag(name = "User", description = "사용자 API")
 public interface UserApi {
@@ -23,4 +26,10 @@ public interface UserApi {
     ResponseEntity<EmailAvailabilityResponse> checkEmailAvailability(
         @Valid @ParameterObject @ModelAttribute EmailAvailabilityRequest request
     );
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 프로필 정보를 조회합니다.")
+    @ApiSuccessResponse(description = "조회 성공")
+    @ApiErrorCodeResponses({INVALID_ACCESS_TOKEN, USER_NOT_FOUND})
+    ResponseEntity<UserResponse> getUser(@UserId Long userId);
 }
