@@ -3,7 +3,7 @@ package live.lbtrip.domain.propensity.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.model.PropensityResult;
+import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 
 public record PropensityResponse(
@@ -62,12 +62,12 @@ public record PropensityResponse(
     ) {
     }
 
-    public static PropensityResponse of(Propensity propensity, PropensityResult propensityResult) {
+    public static PropensityResponse of(Propensity propensity, TravelProfile travelProfile) {
         Preference preference = propensity.getPreference();
         ValueConsumption valueConsumption = propensity.getValueConsumption();
 
         return new PropensityResponse(
-            new InnerPropensityResultResponse(propensityResult.type(), propensityResult.description()),
+            new InnerPropensityResultResponse(travelProfile.getType(), travelProfile.getDescription()),
             new InnerPreferenceResponse(
                 preference.getLocality(),
                 preference.getFrugality(),

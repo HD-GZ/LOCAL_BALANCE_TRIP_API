@@ -1,0 +1,30 @@
+CREATE TABLE travel_profiles (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    locality_bucket VARCHAR(20) NOT NULL,
+    frugality_bucket VARCHAR(20) NOT NULL,
+    experientiality_bucket VARCHAR(20) NOT NULL,
+    vitality_bucket VARCHAR(20) NOT NULL,
+    sociality_bucket VARCHAR(20) NOT NULL,
+    accommodation_bucket VARCHAR(20) NOT NULL,
+    food_bucket VARCHAR(20) NOT NULL,
+    experience_bucket VARCHAR(20) NOT NULL,
+    transportation_bucket VARCHAR(20) NOT NULL,
+    cafe_exhibition_bucket VARCHAR(20) NOT NULL,
+    type VARCHAR(100) NOT NULL,
+    description VARCHAR(1000) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_travel_profiles_buckets UNIQUE (
+        locality_bucket,
+        frugality_bucket,
+        experientiality_bucket,
+        vitality_bucket,
+        sociality_bucket,
+        accommodation_bucket,
+        food_bucket,
+        experience_bucket,
+        transportation_bucket,
+        cafe_exhibition_bucket
+    )
+);
