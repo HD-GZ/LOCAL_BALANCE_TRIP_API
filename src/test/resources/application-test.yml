@@ -17,6 +17,8 @@ app:
     secret: test-secret-key-that-is-at-least-32-bytes-long
     access-token-expiration: 30m
     refresh-token-expiration: 14d
+    admin-secret: test-admin-secret-key-that-is-at-least-32-bytes
+    admin-access-token-expiration: 30m
   mail:
     from: no-reply@test.local
   email-verification:
