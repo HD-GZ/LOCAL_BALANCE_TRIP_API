@@ -30,6 +30,7 @@ import live.lbtrip.domain.auth.dto.request.SignupRequest;
 import live.lbtrip.domain.auth.dto.request.TokenRefreshRequest;
 import live.lbtrip.domain.auth.service.AuthService;
 import live.lbtrip.domain.auth.service.EmailVerificationService;
+import live.lbtrip.domain.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.support.fixture.AuthRequestFixture;
@@ -53,6 +54,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private AdminJwtTokenProvider adminJwtTokenProvider;
 
     @MockitoBean
     private JpaMetamodelMappingContext jpaMappingContext;
