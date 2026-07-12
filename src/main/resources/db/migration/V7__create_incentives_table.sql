@@ -1,0 +1,8 @@
+CREATE TABLE incentives (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(200) NOT NULL,
+    url VARCHAR(500) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    PRIMARY KEY (id)
+);
