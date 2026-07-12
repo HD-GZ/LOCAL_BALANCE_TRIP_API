@@ -25,6 +25,7 @@ public enum ErrorCode {
     PROPENSITY_NOT_FOUND(HttpStatus.NOT_FOUND, "취향 진단 결과를 찾을 수 없습니다."),
     TRAVEL_PROFILE_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "여행 프로필 정보를 찾을 수 없습니다."),
     INVALID_ADMIN_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 어드민 액세스 토큰입니다."),
+    INCENTIVE_NOT_FOUND(HttpStatus.NOT_FOUND, "인센티브를 찾을 수 없습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."),
     ;
 
