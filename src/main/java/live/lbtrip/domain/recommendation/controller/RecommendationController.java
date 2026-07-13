@@ -15,14 +15,20 @@ import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse.InnerPlaceResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
+import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.global.web.UserId;
+import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/recommendations")
 public class RecommendationController implements RecommendationApi {
 
+    private final RecommendationService recommendationService;
+
     @PostMapping
     public ResponseEntity<Void> createRecommendations(@UserId Long userId) {
+        recommendationService.createRecommendations(userId);
         return ResponseEntity.status(CREATED).build();
     }
 
