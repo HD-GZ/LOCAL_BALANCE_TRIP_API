@@ -70,9 +70,9 @@ public class TourApiClient {
                 item.path("contentid").asText(),
                 item.path("title").asText(),
                 item.path("contenttypeid").asInt(0),
-                item.path("firstimage").asText(null),
-                item.path("mapx").isMissingNode() ? null : item.path("mapx").asDouble(),
-                item.path("mapy").isMissingNode() ? null : item.path("mapy").asDouble()
+                parseText(item, "firstimage"),
+                parseCoordinate(item, "mapx"),
+                parseCoordinate(item, "mapy")
             ));
         }
         return places;
@@ -87,6 +87,23 @@ public class TourApiClient {
             }
         }
         return null;
+    }
+
+    private Double parseCoordinate(JsonNode item, String field) {
+        String value = item.path(field).asText("");
+        if (value.isBlank()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private String parseText(JsonNode item, String field) {
+        String value = item.path(field).asText("");
+        return value.isBlank() ? null : value;
     }
 
     private JsonNode get(String path, UnaryOperator<UriBuilder> customizer) {
