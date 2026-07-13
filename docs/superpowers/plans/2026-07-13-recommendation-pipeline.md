@@ -13,12 +13,14 @@
 ## Global Constraints
 
 - **테스트 코드를 작성하지 않는다** (사용자 결정). 각 태스크의 검증은 `./gradlew compileJava -q` 성공 + 마지막 태스크의 수동 검증으로 대체한다.
+- **주석을 작성하지 않는다** (사용자 결정). javadoc·인라인 주석 모두 금지 — 이름과 구조로 표현한다.
+- **JPA 연관관계를 최대한 활용한다**: `RecommendedRegion.addCourse` / `GeneratedCourse.addPlace` 연관관계 편의 메서드와 `CascadeType.ALL`을 사용해 영속화·삭제를 루트 엔티티(`RecommendedRegion`) 중심으로 수행한다. FK id를 직접 다루지 않는다.
+- **프로젝트 컨벤션 준수**: 생성자 주입(`@RequiredArgsConstructor` 또는 명시적 생성자), 컴포넌트당 단일 책임, `record` DTO, 엔티티 `@Getter`+`@NoArgsConstructor(PROTECTED)`+`create(...)` 팩토리, setter 금지, `BusinessException.of(ErrorCode.X)`.
 - 캐싱·병렬 호출·재시도·서킷브레이커 금지 (오버엔지니어링 지양). 모든 외부 호출은 순차.
 - TourAPI 원본 응답을 DB에 저장하지 않는다. 스냅샷 테이블에 필요한 필드만 저장.
-- 지역 5곳·코스 3개는 **최대치(리미트)** — 적어도 실패가 아니다. 단, 지역 0곳/코스 0개면 `RECOMMENDATION_GENERATION_FAILED`.
+- 지역 5곳·코스 3개는 **최대치(리미트)**. 단, 지역 0곳/코스 0개면 `RECOMMENDATION_GENERATION_FAILED`.
 - KorService2 v4.4 기준: 지역 필터는 법정동 코드 `lDongRegnCd`/`lDongSignguCd` (areaCode 아님).
-- 예외는 `BusinessException.of(ErrorCode.X)`, 응답은 `ApiResponseAdvice` 자동 래핑 (컨트롤러에서 수동 래핑 금지).
-- 엔티티: `@Getter` + `@NoArgsConstructor(access = PROTECTED)` + private 생성자 + `create(...)` 정적 팩토리, setter 금지.
+- LLM 프롬프트는 코드에 하드코딩하지 않고 `src/main/resources/prompts/` 리소스로 관리한다.
 - 컬럼 제약: region/course `reason` 300자, course/place `name` 100자 — 저장 전 잘라낸다.
 - 커밋 메시지는 기존 스타일(한국어, `feat:`/`docs:` prefix)을 따른다.
 
@@ -79,7 +81,7 @@ tour-api:
   service-key: ${TOUR_API_SERVICE_KEY}
 ```
 
-- [ ] **Step 4: application-test.yml에 더미 값 추가** (컨텍스트 로딩 실패 방지)
+- [ ] **Step 4: application-test.yml에 더미 값 추가**
 
 ```yaml
 spring:
@@ -138,17 +140,25 @@ git commit -m "feat: Spring AI 및 TourAPI 설정 추가"
 
 ---
 
-### Task 2: 인구감소지역 후보 테이블 (엔티티 + Flyway 시드)
+### Task 2: 후보 지역·콘텐츠 타입 테이블 (엔티티 + Flyway 시드)
 
 **Files:**
 - Create: `src/main/java/live/lbtrip/domain/recommendation/model/entity/RegionCandidate.java`
+- Create: `src/main/java/live/lbtrip/domain/recommendation/model/entity/TourContentType.java`
 - Create: `src/main/java/live/lbtrip/domain/recommendation/repository/RegionCandidateRepository.java`
+- Create: `src/main/java/live/lbtrip/domain/recommendation/repository/TourContentTypeRepository.java`
 - Create: `src/main/resources/db/migration/V9__create_region_candidates_table.sql`
+- Create: `src/main/resources/db/migration/V10__create_tour_content_types_table.sql`
 
 **Interfaces:**
-- Produces: `RegionCandidate` 엔티티 — getter: `getId()`, `getName()`, `getLdongRegnCd()`, `getLdongSignguCd()`. `RegionCandidateRepository extends JpaRepository<RegionCandidate, Long>` — Task 8이 `findAll()` 사용. Task 3이 `getLdongRegnCd()`/`getLdongSignguCd()`를 쿼리 파라미터로 사용.
+- Produces:
+  - `RegionCandidate` 엔티티 — getter: `getId()`, `getName()`, `getLdongRegnCd()`, `getLdongSignguCd()`
+  - `TourContentType` 엔티티 — getter: `getId()`, `getCode()`(int), `getName()`(String)
+  - `RegionCandidateRepository extends JpaRepository<RegionCandidate, Long>`, `TourContentTypeRepository extends JpaRepository<TourContentType, Long>` — Task 8이 `findAll()` 사용
 
-- [ ] **Step 1: RegionCandidate 엔티티 작성**
+- [ ] **Step 1: 엔티티 2개 작성**
+
+`RegionCandidate.java`:
 
 ```java
 package live.lbtrip.domain.recommendation.model.entity;
@@ -164,9 +174,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * 추천 후보 지역(행안부 지정 인구감소지역). Flyway 시드로 적재되며 코드에서는 조회만 한다.
- */
 @Getter
 @Entity
 @Table(name = "region_candidates")
@@ -180,19 +187,51 @@ public class RegionCandidate extends BaseEntity {
     @Column(nullable = false, length = 50)
     private String name;
 
-    /** 법정동 시도 코드 (TourAPI lDongRegnCd) */
     @Column(name = "ldong_regn_cd", nullable = false, length = 2)
     private String ldongRegnCd;
 
-    /** 법정동 시군구 코드 (TourAPI lDongSignguCd) */
     @Column(name = "ldong_signgu_cd", nullable = false, length = 3)
     private String ldongSignguCd;
 }
 ```
 
-(생성은 시드 전용이므로 `create(...)` 팩토리를 두지 않는다 — 코드에서 생성할 일이 없다.)
+`TourContentType.java`:
 
-`src/main/java/live/lbtrip/domain/recommendation/repository/RegionCandidateRepository.java`:
+```java
+package live.lbtrip.domain.recommendation.model.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import live.lbtrip.global.model.BaseEntity;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Entity
+@Table(name = "tour_content_types")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class TourContentType extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private int code;
+
+    @Column(nullable = false, length = 20)
+    private String name;
+}
+```
+
+(두 엔티티 모두 시드 전용이라 `create(...)` 팩토리를 두지 않는다 — 코드에서 생성할 일이 없다.)
+
+레포지토리 2개:
 
 ```java
 package live.lbtrip.domain.recommendation.repository;
@@ -205,7 +244,18 @@ public interface RegionCandidateRepository extends JpaRepository<RegionCandidate
 }
 ```
 
-- [ ] **Step 2: 법정동 코드 수집 스크립트 실행 (시드 INSERT 생성)**
+```java
+package live.lbtrip.domain.recommendation.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import live.lbtrip.domain.recommendation.model.entity.TourContentType;
+
+public interface TourContentTypeRepository extends JpaRepository<TourContentType, Long> {
+}
+```
+
+- [ ] **Step 2: 법정동 코드 수집 스크립트 실행 (지역 시드 INSERT 생성)**
 
 89곳 지역명은 아래 목록이 확정본이다 (행안부 지정, 군위군은 대구 편입 반영):
 
@@ -227,7 +277,7 @@ import json, os, urllib.parse, urllib.request
 KEY = os.environ["TOUR_API_SERVICE_KEY"]
 BASE = "https://apis.data.go.kr/B551011/KorService2/ldongCode2"
 
-TARGETS = {  # 시도명 부분 문자열 -> [시군구명]
+TARGETS = {
     "부산": ["동구", "서구", "영도구"],
     "대구": ["남구", "서구", "군위군"],
     "인천": ["강화군", "옹진군"],
@@ -257,7 +307,7 @@ def call(params):
         body = json.load(r)["response"]["body"]["items"]
     return body["item"] if body else []
 
-sidos = call({"lDongListYn": "N"})  # 시도 목록
+sidos = call({"lDongListYn": "N"})
 rows, missing = [], []
 for sido in sidos:
     sido_cd, sido_nm = sido["lDongRegnCd"], sido["lDongRegnNm"]
@@ -284,9 +334,9 @@ Run: `TOUR_API_SERVICE_KEY=<디코딩된 키> python3 gen_region_seed.py`
 Expected: `-- matched 89 / missing []` 후 INSERT문 출력.
 missing이 있으면 해당 시도의 시군구 응답 명칭을 확인해 TARGETS를 보정 후 재실행 (89 매칭될 때까지).
 
-- [ ] **Step 3: V9 마이그레이션 작성**
+- [ ] **Step 3: V9·V10 마이그레이션 작성**
 
-`src/main/resources/db/migration/V9__create_region_candidates_table.sql` — 테이블 생성 + Step 2 출력 INSERT 붙여넣기:
+`V9__create_region_candidates_table.sql` — 테이블 생성 + Step 2 출력 INSERT 붙여넣기:
 
 ```sql
 CREATE TABLE region_candidates (
@@ -303,15 +353,39 @@ CREATE TABLE region_candidates (
 -- Step 2 스크립트 출력의 INSERT문 89행을 여기에 붙여넣는다
 ```
 
+`V10__create_tour_content_types_table.sql`:
+
+```sql
+CREATE TABLE tour_content_types (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    code INT NOT NULL,
+    name VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uk_tour_content_types_code UNIQUE (code)
+);
+
+INSERT INTO tour_content_types (code, name, created_at, updated_at) VALUES
+    (12, '관광지', NOW(), NOW()),
+    (14, '문화시설', NOW(), NOW()),
+    (28, '레포츠', NOW(), NOW()),
+    (38, '쇼핑', NOW(), NOW()),
+    (39, '음식점', NOW(), NOW());
+```
+
 - [ ] **Step 4: 컴파일 확인 후 커밋**
 
 Run: `./gradlew compileJava -q` → Expected: BUILD SUCCESSFUL
 
 ```bash
 git add src/main/java/live/lbtrip/domain/recommendation/model/entity/RegionCandidate.java \
+  src/main/java/live/lbtrip/domain/recommendation/model/entity/TourContentType.java \
   src/main/java/live/lbtrip/domain/recommendation/repository/RegionCandidateRepository.java \
-  src/main/resources/db/migration/V9__create_region_candidates_table.sql
-git commit -m "feat: 인구감소지역 후보 테이블 및 시드 추가"
+  src/main/java/live/lbtrip/domain/recommendation/repository/TourContentTypeRepository.java \
+  src/main/resources/db/migration/V9__create_region_candidates_table.sql \
+  src/main/resources/db/migration/V10__create_tour_content_types_table.sql
+git commit -m "feat: 인구감소지역 후보·콘텐츠 타입 테이블 및 시드 추가"
 ```
 
 ---
@@ -327,7 +401,7 @@ git commit -m "feat: 인구감소지역 후보 테이블 및 시드 추가"
 - Consumes: `TourApiProperties` (Task 1), `RegionCandidate` (Task 2)
 - Produces:
   - `record TourPlace(String contentId, String title, int contentTypeId, String imageUrl, Double longitude, Double latitude)`
-  - `record RegionStats(RegionCandidate candidate, int totalCount, Map<Integer, Integer> typeCounts)`
+  - `record RegionStats(RegionCandidate candidate, int totalCount, Map<Integer, Integer> typeCounts)` + `sampleSize()`, `typeRatio(int)`
   - `RegionStats fetchRegionStats(RegionCandidate candidate)`
   - `List<TourPlace> fetchPlaces(RegionCandidate candidate, int contentTypeId)`
   - `String fetchOverview(String contentId)` — 없으면 null
@@ -340,7 +414,6 @@ git commit -m "feat: 인구감소지역 후보 테이블 및 시드 추가"
 ```java
 package live.lbtrip.domain.recommendation.client.dto;
 
-/** areaBasedList2 목록 항목의 스냅샷 후보. mapx=경도, mapy=위도(WGS84). */
 public record TourPlace(
     String contentId,
     String title,
@@ -361,7 +434,6 @@ import java.util.Map;
 
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
 
-/** 지역당 1회 표본 조회 결과: 전체 콘텐츠 수 + 표본 100건의 타입 분포. */
 public record RegionStats(
     RegionCandidate candidate,
     int totalCount,
@@ -391,10 +463,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.UriBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -412,6 +486,8 @@ import lombok.extern.slf4j.Slf4j;
 public class TourApiClient {
 
     private static final String RESULT_OK = "0000";
+    private static final int STATS_SAMPLE_SIZE = 100;
+    private static final int PLACES_PAGE_SIZE = 15;
 
     private final RestClient restClient;
     private final String serviceKey;
@@ -424,10 +500,9 @@ public class TourApiClient {
         this.serviceKey = properties.serviceKey();
     }
 
-    /** 지역당 1회: totalCount + 표본 100건의 contentTypeId 분포. (스펙 §3-②) */
     public RegionStats fetchRegionStats(RegionCandidate candidate) {
         JsonNode body = get("/areaBasedList2", uri -> uri
-            .queryParam("numOfRows", 100)
+            .queryParam("numOfRows", STATS_SAMPLE_SIZE)
             .queryParam("arrange", "C")
             .queryParam("lDongRegnCd", candidate.getLdongRegnCd())
             .queryParam("lDongSignguCd", candidate.getLdongSignguCd()));
@@ -435,16 +510,14 @@ public class TourApiClient {
         int totalCount = body.path("totalCount").asInt(0);
         Map<Integer, Integer> typeCounts = new HashMap<>();
         for (JsonNode item : items(body)) {
-            int typeId = item.path("contenttypeid").asInt(0);
-            typeCounts.merge(typeId, 1, Integer::sum);
+            typeCounts.merge(item.path("contenttypeid").asInt(0), 1, Integer::sum);
         }
         return new RegionStats(candidate, totalCount, typeCounts);
     }
 
-    /** 코스 후보 장소 목록. arrange=O는 대표 이미지가 있는 항목만 제목순으로 반환한다. */
     public List<TourPlace> fetchPlaces(RegionCandidate candidate, int contentTypeId) {
         JsonNode body = get("/areaBasedList2", uri -> uri
-            .queryParam("numOfRows", 15)
+            .queryParam("numOfRows", PLACES_PAGE_SIZE)
             .queryParam("arrange", "O")
             .queryParam("contentTypeId", contentTypeId)
             .queryParam("lDongRegnCd", candidate.getLdongRegnCd())
@@ -464,7 +537,6 @@ public class TourApiClient {
         return places;
     }
 
-    /** detailCommon2에서 overview만 추출. 없으면 null. */
     public String fetchOverview(String contentId) {
         JsonNode body = get("/detailCommon2", uri -> uri.queryParam("contentId", contentId));
         for (JsonNode item : items(body)) {
@@ -476,7 +548,7 @@ public class TourApiClient {
         return null;
     }
 
-    private JsonNode get(String path, java.util.function.UnaryOperator<org.springframework.web.util.UriBuilder> customizer) {
+    private JsonNode get(String path, UnaryOperator<UriBuilder> customizer) {
         try {
             String raw = restClient.get()
                 .uri(uriBuilder -> customizer.apply(uriBuilder
@@ -505,7 +577,6 @@ public class TourApiClient {
         }
     }
 
-    /** items가 빈 문자열("")로 오는 TourAPI 특성 방어: 배열일 때만 순회 대상 반환. */
     private JsonNode items(JsonNode body) {
         JsonNode item = body.path("items").path("item");
         if (item.isArray()) {
@@ -545,7 +616,6 @@ git commit -m "feat: TourAPI 클라이언트 추가 (지역 집계·장소 목�
 ```java
 package live.lbtrip.domain.recommendation.client.dto;
 
-/** Odii themeLocationBasedList 항목. 코스 장소와 좌표·제목으로 매칭한다. */
 public record OdiiTheme(
     String tid,
     String tlid,
@@ -558,17 +628,17 @@ public record OdiiTheme(
 
 - [ ] **Step 2: OdiiClient 작성**
 
-Odii 실패는 추천 전체를 실패시키지 않는다(스펙 §3-⑥) — 예외 대신 빈 결과 + warn 로그.
-
 ```java
 package live.lbtrip.domain.recommendation.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.UriBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -581,7 +651,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class OdiiClient {
 
-    private static final int MAX_RADIUS_METERS = 20000; // 명세상 최대 20km
+    private static final int MAX_RADIUS_METERS = 20000;
 
     private final RestClient restClient;
     private final String serviceKey;
@@ -637,7 +707,7 @@ public class OdiiClient {
         }
     }
 
-    private JsonNode get(String path, java.util.function.UnaryOperator<org.springframework.web.util.UriBuilder> customizer) throws Exception {
+    private JsonNode get(String path, UnaryOperator<UriBuilder> customizer) throws Exception {
         String raw = restClient.get()
             .uri(uriBuilder -> customizer.apply(uriBuilder
                     .path(path)
@@ -687,15 +757,17 @@ git commit -m "feat: Odii 오디오가이드 클라이언트 추가"
 - Consumes: `Propensity`(getPreference/getValueConsumption, 각 축 int 1~5), `RegionStats` (Task 3)
 - Produces: `List<RegionStats> selectTop(Propensity propensity, List<RegionStats> statsList, int limit)` — 점수 내림차순 상위 limit개. Task 8이 사용.
 
-> **튜닝 포인트**: 아래 시그널→축 매핑과 가중치 공식(스펙 §3-②)은 추천 품질의 핵심이며, 수동 검증 후 조정 가능성이 가장 높은 지점이다.
+> **튜닝 포인트**: 시그널→축 매핑과 가중치 공식(스펙 §3-②)은 추천 품질의 핵심이며, 수동 검증 후 조정 가능성이 가장 높은 지점이다. sociality·transportation은 대응 시그널이 없어 스코어링에서 제외한다(스펙 확정 사항).
 
 - [ ] **Step 1: RegionScorer 작성**
 
 ```java
 package live.lbtrip.domain.recommendation.service;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
 
@@ -704,23 +776,19 @@ import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
 
-/**
- * TourAPI 시그널(콘텐츠 규모·타입 분포)과 사용자 성향의 매칭 점수로 지역을 정렬한다. (스펙 §3-②)
- * sociality·transportation은 대응 시그널이 없어 제외한다.
- */
 @Component
 public class RegionScorer {
 
-    private static final int TOURIST_SPOT = 12;
     private static final int CULTURE = 14;
     private static final int LEPORTS = 28;
     private static final int STAY = 32;
     private static final int SHOPPING = 38;
     private static final int FOOD = 39;
+    private static final int NEUTRAL_SCORE = 3;
 
     public List<RegionStats> selectTop(Propensity propensity, List<RegionStats> statsList, int limit) {
         double[] rarity = normalize(statsList.stream()
-            .mapToDouble(stats -> -stats.totalCount()).toArray()); // 콘텐츠가 적을수록 1
+            .mapToDouble(stats -> -stats.totalCount()).toArray());
         double[] culture = normalize(ratios(statsList, CULTURE));
         double[] leports = normalize(ratios(statsList, LEPORTS));
         double[] stay = normalize(ratios(statsList, STAY));
@@ -733,7 +801,7 @@ public class RegionScorer {
         record Scored(RegionStats stats, double score) {
         }
 
-        return java.util.stream.IntStream.range(0, statsList.size())
+        return IntStream.range(0, statsList.size())
             .mapToObj(i -> new Scored(statsList.get(i),
                 weight(preference.getLocality()) * rarity[i]
                     + weight(preference.getFrugality()) * shopping[i]
@@ -749,19 +817,17 @@ public class RegionScorer {
             .toList();
     }
 
-    /** 원점수 1~5 → 가중치 -2~+2. 3(중립)이면 해당 시그널 무시. */
     private double weight(int score) {
-        return score - 3;
+        return score - NEUTRAL_SCORE;
     }
 
     private double[] ratios(List<RegionStats> statsList, int contentTypeId) {
         return statsList.stream().mapToDouble(stats -> stats.typeRatio(contentTypeId)).toArray();
     }
 
-    /** min-max 정규화. 전 지역 값이 같으면 전부 0. */
     private double[] normalize(double[] values) {
-        double min = java.util.Arrays.stream(values).min().orElse(0);
-        double max = java.util.Arrays.stream(values).max().orElse(0);
+        double min = Arrays.stream(values).min().orElse(0);
+        double max = Arrays.stream(values).max().orElse(0);
         double range = max - min;
         double[] normalized = new double[values.length];
         if (range == 0) {
@@ -786,19 +852,20 @@ git commit -m "feat: 성향 기반 지역 스코어링 추가"
 
 ---
 
-### Task 6: ErrorCode 추가 + CourseComposer (LLM 코스 구성)
+### Task 6: ErrorCode + 프롬프트 리소스 + CourseComposer (LLM 코스 구성)
 
 **Files:**
-- Modify: `src/main/java/live/lbtrip/global/error/ErrorCode.java` (INTERNAL_SERVER_ERROR 위에 추가)
+- Modify: `src/main/java/live/lbtrip/global/error/ErrorCode.java` (INCENTIVE_NOT_FOUND 다음 줄)
 - Modify: `src/main/java/live/lbtrip/domain/recommendation/controller/RecommendationApi.java` (createRecommendations의 @ApiErrorCodeResponses)
+- Create: `src/main/resources/prompts/course-composition.st`
 - Create: `src/main/java/live/lbtrip/domain/recommendation/service/CourseComposer.java`
 - Create: `src/main/java/live/lbtrip/domain/recommendation/service/dto/CourseComposition.java`
 
 **Interfaces:**
-- Consumes: `TourPlace` (Task 3), Spring AI `ChatClient.Builder` (Task 1 스타터가 자동 구성)
+- Consumes: `TourPlace` (Task 3), Spring AI `ChatClient.Builder`·`PromptTemplate` (Task 1 스타터)
 - Produces:
-  - `record CourseComposition(String regionReason, List<CoursePlan> courses)` / `record CoursePlan(String name, String reason, List<String> placeContentIds)` (CoursePlan은 CourseComposition의 중첩 record)
-  - `CourseComposition compose(Propensity propensity, String regionName, List<TourPlace> candidates)` — 검증 완료본 반환. Task 8이 사용.
+  - `record CourseComposition(String regionReason, List<CoursePlan> courses)` / 중첩 `record CoursePlan(String name, String reason, List<String> placeContentIds)`
+  - `CourseComposition compose(Propensity propensity, String regionName, List<TourPlace> candidates, Map<Integer, String> typeNames)` — 검증 완료본 반환. Task 8이 사용.
   - `ErrorCode.RECOMMENDATION_GENERATION_FAILED`
 
 - [ ] **Step 1: ErrorCode 추가**
@@ -820,7 +887,38 @@ git commit -m "feat: 성향 기반 지역 스코어링 추가"
     })
 ```
 
-- [ ] **Step 2: CourseComposition record 작성**
+- [ ] **Step 2: 프롬프트 템플릿 리소스 작성**
+
+`src/main/resources/prompts/course-composition.st` (Spring AI `PromptTemplate` 기본 문법 — `{변수}` 치환):
+
+```
+당신은 한국 로컬 여행 코스 큐레이터입니다. 아래 사용자 성향과 후보 장소만 사용해
+"{regionName}" 지역의 여행 코스를 설계하세요.
+
+[사용자 성향 - 각 1~5점, 5에 가까울수록 오른쪽 성향]
+- 로컬 선호(핫플-로컬): {locality}
+- 실속 소비(럭셔리-실속): {frugality}
+- 생활 체험 선호(관람형-생활체험): {experientiality}
+- 활동성(휴식형-활동형): {vitality}
+- 동행 성향(혼행-세대동행): {sociality}
+[가치소비 - 각 1~5점, 5에 가까울수록 그 항목에 투자]
+- 숙소: {accommodation} / 음식: {food} / 체험: {experience} / 이동: {transportation} / 카페·전시: {cafeExhibition}
+
+[후보 장소 - "contentId | 타입 | 이름", 이 목록의 contentId만 사용할 것]
+{candidateLines}
+
+[요구사항]
+1. 코스는 최대 {maxCourses}개, 가능하면 {maxCourses}개. 각 코스는 서로 다른 테마(예: 미식/힐링·산책/생활 체험)로,
+   사용자 점수가 높은 축을 테마에 반영할 것.
+2. 각 코스의 placeContentIds는 위 후보 목록의 contentId만, 방문 순서대로 3~5개.
+   같은 코스의 장소는 도보 이동을 고려해 서로 가깝게 묶을 것.
+3. regionReason(300자 이내): 이 지역이 사용자 성향과 왜 맞는지 한두 문장.
+   문체 예시: "관광객 발길이 드문 한적한 로컬 분위기 · 전통시장 등 실속 여행 인프라 - 지금 취향과 잘 맞는 지역이에요"
+4. 각 코스 reason(300자 이내) 문체 예시: "실속 소비 + 로컬 미식 성향을 반영해 노포·골목 상권 위주로 짰어요"
+5. 코스 name은 "{regionName}"으로 시작하고 테마를 담을 것 (100자 이내). 예: "{regionName} 골목 미식 코스"
+```
+
+- [ ] **Step 3: CourseComposition record 작성**
 
 `service/dto/CourseComposition.java`:
 
@@ -829,7 +927,6 @@ package live.lbtrip.domain.recommendation.service.dto;
 
 import java.util.List;
 
-/** LLM 구조화 출력 계약. placeContentIds는 후보 목록의 contentId만 허용된다. (스펙 §3-④) */
 public record CourseComposition(
     String regionReason,
     List<CoursePlan> courses
@@ -844,16 +941,20 @@ public record CourseComposition(
 }
 ```
 
-- [ ] **Step 3: CourseComposer 작성**
+- [ ] **Step 4: CourseComposer 작성**
 
 ```java
 package live.lbtrip.domain.recommendation.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import live.lbtrip.domain.propensity.model.Preference;
@@ -866,10 +967,6 @@ import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * LLM은 후보 장소 집합 안에서 "선택"과 "문구 창작"만 한다.
- * 후보에 없는 contentId는 걸러내므로 환각이 저장 경로에 들어올 수 없다. (스펙 §3-④)
- */
 @Slf4j
 @Component
 public class CourseComposer {
@@ -878,22 +975,29 @@ public class CourseComposer {
     private static final int MIN_PLACES_PER_COURSE = 2;
     private static final int NAME_MAX_LENGTH = 100;
     private static final int REASON_MAX_LENGTH = 300;
-
-    private static final java.util.Map<Integer, String> TYPE_NAMES = java.util.Map.of(
-        12, "관광지", 14, "문화시설", 28, "레포츠", 38, "쇼핑", 39, "음식점"
-    );
+    private static final String UNKNOWN_TYPE_NAME = "기타";
 
     private final ChatClient chatClient;
+    private final PromptTemplate promptTemplate;
 
-    public CourseComposer(ChatClient.Builder chatClientBuilder) {
+    public CourseComposer(
+        ChatClient.Builder chatClientBuilder,
+        @Value("classpath:prompts/course-composition.st") Resource promptResource
+    ) {
         this.chatClient = chatClientBuilder.build();
+        this.promptTemplate = new PromptTemplate(promptResource);
     }
 
-    public CourseComposition compose(Propensity propensity, String regionName, List<TourPlace> candidates) {
+    public CourseComposition compose(
+        Propensity propensity,
+        String regionName,
+        List<TourPlace> candidates,
+        Map<Integer, String> typeNames
+    ) {
         CourseComposition raw;
         try {
             raw = chatClient.prompt()
-                .user(buildPrompt(propensity, regionName, candidates))
+                .user(renderPrompt(propensity, regionName, candidates, typeNames))
                 .call()
                 .entity(CourseComposition.class);
         } catch (Exception e) {
@@ -903,49 +1007,37 @@ public class CourseComposer {
         return validate(raw, candidates, regionName);
     }
 
-    private String buildPrompt(Propensity propensity, String regionName, List<TourPlace> candidates) {
+    private String renderPrompt(
+        Propensity propensity,
+        String regionName,
+        List<TourPlace> candidates,
+        Map<Integer, String> typeNames
+    ) {
         Preference preference = propensity.getPreference();
         ValueConsumption consumption = propensity.getValueConsumption();
 
         String candidateLines = candidates.stream()
             .map(place -> "%s | %s | %s".formatted(
                 place.contentId(),
-                TYPE_NAMES.getOrDefault(place.contentTypeId(), "기타"),
+                typeNames.getOrDefault(place.contentTypeId(), UNKNOWN_TYPE_NAME),
                 place.title()))
             .collect(Collectors.joining("\n"));
 
-        return """
-            당신은 한국 로컬 여행 코스 큐레이터입니다. 아래 사용자 성향과 후보 장소만 사용해
-            "%s" 지역의 여행 코스를 설계하세요.
-
-            [사용자 성향 — 각 1~5점, 5에 가까울수록 오른쪽 성향]
-            - 로컬 선호(핫플↔로컬): %d
-            - 실속 소비(럭셔리↔실속): %d
-            - 생활 체험 선호(관람형↔생활체험): %d
-            - 활동성(휴식형↔활동형): %d
-            - 동행 성향(혼행↔세대동행): %d
-            [가치소비 — 각 1~5점, 5에 가까울수록 그 항목에 투자]
-            - 숙소: %d / 음식: %d / 체험: %d / 이동: %d / 카페·전시: %d
-
-            [후보 장소 — "contentId | 타입 | 이름", 이 목록의 contentId만 사용할 것]
-            %s
-
-            [요구사항]
-            1. 코스는 최대 %d개, 가능하면 %d개. 각 코스는 서로 다른 테마(예: 미식/힐링·산책/생활 체험)로,
-               사용자 점수가 높은 축을 테마에 반영할 것.
-            2. 각 코스의 placeContentIds는 위 후보 목록의 contentId만, 방문 순서대로 3~5개.
-               같은 코스의 장소는 도보 이동을 고려해 서로 가깝게 묶을 것.
-            3. regionReason(300자 이내): 이 지역이 사용자 성향과 왜 맞는지 한두 문장.
-               문체 예시: "관광객 발길이 드문 한적한 로컬 분위기 · 전통시장 등 실속 여행 인프라 — 지금 취향과 잘 맞는 지역이에요"
-            4. 각 코스 reason(300자 이내) 문체 예시: "실속 소비 + 로컬 미식 성향을 반영해 노포·골목 상권 위주로 짰어요"
-            5. 코스 name은 "%s"로 시작하고 테마를 담을 것 (100자 이내). 예: "%s 골목 미식 코스"
-            """.formatted(
-            regionName,
-            preference.getLocality(), preference.getFrugality(), preference.getExperientiality(),
-            preference.getVitality(), preference.getSociality(),
-            consumption.getAccommodation(), consumption.getFood(), consumption.getExperience(),
-            consumption.getTransportation(), consumption.getCafeExhibition(),
-            candidateLines, MAX_COURSES, MAX_COURSES, regionName, regionName);
+        return promptTemplate.render(Map.ofEntries(
+            Map.entry("regionName", regionName),
+            Map.entry("locality", preference.getLocality()),
+            Map.entry("frugality", preference.getFrugality()),
+            Map.entry("experientiality", preference.getExperientiality()),
+            Map.entry("vitality", preference.getVitality()),
+            Map.entry("sociality", preference.getSociality()),
+            Map.entry("accommodation", consumption.getAccommodation()),
+            Map.entry("food", consumption.getFood()),
+            Map.entry("experience", consumption.getExperience()),
+            Map.entry("transportation", consumption.getTransportation()),
+            Map.entry("cafeExhibition", consumption.getCafeExhibition()),
+            Map.entry("candidateLines", candidateLines),
+            Map.entry("maxCourses", MAX_COURSES)
+        ));
     }
 
     private CourseComposition validate(CourseComposition raw, List<TourPlace> candidates, String regionName) {
@@ -982,13 +1074,14 @@ public class CourseComposer {
 }
 ```
 
-- [ ] **Step 4: 컴파일 확인 후 커밋**
+- [ ] **Step 5: 컴파일 확인 후 커밋**
 
 Run: `./gradlew compileJava -q` → Expected: BUILD SUCCESSFUL
 
 ```bash
 git add src/main/java/live/lbtrip/global/error/ErrorCode.java \
   src/main/java/live/lbtrip/domain/recommendation/controller/RecommendationApi.java \
+  src/main/resources/prompts/course-composition.st \
   src/main/java/live/lbtrip/domain/recommendation/service/CourseComposer.java \
   src/main/java/live/lbtrip/domain/recommendation/service/dto/CourseComposition.java
 git commit -m "feat: LLM 코스 구성 컴포넌트 및 추천 생성 실패 에러코드 추가"
@@ -1002,14 +1095,13 @@ git commit -m "feat: LLM 코스 구성 컴포넌트 및 추천 생성 실패 에
 - Create: `src/main/java/live/lbtrip/domain/recommendation/service/WalkTimeCalculator.java`
 
 **Interfaces:**
-- Produces: `static Integer walkMinutes(Double fromLon, Double fromLat, Double toLon, Double toLat)` — 좌표 하나라도 null이면 null, 아니면 하버사인 거리 ÷ 67m/분 반올림(최소 1분). Task 8이 사용.
+- Produces: `static Integer walkMinutes(Double fromLon, Double fromLat, Double toLon, Double toLat)`, `static Double distanceMeters(Double fromLon, Double fromLat, Double toLon, Double toLat)` — 좌표 하나라도 null이면 null. Task 8이 사용 (walkMinutes는 도보 시간, distanceMeters는 오디오 매칭 반경 판정).
 
 - [ ] **Step 1: WalkTimeCalculator 작성**
 
 ```java
 package live.lbtrip.domain.recommendation.service;
 
-/** 인접 장소 간 도보 시간 추정: 하버사인 거리 ÷ 67m/분(4km/h). (스펙 §3-⑦) */
 public final class WalkTimeCalculator {
 
     private static final double EARTH_RADIUS_METERS = 6_371_000;
@@ -1019,18 +1111,21 @@ public final class WalkTimeCalculator {
     }
 
     public static Integer walkMinutes(Double fromLon, Double fromLat, Double toLon, Double toLat) {
-        if (fromLon == null || fromLat == null || toLon == null || toLat == null) {
+        Double distance = distanceMeters(fromLon, fromLat, toLon, toLat);
+        if (distance == null) {
             return null;
         }
-        double distance = haversineMeters(fromLat, fromLon, toLat, toLon);
         return Math.max(1, (int) Math.round(distance / WALK_METERS_PER_MINUTE));
     }
 
-    private static double haversineMeters(double lat1, double lon1, double lat2, double lon2) {
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
+    public static Double distanceMeters(Double fromLon, Double fromLat, Double toLon, Double toLat) {
+        if (fromLon == null || fromLat == null || toLon == null || toLat == null) {
+            return null;
+        }
+        double dLat = Math.toRadians(toLat - fromLat);
+        double dLon = Math.toRadians(toLon - fromLon);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-            + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+            + Math.cos(Math.toRadians(fromLat)) * Math.cos(Math.toRadians(toLat))
             * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         return 2 * EARTH_RADIUS_METERS * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
@@ -1058,7 +1153,7 @@ git commit -m "feat: 하버사인 기반 도보 시간 계산 추가"
 - Modify: `src/main/java/live/lbtrip/domain/recommendation/controller/RecommendationController.java` (createRecommendations만)
 
 **Interfaces:**
-- Consumes: Task 2~7의 모든 Produces (`RegionCandidateRepository.findAll()`, `TourApiClient.fetchRegionStats/fetchPlaces/fetchOverview`, `OdiiClient.fetchThemesNear/fetchFirstAudioUrl`, `RegionScorer.selectTop`, `CourseComposer.compose`, `WalkTimeCalculator.walkMinutes`), `PropensityRepository.findByUserId`, `UserRepository.getReferenceById`
+- Consumes: Task 2~7의 모든 Produces (`RegionCandidateRepository.findAll()`, `TourContentTypeRepository.findAll()`, `TourApiClient.fetchRegionStats/fetchPlaces/fetchOverview`, `OdiiClient.fetchThemesNear/fetchFirstAudioUrl`, `RegionScorer.selectTop`, `CourseComposer.compose(propensity, regionName, candidates, typeNames)`, `WalkTimeCalculator.walkMinutes/distanceMeters`), `PropensityRepository.findByUserId`, `UserRepository.getReferenceById`
 - Produces: `RecommendationService.createRecommendations(Long userId)` — 컨트롤러가 호출. `RecommendationStore.replace(Long userId, List<RegionPlan> plans)` — @Transactional 저장.
 
 - [ ] **Step 1: RecommendedRegionRepository 작성**
@@ -1078,16 +1173,15 @@ public interface RecommendedRegionRepository extends JpaRepository<RecommendedRe
 }
 ```
 
-- [ ] **Step 2: 중간 산출물 RegionPlan 작성**
+- [ ] **Step 2: RegionPlan 작성**
 
-외부 호출 결과를 트랜잭션 밖에서 모두 조립해 담는 그릇. `service/dto/RegionPlan.java`:
+`service/dto/RegionPlan.java`:
 
 ```java
 package live.lbtrip.domain.recommendation.service.dto;
 
 import java.util.List;
 
-/** 저장 직전 완성 스냅샷: 외부 API·LLM 결과가 모두 반영된 지역 1곳 분량. */
 public record RegionPlan(
     String regionName,
     String imageUrl,
@@ -1118,9 +1212,9 @@ public record RegionPlan(
 }
 ```
 
-- [ ] **Step 3: RecommendationStore 작성 (트랜잭션 저장)**
+- [ ] **Step 3: RecommendationStore 작성**
 
-`@Transactional`은 이 빈에만 둔다 — 외부 호출이 트랜잭션을 점유하지 않게 하는 스펙 §3-⑧의 핵심.
+연관관계 편의 메서드(`addCourse`/`addPlace`)와 `CascadeType.ALL`로 루트(`RecommendedRegion`)만 save/delete한다.
 
 ```java
 package live.lbtrip.domain.recommendation.service;
@@ -1139,7 +1233,6 @@ import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
-/** 완성된 RegionPlan들을 기존 추천과 원자적으로 교체한다. (스펙 §3-⑧) */
 @Component
 @RequiredArgsConstructor
 public class RecommendationStore {
@@ -1150,7 +1243,7 @@ public class RecommendationStore {
     @Transactional
     public void replace(Long userId, List<RegionPlan> plans) {
         List<RecommendedRegion> existing = recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId);
-        recommendedRegionRepository.deleteAll(existing); // cascade로 courses/places까지 삭제
+        recommendedRegionRepository.deleteAll(existing);
         recommendedRegionRepository.flush();
 
         User userRef = userRepository.getReferenceById(userId);
@@ -1177,7 +1270,7 @@ public class RecommendationStore {
 }
 ```
 
-- [ ] **Step 4: RecommendationService 작성 (오케스트레이터)**
+- [ ] **Step 4: RecommendationService 작성**
 
 ```java
 package live.lbtrip.domain.recommendation.service;
@@ -1186,6 +1279,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -1197,7 +1291,9 @@ import live.lbtrip.domain.recommendation.client.dto.OdiiTheme;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
 import live.lbtrip.domain.recommendation.client.dto.TourPlace;
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
+import live.lbtrip.domain.recommendation.model.entity.TourContentType;
 import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
+import live.lbtrip.domain.recommendation.repository.TourContentTypeRepository;
 import live.lbtrip.domain.recommendation.service.dto.CourseComposition;
 import live.lbtrip.domain.recommendation.service.dto.RegionPlan;
 import live.lbtrip.domain.recommendation.service.dto.RegionPlan.CoursePlanData;
@@ -1207,21 +1303,17 @@ import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * POST /recommendations 파이프라인 오케스트레이터. (스펙 §2)
- * 외부 호출은 전부 트랜잭션 밖(이 클래스), 저장만 RecommendationStore 트랜잭션.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecommendationService {
 
     private static final int MAX_REGIONS = 5;
-    private static final List<Integer> CANDIDATE_CONTENT_TYPES = List.of(12, 14, 28, 38, 39);
     private static final double AUDIO_MATCH_RADIUS_METERS = 500;
 
     private final PropensityRepository propensityRepository;
     private final RegionCandidateRepository regionCandidateRepository;
+    private final TourContentTypeRepository tourContentTypeRepository;
     private final TourApiClient tourApiClient;
     private final OdiiClient odiiClient;
     private final RegionScorer regionScorer;
@@ -1229,21 +1321,19 @@ public class RecommendationService {
     private final RecommendationStore recommendationStore;
 
     public void createRecommendations(Long userId) {
-        // ① 성향 로드
         Propensity propensity = propensityRepository.findByUserId(userId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND));
 
-        // ② 지역 스코어링
         List<RegionStats> statsList = new ArrayList<>();
         for (RegionCandidate candidate : regionCandidateRepository.findAll()) {
             statsList.add(tourApiClient.fetchRegionStats(candidate));
         }
         List<RegionStats> selected = regionScorer.selectTop(propensity, statsList, MAX_REGIONS);
 
-        // ③~⑦ 지역별 코스 조립
+        List<TourContentType> contentTypes = tourContentTypeRepository.findAll();
         List<RegionPlan> plans = new ArrayList<>();
         for (RegionStats regionStats : selected) {
-            RegionPlan plan = buildRegionPlan(propensity, regionStats.candidate());
+            RegionPlan plan = buildRegionPlan(propensity, regionStats.candidate(), contentTypes);
             if (plan != null) {
                 plans.add(plan);
             }
@@ -1252,28 +1342,31 @@ public class RecommendationService {
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
 
-        // ⑧ 저장 (트랜잭션)
         recommendationStore.replace(userId, plans);
     }
 
-    private RegionPlan buildRegionPlan(Propensity propensity, RegionCandidate region) {
-        // ③ 장소 후보 수집
+    private RegionPlan buildRegionPlan(
+        Propensity propensity,
+        RegionCandidate region,
+        List<TourContentType> contentTypes
+    ) {
         Map<String, TourPlace> candidatesById = new LinkedHashMap<>();
-        for (int contentTypeId : CANDIDATE_CONTENT_TYPES) {
-            for (TourPlace place : tourApiClient.fetchPlaces(region, contentTypeId)) {
+        for (TourContentType contentType : contentTypes) {
+            for (TourPlace place : tourApiClient.fetchPlaces(region, contentType.getCode())) {
                 candidatesById.putIfAbsent(place.contentId(), place);
             }
         }
         if (candidatesById.isEmpty()) {
-            log.warn("후보 장소 없음 — 지역 제외: {}", region.getName());
+            log.warn("후보 장소 없음 - 지역 제외: {}", region.getName());
             return null;
         }
 
-        // ④ LLM 코스 구성
+        Map<Integer, String> typeNames = contentTypes.stream()
+            .collect(Collectors.toMap(TourContentType::getCode, TourContentType::getName));
         List<TourPlace> candidates = List.copyOf(candidatesById.values());
-        CourseComposition composition = courseComposer.compose(propensity, region.getName(), candidates);
+        CourseComposition composition = courseComposer.compose(
+            propensity, region.getName(), candidates, typeNames);
 
-        // ⑥ 오디오 매칭 준비: 지역당 1회, 후보 좌표 평균 중심
         List<OdiiTheme> themes = odiiClient.fetchThemesNear(
             averageLongitude(candidates), averageLatitude(candidates));
 
@@ -1282,8 +1375,8 @@ public class RecommendationService {
             courses.add(buildCourse(coursePlan, candidatesById, themes));
         }
 
-        String regionImage = courses.getFirst().imageUrl();
-        return new RegionPlan(region.getName(), regionImage, composition.regionReason(), courses);
+        return new RegionPlan(
+            region.getName(), courses.getFirst().imageUrl(), composition.regionReason(), courses);
     }
 
     private CoursePlanData buildCourse(
@@ -1296,12 +1389,9 @@ public class RecommendationService {
         int visitOrder = 1;
         for (String contentId : coursePlan.placeContentIds()) {
             TourPlace place = candidatesById.get(contentId);
-            // ⑤ 상세 보강 (선택된 장소만)
             String overview = tourApiClient.fetchOverview(contentId);
-            // ⑦ 도보 시간
             Integer walkMinutes = previous == null ? null : WalkTimeCalculator.walkMinutes(
                 previous.longitude(), previous.latitude(), place.longitude(), place.latitude());
-            // ⑥ 오디오 매칭
             String audioUrl = matchAudio(place, themes);
 
             places.add(new PlaceSnapshot(
@@ -1310,26 +1400,20 @@ public class RecommendationService {
                 audioUrl != null, audioUrl));
             previous = place;
         }
-        String courseImage = places.getFirst().imageUrl();
-        return new CoursePlanData(coursePlan.name(), coursePlan.reason(), courseImage, places);
+        return new CoursePlanData(
+            coursePlan.name(), coursePlan.reason(), places.getFirst().imageUrl(), places);
     }
 
-    /** 좌표 500m 이내 + 공백 제거 제목 포함 관계면 매칭. (스펙 §3-⑥) */
     private String matchAudio(TourPlace place, List<OdiiTheme> themes) {
-        if (place.longitude() == null || place.latitude() == null) {
-            return null;
-        }
         String placeTitle = normalizeTitle(place.title());
         for (OdiiTheme theme : themes) {
-            if (theme.longitude() == null || theme.latitude() == null) {
+            Double distance = WalkTimeCalculator.distanceMeters(
+                place.longitude(), place.latitude(), theme.longitude(), theme.latitude());
+            if (distance == null || distance > AUDIO_MATCH_RADIUS_METERS) {
                 continue;
             }
-            Integer minutes = WalkTimeCalculator.walkMinutes(
-                place.longitude(), place.latitude(), theme.longitude(), theme.latitude());
-            boolean near = minutes != null && minutes * 67.0 <= AUDIO_MATCH_RADIUS_METERS;
             String themeTitle = normalizeTitle(theme.title());
-            boolean titleMatched = placeTitle.contains(themeTitle) || themeTitle.contains(placeTitle);
-            if (near && titleMatched) {
+            if (placeTitle.contains(themeTitle) || themeTitle.contains(placeTitle)) {
                 return odiiClient.fetchFirstAudioUrl(theme.tid(), theme.tlid());
             }
         }
@@ -1341,12 +1425,12 @@ public class RecommendationService {
     }
 
     private double averageLongitude(List<TourPlace> places) {
-        return places.stream().filter(p -> p.longitude() != null)
+        return places.stream().filter(place -> place.longitude() != null)
             .mapToDouble(TourPlace::longitude).average().orElse(0);
     }
 
     private double averageLatitude(List<TourPlace> places) {
-        return places.stream().filter(p -> p.latitude() != null)
+        return places.stream().filter(place -> place.latitude() != null)
             .mapToDouble(TourPlace::latitude).average().orElse(0);
     }
 }
@@ -1398,26 +1482,24 @@ OPENAI_API_KEY=<실키> TOUR_API_SERVICE_KEY=<디코딩된 실키> ./gradlew boo
 # (기존 DB_URL, DB_USERNAME, DB_PASSWORD, JWT_* 등 로컬 env는 기존 방식대로)
 ```
 
-Expected: 기동 로그에 Flyway `V9` 적용, 오류 없음. `region_candidates`에 89행 확인:
-`SELECT COUNT(*) FROM region_candidates;` → 89
+Expected: 기동 로그에 Flyway `V9`, `V10` 적용, 오류 없음.
+`SELECT COUNT(*) FROM region_candidates;` → 89 / `SELECT COUNT(*) FROM tour_content_types;` → 5
 
 - [ ] **Step 2: 사용자 준비 → 성향 등록 → 추천 생성 호출**
 
 기존 인증 플로우로 액세스 토큰 확보 후:
 
 ```bash
-# 성향 등록 (PropensityRequest 형식은 Swagger /swagger-ui 확인)
 curl -s -X POST http://localhost:8080/propensities \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"locality":5,"frugality":4,"experientiality":3,"vitality":2,"sociality":1,
        "accommodation":2,"food":5,"experience":4,"transportation":3,"cafeExhibition":3}'
 
-# 추천 생성 (수십 초 소요)
 time curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8080/recommendations \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Expected: `201`, 소요 시간 40~120초.
+Expected: `201`, 소요 시간 40~120초. (PropensityRequest 필드명은 Swagger `/swagger-ui`에서 확인)
 
 - [ ] **Step 3: 저장 결과 확인 (조회 API는 아직 더미이므로 DB 직접 확인)**
 
@@ -1440,13 +1522,13 @@ Expected 체크리스트:
 - [ ] **Step 4: 이상 발견 시 튜닝 포인트**
 
 - 지역 추천이 성향과 안 맞음 → Task 5 `RegionScorer`의 축-시그널 매핑/가중치 조정
-- 코스 문구 품질 낮음 → Task 6 프롬프트의 문체 예시·요구사항 보강
-- 특정 지역 후보 부족으로 자주 탈락 → Task 3 `fetchPlaces`의 `numOfRows` 상향(15→20)
+- 코스 문구 품질 낮음 → Task 6 `prompts/course-composition.st` 문체 예시·요구사항 보강
+- 특정 지역 후보 부족으로 자주 탈락 → Task 3 `PLACES_PAGE_SIZE` 상향(15→20)
 
 ---
 
 ## Self-Review 결과
 
-- **스펙 커버리지**: §3-①~⑧ → Task 8(①,②호출,③~⑧ 오케스트레이션), Task 2(후보 풀), Task 3~4(클라이언트), Task 5(스코어링), Task 6(LLM+검증+ErrorCode), Task 7(도보 시간), §5(Task 1), §6(Task 3·6·8), §7 수동 검증(Task 9). 비범위 항목 미포함 확인.
-- **타입 일관성**: `RegionStats`/`TourPlace`/`OdiiTheme`/`CourseComposition`/`RegionPlan` 시그니처가 생산 태스크와 소비 태스크(8) 간 일치함을 교차 확인.
-- **플레이스홀더**: 시드 INSERT만 스크립트 출력 붙여넣기로 남김 — 코드를 추측으로 하드코딩하지 않기 위한 의도적 설계(스펙 §9 리스크 대응)이며, 생성 스크립트 전문을 포함했으므로 실행 가능.
+- **스펙 커버리지**: §3-①~⑧ → Task 8(오케스트레이션·저장), Task 2(후보 풀 + 콘텐츠 타입 DB), Task 3~4(클라이언트), Task 5(스코어링), Task 6(LLM+프롬프트 리소스+검증+ErrorCode), Task 7(도보 시간), §5(Task 1), §6(Task 3·6·8), §7 수동 검증(Task 9). 비범위 항목 미포함 확인.
+- **타입 일관성**: `CourseComposer.compose(propensity, regionName, candidates, typeNames)` 시그니처와 Task 8 호출부 일치, `WalkTimeCalculator.distanceMeters` 추가에 따른 오디오 매칭 호출부 일치 확인.
+- **플레이스홀더**: 지역 시드 INSERT만 스크립트 출력 붙여넣기로 남김 — 법정동 코드를 추측으로 하드코딩하지 않기 위한 의도적 설계(스펙 §9 리스크 대응)이며, 생성 스크립트 전문을 포함했으므로 실행 가능.

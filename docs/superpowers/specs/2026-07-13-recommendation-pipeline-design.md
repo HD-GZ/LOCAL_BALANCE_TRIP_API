@@ -106,6 +106,7 @@ sociality·transportation은 TourAPI 목록 데이터에서 대응 시그널이 
 
 선정된 지역 각각에 대해 `areaBasedList2`를 contentType별(관광지 12, 문화시설 14, 레포츠 28,
 쇼핑 38, 음식점 39)로 호출한다. `numOfRows=15`, `arrange=O`(대표 이미지가 있는 항목만, 제목순).
+대상 contentType 코드와 한글명은 코드 상수가 아니라 **DB 테이블 `tour_content_types`**(Flyway 시드)로 관리한다.
 후보당 보관 필드: `contentId`, `title`, `contentTypeId`, `firstimage`, `mapx`, `mapy`.
 지역당 최대 75곳의 후보 풀이 만들어진다.
 
@@ -129,6 +130,9 @@ sociality·transportation은 TourAPI 목록 데이터에서 대응 시그널이 
   ]
 }
 ```
+
+**프롬프트 관리**: 프롬프트 템플릿은 코드에 하드코딩하지 않고
+`src/main/resources/prompts/course-composition.st` 리소스 파일로 관리한다 (Spring AI `PromptTemplate`).
 
 **프롬프트 요구사항**:
 - 코스는 최대 3개(가능하면 3개), 서로 다른 테마(예: 미식/힐링·산책/체험)로 구성하고 사용자 성향 상위 축을 테마에 반영할 것
@@ -187,12 +191,17 @@ domain/recommendation/
     WalkTimeCalculator     # ⑦ 순수 함수 (static 유틸 또는 컴포넌트)
   model/entity/
     RegionCandidate        # 인구감소지역 후보 엔티티 (지역명, ldongRegnCd, ldongSignguCd) — Flyway 시드로 적재
+    TourContentType        # TourAPI 콘텐츠 타입 (code, name) — Flyway 시드로 적재
   repository/
-    RegionCandidateRepository, RecommendedRegionRepository, GeneratedCourseRepository, ...
+    RegionCandidateRepository, TourContentTypeRepository, RecommendedRegionRepository, ...
+resources/
+  prompts/course-composition.st   # LLM 코스 구성 프롬프트 템플릿
 ```
 
-DB 변경: `V9__create_region_candidates_table.sql` — `region_candidates` 테이블 생성 + 89곳 INSERT 시드.
-BaseEntity 규칙에 따라 `created_at`/`updated_at` 포함.
+DB 변경:
+- `V9__create_region_candidates_table.sql` — `region_candidates` 테이블 생성 + 89곳 INSERT 시드
+- `V10__create_tour_content_types_table.sql` — `tour_content_types` 테이블 생성 + 5개 타입 INSERT 시드
+- BaseEntity 규칙에 따라 두 테이블 모두 `created_at`/`updated_at` 포함.
 
 - 컨트롤러는 서비스 호출과 `ResponseEntity.status(CREATED).build()`만 담당한다.
 - TourAPI 클라이언트는 현재 recommendation 도메인만 사용하므로 도메인 패키지에 두고, 공유가 필요해지면 `global`로 옮긴다.
