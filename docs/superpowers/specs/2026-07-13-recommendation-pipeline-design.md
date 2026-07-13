@@ -6,7 +6,8 @@
 
 ## 1. 배경과 목표
 
-로컬밸런스 트립의 핵심 MVP는 "사용자 10축 성향 → 인구감소지역 중심 추천 지역 5곳 → 지역별 코스 3개 → 코스별 장소 스냅샷" 생성이다.
+로컬밸런스 트립의 핵심 MVP는 "사용자 10축 성향 → 인구감소지역 중심 추천 지역 최대 5곳 → 지역별 코스 최대 3개 → 코스별 장소 스냅샷" 생성이다.
+5곳·3개는 상한(리미트)이며, 조건에 맞는 결과가 그보다 적으면 적은 대로 저장한다.
 조회 API 4개(여행지 리스트 / 코스 리스트 / 코스 상세 / 코스 저장)는 이미 저장된 스냅샷을 읽기만 하므로,
 이 문서는 유일한 쓰기 경로인 `POST /recommendations`의 생성 파이프라인을 정의한다.
 
@@ -18,7 +19,11 @@
 | 지역 특성 데이터 | **TourAPI 실시간 집계** (정적 시드 없음) |
 | 후보 지역 풀 | **행안부 지정 인구감소지역 89곳 전체** |
 | LLM 스택 | **Spring AI + OpenAI** (gpt-4o-mini 급) |
-| 오디오가이드(Odii) | **이번 MVP에 포함** |
+| 오디오가이드(Odii) | **이번 MVP에 포함** (TourAPI·Odii 모두 활용신청 완료) |
+| 지역 5곳·코스 3개 | **최대 개수(리미트)** — 그보다 적어도 됨 |
+| 후보 지역 관리 | **DB 테이블 + Flyway 시드** (enum 아님) |
+| 테스트 코드 | **작성하지 않음** — 수동 검증으로 대체 |
+| sociality·transportation | **지역 스코어링에서 제외** (LLM 프롬프트에는 전달) |
 
 ### 제약 (사용자 요구사항)
 
@@ -30,9 +35,9 @@
 
 ```
 ① 성향 로드        Propensity 조회 (없으면 PROPENSITY_NOT_FOUND)
-② 지역 스코어링     89개 지역 × areaBasedList2 1회 → 시그널 집계 → 성향 매칭 점수 → 상위 5곳
-③ 장소 후보 수집    상위 5곳 × contentType별 목록 조회 (12·14·28·38·39)
-④ LLM 코스 구성    지역당 1회 ChatClient 호출 → 지역 reason + 코스 3개(이름·reason·장소 contentId 순서)
+② 지역 스코어링     후보 지역(DB) × areaBasedList2 1회 → 시그널 집계 → 성향 매칭 점수 → 상위 최대 5곳
+③ 장소 후보 수집    선정 지역 × contentType별 목록 조회 (12·14·28·38·39)
+④ LLM 코스 구성    지역당 1회 ChatClient 호출 → 지역 reason + 코스 최대 3개(이름·reason·장소 contentId 순서)
 ⑤ 장소 상세 보강    LLM이 선택한 장소만 detailCommon2로 overview 조회
 ⑥ 오디오 매칭      지역당 Odii 위치기반 1회 조회 → 좌표 근접 + 제목 매칭
 ⑦ 도보 시간 계산    인접 장소 간 하버사인 거리 ÷ 도보 속도(4km/h)
@@ -56,14 +61,20 @@ LLM의 환각이 DB에 들어갈 경로가 없다.
 
 ### ② 지역 스코어링 (규칙 기반)
 
-**후보 풀**: 인구감소지역 89곳을 enum(예: `RegionCandidate`)으로 정의한다.
-필드는 표시용 지역명(예: "전라북도 임실군"), TourAPI `areaCode`, `sigunguCode` 세 개뿐이다.
-특성 점수는 갖지 않는다(실시간 집계 방식이므로).
+**후보 풀**: 인구감소지역 89곳을 **DB 테이블 `region_candidates`로 관리**한다.
+컬럼은 표시용 지역명(예: "전라북도 임실군"), TourAPI `area_code`, `sigungu_code` + BaseEntity 공통 컬럼이다.
+특성 점수는 갖지 않는다(실시간 집계 방식이므로). 89곳 데이터는 Flyway 시드 마이그레이션
+(`V9__create_region_candidates_table.sql`, 테이블 생성 + INSERT)으로 넣고, 파이프라인은 `findAll()`로 읽는다.
 
 **시그널 수집**: 지역당 `areaBasedList2`를 contentTypeId 없이 `numOfRows=100`으로 1회 호출한다.
 
 - `totalCount` = 지역 전체 관광 콘텐츠 규모 → 적을수록 "한적한 로컬" 시그널
 - 표본 100건의 `contenttypeid` 분포 → 타입별 비중(ratio)
+
+**정규화 공식**: `norm(x) = (x − min) / (max − min)` — 후보 지역 전체에서 min-max 정규화해 0~1로 만든다.
+locality 시그널은 `rarity = 1 − norm(totalCount)`인데, 관광 콘텐츠가 **적을수록** 한적한 로컬이므로
+정규화 값을 뒤집어(1에서 빼서) 콘텐츠 희소 지역이 1에 가깝도록 한 것이다.
+max = min(모든 지역이 동일)이면 해당 시그널은 전 지역 0으로 처리한다.
 
 **시그널 → 성향 축 매핑** (기본안, 구현 중 튜닝 가능):
 
@@ -84,13 +95,13 @@ LLM의 환각이 DB에 들어갈 경로가 없다.
 regionScore = Σ (w_axis × normalizedSignal_axis)
 ```
 
-점수 상위 5곳을 선정하고 `display_order`는 점수 순위로 부여한다.
+점수 상위 최대 5곳을 선정하고 `display_order`는 점수 순위로 부여한다.
 sociality·transportation은 TourAPI 목록 데이터에서 대응 시그널이 없어 지역 스코어링에서는 제외하되,
 ④의 LLM 프롬프트에는 10축 전부를 전달해 코스 구성(동선 강도, 동행 적합성 등)에 반영한다.
 
 ### ③ 장소 후보 수집
 
-상위 5개 지역 각각에 대해 `areaBasedList2`를 contentType별(관광지 12, 문화시설 14, 레포츠 28,
+선정된 지역 각각에 대해 `areaBasedList2`를 contentType별(관광지 12, 문화시설 14, 레포츠 28,
 쇼핑 38, 음식점 39)로 호출한다. `numOfRows=15`, `arrange=O`(대표 이미지가 있는 항목만, 제목순).
 후보당 보관 필드: `contentId`, `title`, `contentTypeId`, `firstimage`, `mapx`, `mapy`.
 지역당 최대 75곳의 후보 풀이 만들어진다.
@@ -117,13 +128,14 @@ sociality·transportation은 TourAPI 목록 데이터에서 대응 시그널이 
 ```
 
 **프롬프트 요구사항**:
-- 코스는 정확히 3개, 서로 다른 테마(예: 미식/힐링·산책/체험)로 구성하고 사용자 성향 상위 축을 테마에 반영할 것
+- 코스는 최대 3개(가능하면 3개), 서로 다른 테마(예: 미식/힐링·산책/체험)로 구성하고 사용자 성향 상위 축을 테마에 반영할 것
 - 장소는 반드시 후보 목록의 contentId에서만 선택하고, 도보 이동을 고려해 가까운 장소끼리 묶을 것
 - reason은 기존 더미 데이터 톤("~을 반영해 ~로 짰어요")의 자연스러운 한국어 문장으로 작성할 것
 
 **검증 (얇게)**:
 - 후보에 없는 contentId → 해당 장소만 제거
-- 제거 후 장소가 2개 미만인 코스, 또는 코스가 3개가 아닌 응답 → `RECOMMENDATION_GENERATION_FAILED`
+- 제거 후 장소가 2개 미만인 코스 → 해당 코스 제거
+- 코스가 3개를 초과하면 앞에서 3개만 사용, 남은 코스가 0개면 `RECOMMENDATION_GENERATION_FAILED`
 - 길이 초과 문구는 저장 전 잘라낸다 (컬럼 제약: reason 300자, name 100자)
 
 ### ⑤ 장소 상세 보강
@@ -169,11 +181,14 @@ domain/recommendation/
     RegionScorer           # ② 순수 로직 (시그널 정규화 + 점수 계산)
     CourseComposer         # ④ Spring AI ChatClient 래퍼 + 응답 검증
     WalkTimeCalculator     # ⑦ 순수 함수 (static 유틸 또는 컴포넌트)
-  model/
-    RegionCandidate        # 인구감소지역 89곳 enum (지역명, areaCode, sigunguCode)
+  model/entity/
+    RegionCandidate        # 인구감소지역 후보 엔티티 (지역명, areaCode, sigunguCode) — Flyway 시드로 적재
   repository/
-    RecommendedRegionRepository, GeneratedCourseRepository, ...
+    RegionCandidateRepository, RecommendedRegionRepository, GeneratedCourseRepository, ...
 ```
+
+DB 변경: `V9__create_region_candidates_table.sql` — `region_candidates` 테이블 생성 + 89곳 INSERT 시드.
+BaseEntity 규칙에 따라 `created_at`/`updated_at` 포함.
 
 - 컨트롤러는 서비스 호출과 `ResponseEntity.status(CREATED).build()`만 담당한다.
 - TourAPI 클라이언트는 현재 recommendation 도메인만 사용하므로 도메인 패키지에 두고, 공유가 필요해지면 `global`로 옮긴다.
@@ -205,7 +220,7 @@ tour-api:
   service-key: ${TOUR_API_SERVICE_KEY}
 ```
 
-- TourAPI와 Odii는 같은 공공데이터포털 서비스키를 쓰되, 각각 활용신청이 되어 있어야 한다.
+- TourAPI와 Odii는 같은 공공데이터포털 서비스키를 사용한다. 두 서비스 모두 활용신청 완료됨.
 - 테스트용 값은 `application-test.yml`에 더미로 둔다.
 
 ## 6. 에러 처리
@@ -217,15 +232,9 @@ tour-api:
 | LLM 호출 실패 또는 응답 검증 실패 | `RECOMMENDATION_GENERATION_FAILED` (503, **ErrorCode 신규 추가**: "코스 추천 생성에 실패했습니다.") + RecommendationApi `@ApiErrorCodeResponses`에 추가 |
 | Odii 호출 실패 | 추천을 실패시키지 않고 오디오 없음으로 진행 (로그만) |
 
-## 7. 테스트 전략
+## 7. 테스트
 
-- `RegionScorer` 단위 테스트: 성향 프로필별로 기대 지역이 상위에 오는지, 정규화 경계(전부 동일 값 등) 처리
-- `CourseComposer` 단위 테스트: 후보에 없는 contentId 필터링, 코스 수/장소 수 검증 실패 시 예외 (ChatClient는 mock)
-- `WalkTimeCalculator` 단위 테스트: 알려진 두 좌표 간 거리·분 계산, 첫 장소 null
-- `RecommendationService` 단위 테스트(`@ExtendWith(MockitoExtension.class)`): 성향 없음 예외(errorCode 검증), 기존 추천 삭제 후 재생성, Odii 실패 시 오디오 없이 진행
-- 컨트롤러 `@WebMvcTest`: 201 + `$.result` 공통 포맷 검증
-- 픽스처는 `support/fixture`에 추가 (TourAPI 응답 record 픽스처 포함)
-- LLM·TourAPI 실호출 통합 테스트는 범위 외 (수동 검증으로 대체)
+**테스트 코드는 작성하지 않는다** (사용자 결정). 검증은 실제 API 호출을 통한 수동 확인으로 대체한다.
 
 ## 8. 비범위 (Non-goals)
 
@@ -237,5 +246,5 @@ tour-api:
 ## 9. 미해결 리스크
 
 - **Spring AI ↔ Boot 4.0.6 호환 버전**: 구현 시점에 BOM 버전 확인 필요. 호환 이슈가 있으면 OpenAI REST 직접 호출(RestClient)로 대체 가능하도록 CourseComposer 인터페이스를 얇게 유지한다.
-- **89곳 enum의 areaCode/sigunguCode 정확성**: TourAPI `areaCode2` 조회 결과로 검증하는 일회성 스크립트/테스트를 구현 단계에서 수행한다.
+- **89곳 시드 데이터의 areaCode/sigunguCode 정확성**: TourAPI `areaCode2` 조회 결과와 대조하는 일회성 확인을 구현 단계에서 수행한 뒤 시드 마이그레이션을 확정한다.
 - **응답 시간 40~80초**: 게이트웨이/인프라 타임아웃(예: 60초)이 있으면 초과할 수 있다. MVP 검증 후 필요 시 비동기 전환을 논의한다.
