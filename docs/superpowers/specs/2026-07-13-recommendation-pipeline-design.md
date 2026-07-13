@@ -62,7 +62,10 @@ LLM의 환각이 DB에 들어갈 경로가 없다.
 ### ② 지역 스코어링 (규칙 기반)
 
 **후보 풀**: 인구감소지역 89곳을 **DB 테이블 `region_candidates`로 관리**한다.
-컬럼은 표시용 지역명(예: "전라북도 임실군"), TourAPI `area_code`, `sigungu_code` + BaseEntity 공통 컬럼이다.
+컬럼은 표시용 지역명(예: "전라북도 임실군"), **법정동 시도 코드 `ldong_regn_cd`, 법정동 시군구 코드
+`ldong_signgu_cd`** + BaseEntity 공통 컬럼이다.
+(KorService2 v4.4부터 지역 필터가 areaCode/sigunguCode가 아닌 법정동 코드 `lDongRegnCd`/`lDongSignguCd`로
+바뀌었고, 기존 지역코드 조회 오퍼레이션은 삭제되었다 — `docs/api-md` 국문 v4.4 명세 기준.)
 특성 점수는 갖지 않는다(실시간 집계 방식이므로). 89곳 데이터는 Flyway 시드 마이그레이션
 (`V9__create_region_candidates_table.sql`, 테이블 생성 + INSERT)으로 넣고, 파이프라인은 `findAll()`로 읽는다.
 
@@ -149,9 +152,10 @@ LLM이 선택한 장소(최대 75곳)만 `detailCommon2`로 `overview`를 조회
 
 ### ⑥ 오디오 매칭 (Odii)
 
-- 지역당 1회 Odii `themeLocationBasedList`(지역 후보 장소들의 좌표 평균 중심, 반경 최대치)를 호출한다.
+- 지역당 1회 Odii `themeLocationBasedList`(지역 후보 장소들의 좌표 평균 중심, `radius=20000` — 명세상 최대 20km,
+  `langCode=ko`)를 호출한다. 응답 항목: `tid`, `tlid`, `title`, `mapX`, `mapY`.
 - 각 코스 장소에 대해 **좌표 500m 이내 + 정규화된 제목 일치(공백 제거 후 포함 관계)**인 테마를 찾는다.
-- 매칭된 테마만 `storySearchList`(또는 storyBasedList)로 첫 스토리의 `audioUrl`을 조회한다.
+- 매칭된 테마만 `storyBasedList`(파라미터 `tid`/`tlid`)로 첫 스토리의 `audioUrl`을 조회한다.
 - 매칭 성공 시 `has_audio=true, audio_url=...`, 실패 시 `has_audio=false, audio_url=null`.
 - Odii 호출 실패는 추천 전체를 실패시키지 않는다 — 오디오 없이 진행한다 (부가 기능이므로).
 
@@ -182,7 +186,7 @@ domain/recommendation/
     CourseComposer         # ④ Spring AI ChatClient 래퍼 + 응답 검증
     WalkTimeCalculator     # ⑦ 순수 함수 (static 유틸 또는 컴포넌트)
   model/entity/
-    RegionCandidate        # 인구감소지역 후보 엔티티 (지역명, areaCode, sigunguCode) — Flyway 시드로 적재
+    RegionCandidate        # 인구감소지역 후보 엔티티 (지역명, ldongRegnCd, ldongSignguCd) — Flyway 시드로 적재
   repository/
     RegionCandidateRepository, RecommendedRegionRepository, GeneratedCourseRepository, ...
 ```
@@ -242,9 +246,12 @@ tour-api:
 - 두루누비 GPX 도보 경로, Green 점수, 인센티브 매칭, TTS 보완 (제안서의 후속 기능)
 - Tour API 원본 응답 저장, 지역 특성의 DB 관리
 - 비동기 생성(202 + 폴링) 전환 — 현재 계약은 동기 201
+- `docs/api-md`의 통계성 API 활용 — 기초지자체 중심관광지정보(`LocgoHubTarService1`),
+  지역별 관광 다양성(`AreaTarDivService`), 관광빅데이터 등은 locality 시그널·지역 대표 관광지 선정을
+  개선할 수 있으나 별도 활용신청이 필요하고 MVP 범위를 넘으므로 후속 과제로 남긴다.
 
 ## 9. 미해결 리스크
 
 - **Spring AI ↔ Boot 4.0.6 호환 버전**: 구현 시점에 BOM 버전 확인 필요. 호환 이슈가 있으면 OpenAI REST 직접 호출(RestClient)로 대체 가능하도록 CourseComposer 인터페이스를 얇게 유지한다.
-- **89곳 시드 데이터의 areaCode/sigunguCode 정확성**: TourAPI `areaCode2` 조회 결과와 대조하는 일회성 확인을 구현 단계에서 수행한 뒤 시드 마이그레이션을 확정한다.
+- **89곳 시드 데이터의 법정동 코드 정확성**: TourAPI `ldongCode2`(법정동 코드 조회) 결과와 대조하는 일회성 확인을 구현 단계에서 수행한 뒤 시드 마이그레이션을 확정한다.
 - **응답 시간 40~80초**: 게이트웨이/인프라 타임아웃(예: 60초)이 있으면 초과할 수 있다. MVP 검증 후 필요 시 비동기 전환을 논의한다.
