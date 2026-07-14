@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
@@ -14,12 +15,14 @@ import live.lbtrip.domain.recommendation.client.TourApiClient;
 import live.lbtrip.domain.recommendation.client.dto.OdiiTheme;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
 import live.lbtrip.domain.recommendation.client.dto.TourPlace;
+import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.CourseComposition;
 import live.lbtrip.domain.recommendation.model.RegionPlan;
 import live.lbtrip.domain.recommendation.model.RegionPlan.CoursePlanData;
 import live.lbtrip.domain.recommendation.model.RegionPlan.PlaceSnapshot;
 import live.lbtrip.domain.recommendation.model.TourContentType;
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
+import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -36,6 +39,7 @@ public class RecommendationService {
 
     private final PropensityRepository propensityRepository;
     private final RegionCandidateRepository regionCandidateRepository;
+    private final RecommendedRegionRepository recommendedRegionRepository;
     private final TourApiClient tourApiClient;
     private final OdiiClient odiiClient;
     private final RegionScorer regionScorer;
@@ -64,6 +68,13 @@ public class RecommendationService {
         }
 
         recommendationStore.replace(userId, plans);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
+        return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
+            .map(RegionRecommendationResponse::from)
+            .toList();
     }
 
     private RegionPlan buildRegionPlan(Propensity propensity, RegionStats regionStats) {

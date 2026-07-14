@@ -34,23 +34,7 @@ public class RecommendationController implements RecommendationApi {
 
     @GetMapping("/regions")
     public ResponseEntity<List<RegionRecommendationResponse>> getRecommendedRegions(@UserId Long userId) {
-        return ResponseEntity.ok(List.of(
-            new RegionRecommendationResponse(1L, "전라북도 임실군",
-                "http://tong.visitkorea.or.kr/cms/resource/81/3585581_image2_1.jpg",
-                "관광객 발길이 드문 한적한 로컬 분위기 · 전통시장 등 실속 여행 인프라 — 지금 취향과 잘 맞는 지역이에요"),
-            new RegionRecommendationResponse(2L, "전라남도 담양군",
-                "http://tong.visitkorea.or.kr/cms/resource/76/2846576_image2_1.JPG",
-                "로컬 미식 상권이 풍부한 먹거리 · 전통시장 등 실속 여행 인프라 — 지금 취향과 잘 맞는 지역이에요"),
-            new RegionRecommendationResponse(3L, "전라북도 정읍시",
-                "http://tong.visitkorea.or.kr/cms/resource/92/3366392_image2_1.JPG",
-                "관광객 발길이 드문 한적한 로컬 분위기 · 직접 해보는 체험 콘텐츠 — 지금 취향과 잘 맞는 지역이에요"),
-            new RegionRecommendationResponse(4L, "전라남도 광양시",
-                "http://tong.visitkorea.or.kr/cms/resource/08/3050908_image2_1.jpg",
-                "로컬 미식 상권이 풍부한 먹거리 · 전통시장 등 실속 여행 인프라 — 지금 취향과 잘 맞는 지역이에요"),
-            new RegionRecommendationResponse(5L, "전라남도 영암군",
-                "http://tong.visitkorea.or.kr/cms/resource/33/2678633_image2_1.jpg",
-                "관광객 발길이 드문 한적한 로컬 분위기 · 로컬 미식 상권이 풍부한 먹거리 — 지금 취향과 잘 맞는 지역이에요")
-        ));
+        return ResponseEntity.ok(recommendationService.getRecommendedRegions(userId));
     }
 
     @GetMapping("/regions/{regionId}/courses")
