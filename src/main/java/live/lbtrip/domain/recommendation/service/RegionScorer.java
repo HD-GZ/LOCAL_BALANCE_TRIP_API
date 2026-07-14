@@ -11,7 +11,7 @@ import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
-import live.lbtrip.domain.recommendation.model.TourContentType;
+import live.lbtrip.domain.recommendation.model.enums.TourContentType;
 
 @Component
 public class RegionScorer {

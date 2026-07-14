@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.model;
+package live.lbtrip.domain.recommendation.model.vo;
 
 import java.util.List;
 

@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
-import live.lbtrip.domain.recommendation.model.RegionPlan;
+import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
