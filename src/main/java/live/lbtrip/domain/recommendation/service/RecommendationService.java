@@ -15,12 +15,14 @@ import live.lbtrip.domain.recommendation.client.TourApiClient;
 import live.lbtrip.domain.recommendation.client.dto.OdiiTheme;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
 import live.lbtrip.domain.recommendation.client.dto.TourPlace;
+import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.CourseComposition;
 import live.lbtrip.domain.recommendation.model.RegionPlan;
 import live.lbtrip.domain.recommendation.model.RegionPlan.CoursePlanData;
 import live.lbtrip.domain.recommendation.model.RegionPlan.PlaceSnapshot;
 import live.lbtrip.domain.recommendation.model.TourContentType;
+import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
@@ -74,6 +76,16 @@ public class RecommendationService {
     public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
         return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
             .map(RegionRecommendationResponse::from)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CourseCandidateResponse> getRegionCourses(Long userId, Long regionId) {
+        RecommendedRegion region = recommendedRegionRepository.findByIdAndUserId(regionId, userId)
+            .orElseThrow(() -> BusinessException.of(ErrorCode.REGION_NOT_FOUND));
+
+        return region.getCourses().stream()
+            .map(CourseCandidateResponse::from)
             .toList();
     }
 

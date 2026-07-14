@@ -42,17 +42,7 @@ public class RecommendationController implements RecommendationApi {
         @UserId Long userId,
         @PathVariable Long regionId
     ) {
-        return ResponseEntity.ok(List.of(
-            new CourseCandidateResponse(1L, "전라북도 임실군 골목 미식 코스",
-                "http://tong.visitkorea.or.kr/cms/resource/81/3585581_image2_1.jpg",
-                "실속 소비 + 로컬 미식 성향을 반영해 노포·골목 상권 위주로 짰어요"),
-            new CourseCandidateResponse(2L, "전라북도 임실군 힐링 산책 코스",
-                "http://tong.visitkorea.or.kr/cms/resource/78/3536778_image2_1.jpg",
-                "느긋한 쉼·자연 몰입 성향을 반영해 저강도 도보 동선으로 짰어요"),
-            new CourseCandidateResponse(3L, "전라북도 임실군 생활 체험 코스",
-                "http://tong.visitkorea.or.kr/cms/resource/57/3077557_image2_1.jpg",
-                "직접 해보기·생활 체험 선호를 담아 시장·공방 중심으로 구성했어요")
-        ));
+        return ResponseEntity.ok(recommendationService.getRegionCourses(userId, regionId));
     }
 
     @GetMapping("/courses/{courseId}")
