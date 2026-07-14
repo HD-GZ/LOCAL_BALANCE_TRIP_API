@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
+import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -31,7 +32,12 @@ public class OdiiClient {
     public OdiiClient(TourApiProperties properties) {
         DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(properties.odiiBaseUrl());
         uriFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
-        this.restClient = RestClient.builder().uriBuilderFactory(uriFactory).build();
+        ReactorClientHttpRequestFactory requestFactory = new ReactorClientHttpRequestFactory();
+        requestFactory.setReadTimeout(properties.readTimeout());
+        this.restClient = RestClient.builder()
+            .uriBuilderFactory(uriFactory)
+            .requestFactory(requestFactory)
+            .build();
         this.serviceKey = properties.serviceKey();
         this.mobileOs = properties.mobileOs();
         this.mobileApp = properties.mobileApp();
