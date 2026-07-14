@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
+import live.lbtrip.domain.recommendation.service.RecommendationGenerationService;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
@@ -23,17 +24,19 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/recommendations")
 public class RecommendationController implements RecommendationApi {
 
+    private final RecommendationGenerationService recommendationGenerationService;
     private final RecommendationService recommendationService;
 
     @PostMapping
     public ResponseEntity<Void> createRecommendations(@UserId Long userId) {
-        recommendationService.createRecommendations(userId);
+        recommendationGenerationService.createRecommendations(userId);
         return ResponseEntity.status(CREATED).build();
     }
 
     @GetMapping("/regions")
     public ResponseEntity<List<RegionRecommendationResponse>> getRecommendedRegions(@UserId Long userId) {
-        return ResponseEntity.ok(recommendationService.getRecommendedRegions(userId));
+        List<RegionRecommendationResponse> responses = recommendationService.getRecommendedRegions(userId);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/regions/{regionId}/courses")
@@ -41,7 +44,8 @@ public class RecommendationController implements RecommendationApi {
         @UserId Long userId,
         @PathVariable Long regionId
     ) {
-        return ResponseEntity.ok(recommendationService.getRegionCourses(userId, regionId));
+        List<CourseCandidateResponse> responses = recommendationService.getRegionCourses(userId, regionId);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/courses/{courseId}")
@@ -49,7 +53,8 @@ public class RecommendationController implements RecommendationApi {
         @UserId Long userId,
         @PathVariable Long courseId
     ) {
-        return ResponseEntity.ok(recommendationService.getCourseDetail(userId, courseId));
+        CourseDetailResponse response = recommendationService.getCourseDetail(userId, courseId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/courses/{courseId}/save")
