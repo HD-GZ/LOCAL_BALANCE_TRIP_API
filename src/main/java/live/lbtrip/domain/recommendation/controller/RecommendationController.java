@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
-import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse.InnerPlaceResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.global.web.UserId;
@@ -50,30 +49,7 @@ public class RecommendationController implements RecommendationApi {
         @UserId Long userId,
         @PathVariable Long courseId
     ) {
-        return ResponseEntity.ok(new CourseDetailResponse(
-            1L,
-            "전라북도 임실군",
-            "전라북도 임실군 골목 미식 코스",
-            List.of(
-                new InnerPlaceResponse(1, "관촌시장",
-                    "임실군 관촌면 관촌리에 위치한 관촌시장은 1914년에 개설되어 100년이 넘는 역사를 가진 전통시장이다.",
-                    "http://tong.visitkorea.or.kr/cms/resource/81/3585581_image2_1.jpg",
-                    127.268474081, 35.6781457432, null, false, null),
-                new InnerPlaceResponse(2, "포레드노드",
-                    "포레드노드 카페는 전라북도 임실 사선대공원 안에 있는 한적하면서도 분위기 좋은 카페로 유명하다.",
-                    "http://tong.visitkorea.or.kr/cms/resource/70/2839270_image2_1.jpg",
-                    127.2743765449, 35.6701162017, 16, false, null),
-                new InnerPlaceResponse(3, "운서정",
-                    "운서정(雲棲亭)은 승지 김양근의 아들 김승희가 부친의 유덕을 추모하기 위하여 1928년에 지은 누정이다.",
-                    "http://tong.visitkorea.or.kr/cms/resource/85/3361385_image2_1.JPG",
-                    127.2765652376, 35.6701606791, 3, true,
-                    "https://sfj608538-sfj608538.ktcdn.co.kr/file/audio/56/16149.mp3"),
-                new InnerPlaceResponse(4, "사선대관광지&조각공원",
-                    "사선대관광지는 섬진강 상류 오원천 기슭 사선대 주변에 조성되어 1985년 국민관광지로 지정됐다.",
-                    "http://tong.visitkorea.or.kr/cms/resource/84/3536784_image2_1.jpg",
-                    127.2757222522, 35.6705400302, 2, false, null)
-            )
-        ));
+        return ResponseEntity.ok(recommendationService.getCourseDetail(userId, courseId));
     }
 
     @PostMapping("/courses/{courseId}/save")

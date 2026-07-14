@@ -16,14 +16,17 @@ import live.lbtrip.domain.recommendation.client.dto.OdiiTheme;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
 import live.lbtrip.domain.recommendation.client.dto.TourPlace;
 import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
+import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.CourseComposition;
 import live.lbtrip.domain.recommendation.model.RegionPlan;
 import live.lbtrip.domain.recommendation.model.RegionPlan.CoursePlanData;
 import live.lbtrip.domain.recommendation.model.RegionPlan.PlaceSnapshot;
 import live.lbtrip.domain.recommendation.model.TourContentType;
+import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
+import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
 import live.lbtrip.global.error.BusinessException;
@@ -42,6 +45,7 @@ public class RecommendationService {
     private final PropensityRepository propensityRepository;
     private final RegionCandidateRepository regionCandidateRepository;
     private final RecommendedRegionRepository recommendedRegionRepository;
+    private final GeneratedCourseRepository generatedCourseRepository;
     private final TourApiClient tourApiClient;
     private final OdiiClient odiiClient;
     private final RegionScorer regionScorer;
@@ -87,6 +91,14 @@ public class RecommendationService {
         return region.getCourses().stream()
             .map(CourseCandidateResponse::from)
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
+        GeneratedCourse course = generatedCourseRepository.findByIdAndUserId(courseId, userId)
+            .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
+
+        return CourseDetailResponse.of(course);
     }
 
     private RegionPlan buildRegionPlan(Propensity propensity, RegionStats regionStats) {
