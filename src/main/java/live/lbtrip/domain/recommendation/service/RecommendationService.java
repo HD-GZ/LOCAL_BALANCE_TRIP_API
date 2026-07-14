@@ -23,12 +23,18 @@ import live.lbtrip.domain.recommendation.model.RegionPlan;
 import live.lbtrip.domain.recommendation.model.RegionPlan.CoursePlanData;
 import live.lbtrip.domain.recommendation.model.RegionPlan.PlaceSnapshot;
 import live.lbtrip.domain.recommendation.model.TourContentType;
+import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
+import live.lbtrip.domain.recommendation.model.entity.SavedCourse;
+import live.lbtrip.domain.recommendation.model.entity.SavedCoursePlace;
 import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
+import live.lbtrip.domain.recommendation.repository.SavedCourseRepository;
+import live.lbtrip.domain.user.model.User;
+import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +52,8 @@ public class RecommendationService {
     private final RegionCandidateRepository regionCandidateRepository;
     private final RecommendedRegionRepository recommendedRegionRepository;
     private final GeneratedCourseRepository generatedCourseRepository;
+    private final SavedCourseRepository savedCourseRepository;
+    private final UserRepository userRepository;
     private final TourApiClient tourApiClient;
     private final OdiiClient odiiClient;
     private final RegionScorer regionScorer;
@@ -99,6 +107,28 @@ public class RecommendationService {
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
 
         return CourseDetailResponse.of(course);
+    }
+
+    @Transactional
+    public void saveCourse(Long userId, Long courseId) {
+        if (savedCourseRepository.existsByUserIdAndSourceCourseId(userId, courseId)) {
+            return;
+        }
+        GeneratedCourse course = generatedCourseRepository.findByIdAndUserId(courseId, userId)
+            .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
+
+        User userRef = userRepository.getReferenceById(userId);
+        SavedCourse savedCourse = SavedCourse.create(
+            userRef, course.getId(), course.getName(),
+            course.getRecommendedRegion().getRegionName(), course.getReason());
+
+        for (CoursePlace place : course.getPlaces()) {
+            savedCourse.addPlace(SavedCoursePlace.create(
+                place.getVisitOrder(), place.getName(), place.getOverview(), place.getImageUrl(),
+                place.getLatitude(), place.getLongitude(), place.getWalkMinutes(),
+                place.isHasAudio(), place.getAudioUrl()));
+        }
+        savedCourseRepository.save(savedCourse);
     }
 
     private RegionPlan buildRegionPlan(Propensity propensity, RegionStats regionStats) {

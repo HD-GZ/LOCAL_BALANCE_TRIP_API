@@ -57,6 +57,7 @@ public class RecommendationController implements RecommendationApi {
         @UserId Long userId,
         @PathVariable Long courseId
     ) {
+        recommendationService.saveCourse(userId, courseId);
         return ResponseEntity.status(CREATED).build();
     }
 }
