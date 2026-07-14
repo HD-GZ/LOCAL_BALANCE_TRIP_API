@@ -11,45 +11,42 @@ import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
+import live.lbtrip.domain.recommendation.model.TourContentType;
 
 @Component
 public class RegionScorer {
 
-    private static final int CULTURE = 14;
-    private static final int LEPORTS = 28;
-    private static final int STAY = 32;
-    private static final int SHOPPING = 38;
-    private static final int FOOD = 39;
     private static final int NEUTRAL_SCORE = 3;
 
     public List<RegionStats> selectTop(Propensity propensity, List<RegionStats> statsList, int limit) {
         double[] rarity = normalize(statsList.stream()
             .mapToDouble(stats -> -stats.totalCount()).toArray());
-        double[] culture = normalize(ratios(statsList, CULTURE));
-        double[] leports = normalize(ratios(statsList, LEPORTS));
-        double[] stay = normalize(ratios(statsList, STAY));
-        double[] shopping = normalize(ratios(statsList, SHOPPING));
-        double[] food = normalize(ratios(statsList, FOOD));
+        double[] culture = normalize(ratios(statsList, TourContentType.CULTURAL_FACILITY));
+        double[] leports = normalize(ratios(statsList, TourContentType.LEPORTS));
+        double[] stay = normalize(ratios(statsList, TourContentType.ACCOMMODATION));
+        double[] shopping = normalize(ratios(statsList, TourContentType.SHOPPING));
+        double[] food = normalize(ratios(statsList, TourContentType.RESTAURANT));
 
         Preference preference = propensity.getPreference();
         ValueConsumption consumption = propensity.getValueConsumption();
 
-        record Scored(RegionStats stats, double score) {
+        double[] scores = new double[statsList.size()];
+        for (int i = 0; i < statsList.size(); i++) {
+            scores[i] = weight(preference.getLocality()) * rarity[i]
+                + weight(preference.getFrugality()) * shopping[i]
+                + weight(preference.getExperientiality()) * culture[i]
+                + weight(preference.getVitality()) * leports[i]
+                + weight(consumption.getFood()) * food[i]
+                + weight(consumption.getCafeExhibition()) * culture[i]
+                + weight(consumption.getExperience()) * leports[i]
+                + weight(consumption.getAccommodation()) * stay[i];
         }
 
         return IntStream.range(0, statsList.size())
-            .mapToObj(i -> new Scored(statsList.get(i),
-                weight(preference.getLocality()) * rarity[i]
-                    + weight(preference.getFrugality()) * shopping[i]
-                    + weight(preference.getExperientiality()) * culture[i]
-                    + weight(preference.getVitality()) * leports[i]
-                    + weight(consumption.getFood()) * food[i]
-                    + weight(consumption.getCafeExhibition()) * culture[i]
-                    + weight(consumption.getExperience()) * leports[i]
-                    + weight(consumption.getAccommodation()) * stay[i]))
-            .sorted(Comparator.comparingDouble(Scored::score).reversed())
+            .boxed()
+            .sorted(Comparator.comparingDouble((Integer i) -> scores[i]).reversed())
             .limit(limit)
-            .map(Scored::stats)
+            .map(statsList::get)
             .toList();
     }
 
@@ -57,8 +54,8 @@ public class RegionScorer {
         return score - NEUTRAL_SCORE;
     }
 
-    private double[] ratios(List<RegionStats> statsList, int contentTypeId) {
-        return statsList.stream().mapToDouble(stats -> stats.typeRatio(contentTypeId)).toArray();
+    private double[] ratios(List<RegionStats> statsList, TourContentType contentType) {
+        return statsList.stream().mapToDouble(stats -> stats.typeRatio(contentType.getCode())).toArray();
     }
 
     private double[] normalize(double[] values) {

@@ -15,8 +15,9 @@ import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.recommendation.client.dto.TourPlace;
-import live.lbtrip.domain.recommendation.service.dto.CourseComposition;
-import live.lbtrip.domain.recommendation.service.dto.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.CourseComposition;
+import live.lbtrip.domain.recommendation.model.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.TourContentType;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,6 @@ public class CourseComposer {
     private static final int MIN_PLACES_PER_COURSE = 2;
     private static final int NAME_MAX_LENGTH = 100;
     private static final int REASON_MAX_LENGTH = 300;
-    private static final String UNKNOWN_TYPE_NAME = "기타";
 
     private final ChatClient chatClient;
     private final PromptTemplate promptTemplate;
@@ -45,13 +45,12 @@ public class CourseComposer {
     public CourseComposition compose(
         Propensity propensity,
         String regionName,
-        List<TourPlace> candidates,
-        Map<Integer, String> typeNames
+        List<TourPlace> candidates
     ) {
         CourseComposition raw;
         try {
             raw = chatClient.prompt()
-                .user(renderPrompt(propensity, regionName, candidates, typeNames))
+                .user(renderPrompt(propensity, regionName, candidates))
                 .call()
                 .entity(CourseComposition.class);
         } catch (Exception e) {
@@ -64,8 +63,7 @@ public class CourseComposer {
     private String renderPrompt(
         Propensity propensity,
         String regionName,
-        List<TourPlace> candidates,
-        Map<Integer, String> typeNames
+        List<TourPlace> candidates
     ) {
         Preference preference = propensity.getPreference();
         ValueConsumption consumption = propensity.getValueConsumption();
@@ -73,7 +71,7 @@ public class CourseComposer {
         String candidateLines = candidates.stream()
             .map(place -> "%s | %s | %s".formatted(
                 place.contentId(),
-                typeNames.getOrDefault(place.contentTypeId(), UNKNOWN_TYPE_NAME),
+                TourContentType.koreanNameOf(place.contentTypeId()),
                 place.title()))
             .collect(Collectors.joining("\n"));
 
@@ -103,7 +101,7 @@ public class CourseComposer {
         Set<String> validIds = candidates.stream().map(TourPlace::contentId).collect(Collectors.toSet());
 
         List<CoursePlan> courses = raw.courses().stream()
-            .map(course -> new CoursePlan(
+            .map(course -> CoursePlan.of(
                 truncate(course.name(), NAME_MAX_LENGTH),
                 truncate(course.reason(), REASON_MAX_LENGTH),
                 course.placeContentIds() == null ? List.<String>of()
@@ -116,7 +114,7 @@ public class CourseComposer {
             log.error("LLM 코스가 검증에서 전부 탈락: region={}", regionName);
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
-        return new CourseComposition(truncate(raw.regionReason(), REASON_MAX_LENGTH), courses);
+        return CourseComposition.of(truncate(raw.regionReason(), REASON_MAX_LENGTH), courses);
     }
 
     private String truncate(String value, int maxLength) {

@@ -32,6 +32,8 @@ public class TourApiClient {
 
     private final RestClient restClient;
     private final String serviceKey;
+    private final String mobileOs;
+    private final String mobileApp;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public TourApiClient(TourApiProperties properties) {
@@ -39,6 +41,8 @@ public class TourApiClient {
         uriFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
         this.restClient = RestClient.builder().uriBuilderFactory(uriFactory).build();
         this.serviceKey = properties.serviceKey();
+        this.mobileOs = properties.mobileOs();
+        this.mobileApp = properties.mobileApp();
     }
 
     public RegionStats fetchRegionStats(RegionCandidate candidate) {
@@ -53,16 +57,18 @@ public class TourApiClient {
         for (JsonNode item : items(body)) {
             typeCounts.merge(item.path("contenttypeid").asInt(0), 1, Integer::sum);
         }
-        return new RegionStats(candidate, totalCount, typeCounts);
+        return new RegionStats(
+            candidate.getName(), candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
+            totalCount, typeCounts);
     }
 
-    public List<TourPlace> fetchPlaces(RegionCandidate candidate, int contentTypeId) {
+    public List<TourPlace> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {
         JsonNode body = get("/areaBasedList2", uri -> uri
             .queryParam("numOfRows", PLACES_PAGE_SIZE)
             .queryParam("arrange", "O")
             .queryParam("contentTypeId", contentTypeId)
-            .queryParam("lDongRegnCd", candidate.getLdongRegnCd())
-            .queryParam("lDongSignguCd", candidate.getLdongSignguCd()));
+            .queryParam("lDongRegnCd", ldongRegnCd)
+            .queryParam("lDongSignguCd", ldongSignguCd));
 
         List<TourPlace> places = new ArrayList<>();
         for (JsonNode item : items(body)) {
@@ -112,8 +118,8 @@ public class TourApiClient {
                 .uri(uriBuilder -> customizer.apply(uriBuilder
                         .path(path)
                         .queryParam("serviceKey", serviceKey)
-                        .queryParam("MobileOS", "ETC")
-                        .queryParam("MobileApp", "lbtrip")
+                        .queryParam("MobileOS", mobileOs)
+                        .queryParam("MobileApp", mobileApp)
                         .queryParam("_type", "json")
                         .queryParam("pageNo", 1))
                     .build())

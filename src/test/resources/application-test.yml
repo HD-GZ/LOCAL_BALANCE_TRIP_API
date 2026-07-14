@@ -37,3 +37,5 @@ tour-api:
   base-url: http://localhost
   odii-base-url: http://localhost
   service-key: test-key
+  mobile-os: ETC
+  mobile-app: lbtrip-test

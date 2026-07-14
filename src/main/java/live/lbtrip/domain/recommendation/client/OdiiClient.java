@@ -24,6 +24,8 @@ public class OdiiClient {
 
     private final RestClient restClient;
     private final String serviceKey;
+    private final String mobileOs;
+    private final String mobileApp;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public OdiiClient(TourApiProperties properties) {
@@ -31,6 +33,8 @@ public class OdiiClient {
         uriFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
         this.restClient = RestClient.builder().uriBuilderFactory(uriFactory).build();
         this.serviceKey = properties.serviceKey();
+        this.mobileOs = properties.mobileOs();
+        this.mobileApp = properties.mobileApp();
     }
 
     public List<OdiiTheme> fetchThemesNear(double longitude, double latitude) {
@@ -93,8 +97,8 @@ public class OdiiClient {
             .uri(uriBuilder -> customizer.apply(uriBuilder
                     .path(path)
                     .queryParam("serviceKey", serviceKey)
-                    .queryParam("MobileOS", "ETC")
-                    .queryParam("MobileApp", "lbtrip")
+                    .queryParam("MobileOS", mobileOs)
+                    .queryParam("MobileApp", mobileApp)
                     .queryParam("_type", "json")
                     .queryParam("langCode", "ko")
                     .queryParam("numOfRows", 100)

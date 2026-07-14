@@ -2,10 +2,10 @@ package live.lbtrip.domain.recommendation.client.dto;
 
 import java.util.Map;
 
-import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
-
 public record RegionStats(
-    RegionCandidate candidate,
+    String regionName,
+    String ldongRegnCd,
+    String ldongSignguCd,
     int totalCount,
     Map<Integer, Integer> typeCounts
 ) {

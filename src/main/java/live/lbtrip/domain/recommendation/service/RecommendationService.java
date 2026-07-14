@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -15,14 +14,13 @@ import live.lbtrip.domain.recommendation.client.TourApiClient;
 import live.lbtrip.domain.recommendation.client.dto.OdiiTheme;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
 import live.lbtrip.domain.recommendation.client.dto.TourPlace;
+import live.lbtrip.domain.recommendation.model.CourseComposition;
+import live.lbtrip.domain.recommendation.model.RegionPlan;
+import live.lbtrip.domain.recommendation.model.RegionPlan.CoursePlanData;
+import live.lbtrip.domain.recommendation.model.RegionPlan.PlaceSnapshot;
+import live.lbtrip.domain.recommendation.model.TourContentType;
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
-import live.lbtrip.domain.recommendation.model.entity.TourContentType;
 import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
-import live.lbtrip.domain.recommendation.repository.TourContentTypeRepository;
-import live.lbtrip.domain.recommendation.service.dto.CourseComposition;
-import live.lbtrip.domain.recommendation.service.dto.RegionPlan;
-import live.lbtrip.domain.recommendation.service.dto.RegionPlan.CoursePlanData;
-import live.lbtrip.domain.recommendation.service.dto.RegionPlan.PlaceSnapshot;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +36,6 @@ public class RecommendationService {
 
     private final PropensityRepository propensityRepository;
     private final RegionCandidateRepository regionCandidateRepository;
-    private final TourContentTypeRepository tourContentTypeRepository;
     private final TourApiClient tourApiClient;
     private final OdiiClient odiiClient;
     private final RegionScorer regionScorer;
@@ -55,10 +52,9 @@ public class RecommendationService {
         }
         List<RegionStats> selected = regionScorer.selectTop(propensity, statsList, MAX_REGIONS);
 
-        List<TourContentType> contentTypes = tourContentTypeRepository.findAll();
         List<RegionPlan> plans = new ArrayList<>();
         for (RegionStats regionStats : selected) {
-            RegionPlan plan = buildRegionPlan(propensity, regionStats.candidate(), contentTypes);
+            RegionPlan plan = buildRegionPlan(propensity, regionStats);
             if (plan != null) {
                 plans.add(plan);
             }
@@ -70,27 +66,22 @@ public class RecommendationService {
         recommendationStore.replace(userId, plans);
     }
 
-    private RegionPlan buildRegionPlan(
-        Propensity propensity,
-        RegionCandidate region,
-        List<TourContentType> contentTypes
-    ) {
+    private RegionPlan buildRegionPlan(Propensity propensity, RegionStats regionStats) {
         Map<String, TourPlace> candidatesById = new LinkedHashMap<>();
-        for (TourContentType contentType : contentTypes) {
-            for (TourPlace place : tourApiClient.fetchPlaces(region, contentType.getCode())) {
+        for (TourContentType contentType : TourContentType.courseCandidates()) {
+            for (TourPlace place : tourApiClient.fetchPlaces(
+                    regionStats.ldongRegnCd(), regionStats.ldongSignguCd(), contentType.getCode())) {
                 candidatesById.putIfAbsent(place.contentId(), place);
             }
         }
         if (candidatesById.isEmpty()) {
-            log.warn("후보 장소 없음 - 지역 제외: {}", region.getName());
+            log.warn("후보 장소 없음 - 지역 제외: {}", regionStats.regionName());
             return null;
         }
 
-        Map<Integer, String> typeNames = contentTypes.stream()
-            .collect(Collectors.toMap(TourContentType::getCode, TourContentType::getName));
         List<TourPlace> candidates = List.copyOf(candidatesById.values());
         CourseComposition composition = courseComposer.compose(
-            propensity, region.getName(), candidates, typeNames);
+            propensity, regionStats.regionName(), candidates);
 
         List<OdiiTheme> themes = odiiClient.fetchThemesNear(
             averageLongitude(candidates), averageLatitude(candidates));
@@ -100,8 +91,8 @@ public class RecommendationService {
             courses.add(buildCourse(coursePlan, candidatesById, themes));
         }
 
-        return new RegionPlan(
-            region.getName(), courses.getFirst().imageUrl(), composition.regionReason(), courses);
+        return RegionPlan.of(
+            regionStats.regionName(), courses.getFirst().imageUrl(), composition.regionReason(), courses);
     }
 
     private CoursePlanData buildCourse(
@@ -119,13 +110,13 @@ public class RecommendationService {
                 previous.longitude(), previous.latitude(), place.longitude(), place.latitude());
             String audioUrl = matchAudio(place, themes);
 
-            places.add(new PlaceSnapshot(
+            places.add(PlaceSnapshot.of(
                 visitOrder++, place.title(), overview, place.imageUrl(),
                 place.latitude(), place.longitude(), walkMinutes,
                 audioUrl != null, audioUrl));
             previous = place;
         }
-        return new CoursePlanData(
+        return CoursePlanData.of(
             coursePlan.name(), coursePlan.reason(), places.getFirst().imageUrl(), places);
     }
 
