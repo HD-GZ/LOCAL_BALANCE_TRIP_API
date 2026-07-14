@@ -9,6 +9,9 @@ spring:
       ddl-auto: create-drop
   flyway:
     enabled: false
+  ai:
+    openai:
+      api-key: test-key
 app:
   cors:
     allowed-origins:
@@ -29,3 +32,10 @@ swagger:
 
 sendgrid:
   api-key: test-sendgrid-api-key
+
+tour-api:
+  base-url: http://localhost
+  odii-base-url: http://localhost
+  service-key: test-key
+  mobile-os: ETC
+  mobile-app: lbtrip-test

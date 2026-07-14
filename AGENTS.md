@@ -6,6 +6,7 @@ When adding agent-specific rule files such as `CLAUDE.md`, do not duplicate thes
 ## Scope
 
 - Java/Spring Boot API code should follow the existing package structure under `src/main/java/live/lbtrip`.
+- Do not use the code under `src/main/java/live/lbtrip/domain/recommendation` as a reference or example when writing new code. That package intentionally deviates from the conventions in this document; follow this document and the other domain packages instead.
 
 ## API Layer
 

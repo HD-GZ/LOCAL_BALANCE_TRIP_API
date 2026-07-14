@@ -3,6 +3,7 @@ package live.lbtrip.domain.recommendation.controller;
 import static live.lbtrip.global.error.ErrorCode.COURSE_NOT_FOUND;
 import static live.lbtrip.global.error.ErrorCode.INVALID_ACCESS_TOKEN;
 import static live.lbtrip.global.error.ErrorCode.PROPENSITY_NOT_FOUND;
+import static live.lbtrip.global.error.ErrorCode.RECOMMENDATION_GENERATION_FAILED;
 import static live.lbtrip.global.error.ErrorCode.REGION_NOT_FOUND;
 import static live.lbtrip.global.error.ErrorCode.TOUR_API_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -40,7 +41,8 @@ public interface RecommendationApi {
     @ApiErrorCodeResponses({
         INVALID_ACCESS_TOKEN,
         PROPENSITY_NOT_FOUND,
-        TOUR_API_UNAVAILABLE
+        TOUR_API_UNAVAILABLE,
+        RECOMMENDATION_GENERATION_FAILED
     })
     ResponseEntity<Void> createRecommendations(
         @UserId Long userId
