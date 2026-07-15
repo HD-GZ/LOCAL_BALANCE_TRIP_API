@@ -11,12 +11,12 @@ import live.lbtrip.domain.admin.incentive.model.Incentive;
 public interface IncentiveRepository extends JpaRepository<Incentive, Long> {
 
     @Query("""
-        select distinct i
-        from Incentive i
-        join i.regions r
-        where r.ldongRegnCd = :ldongRegnCd
-          and r.ldongSignguCd = :ldongSignguCd
-        order by i.id asc
+        SELECT DISTINCT i
+        FROM Incentive i
+        JOIN i.regions r
+        WHERE r.ldongRegnCd = :ldongRegnCd
+          AND r.ldongSignguCd = :ldongSignguCd
+        ORDER BY i.id ASC
         """)
     List<Incentive> findAllByRegion(
         @Param("ldongRegnCd") String ldongRegnCd,
