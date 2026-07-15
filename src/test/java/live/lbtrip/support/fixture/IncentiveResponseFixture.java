@@ -15,7 +15,9 @@ public final class IncentiveResponseFixture {
         return new IncentiveResponse(
             INCENTIVE_ID,
             IncentiveRequestFixture.TITLE,
-            IncentiveRequestFixture.URL
+            IncentiveRequestFixture.URL,
+            IncentiveRequestFixture.DESCRIPTION,
+            regionResponses()
         );
     }
 
@@ -23,8 +25,15 @@ public final class IncentiveResponseFixture {
         return new IncentiveResponse(
             INCENTIVE_ID,
             IncentiveRequestFixture.UPDATED_TITLE,
-            IncentiveRequestFixture.UPDATED_URL
+            IncentiveRequestFixture.UPDATED_URL,
+            IncentiveRequestFixture.UPDATED_DESCRIPTION,
+            regionResponses()
         );
+    }
+
+    private static List<IncentiveResponse.RegionResponse> regionResponses() {
+        return List.of(new IncentiveResponse.RegionResponse(
+            IncentiveRequestFixture.LDONG_REGN_CD, IncentiveRequestFixture.LDONG_SIGNGU_CD));
     }
 
     public static List<IncentiveResponse> incentiveResponses() {

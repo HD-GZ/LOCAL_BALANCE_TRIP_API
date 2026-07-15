@@ -31,7 +31,8 @@ public class RecommendationStore {
         int displayOrder = 1;
         for (RegionPlan plan : plans) {
             RecommendedRegion region = RecommendedRegion.create(
-                userRef, plan.regionName(), plan.imageUrl(), plan.reason(), displayOrder++);
+                userRef, plan.regionName(), plan.ldongRegnCd(), plan.ldongSignguCd(),
+                plan.imageUrl(), plan.reason(), displayOrder++);
 
             for (RegionPlan.CoursePlanData courseData : plan.courses()) {
                 GeneratedCourse course = GeneratedCourse.create(

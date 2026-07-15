@@ -87,7 +87,9 @@ class IncentiveControllerTest {
             mockMvc.perform(post("/admin/incentives")
                     .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN)
                     .contentType(APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(new IncentiveRequest(" ", IncentiveRequestFixture.URL))))
+                    .content(objectMapper.writeValueAsString(new IncentiveRequest(
+                        " ", IncentiveRequestFixture.URL, IncentiveRequestFixture.DESCRIPTION,
+                        IncentiveRequestFixture.regions()))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));

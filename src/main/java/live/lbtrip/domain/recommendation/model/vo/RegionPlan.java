@@ -4,13 +4,18 @@ import java.util.List;
 
 public record RegionPlan(
     String regionName,
+    String ldongRegnCd,
+    String ldongSignguCd,
     String imageUrl,
     String reason,
     List<CoursePlanData> courses
 ) {
 
-    public static RegionPlan of(String regionName, String imageUrl, String reason, List<CoursePlanData> courses) {
-        return new RegionPlan(regionName, imageUrl, reason, courses);
+    public static RegionPlan of(
+        String regionName, String ldongRegnCd, String ldongSignguCd,
+        String imageUrl, String reason, List<CoursePlanData> courses
+    ) {
+        return new RegionPlan(regionName, ldongRegnCd, ldongSignguCd, imageUrl, reason, courses);
     }
 
     public record CoursePlanData(

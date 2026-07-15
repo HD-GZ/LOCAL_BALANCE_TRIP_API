@@ -38,6 +38,12 @@ public class RecommendedRegion extends BaseEntity {
     @Column(name = "region_name", nullable = false, length = 50)
     private String regionName;
 
+    @Column(name = "ldong_regn_cd", length = 2)
+    private String ldongRegnCd;
+
+    @Column(name = "ldong_signgu_cd", length = 3)
+    private String ldongSignguCd;
+
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
@@ -51,18 +57,24 @@ public class RecommendedRegion extends BaseEntity {
     @OneToMany(mappedBy = "recommendedRegion", cascade = CascadeType.ALL)
     private List<GeneratedCourse> courses = new ArrayList<>();
 
-    private RecommendedRegion(User user, String regionName, String imageUrl, String reason, int displayOrder) {
+    private RecommendedRegion(
+        User user, String regionName, String ldongRegnCd, String ldongSignguCd,
+        String imageUrl, String reason, int displayOrder
+    ) {
         this.user = user;
         this.regionName = regionName;
+        this.ldongRegnCd = ldongRegnCd;
+        this.ldongSignguCd = ldongSignguCd;
         this.imageUrl = imageUrl;
         this.reason = reason;
         this.displayOrder = displayOrder;
     }
 
     public static RecommendedRegion create(
-        User user, String regionName, String imageUrl, String reason, int displayOrder
+        User user, String regionName, String ldongRegnCd, String ldongSignguCd,
+        String imageUrl, String reason, int displayOrder
     ) {
-        return new RecommendedRegion(user, regionName, imageUrl, reason, displayOrder);
+        return new RecommendedRegion(user, regionName, ldongRegnCd, ldongSignguCd, imageUrl, reason, displayOrder);
     }
 
     public void addCourse(GeneratedCourse course) {

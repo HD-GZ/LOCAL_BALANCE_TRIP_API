@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import live.lbtrip.domain.admin.incentive.dto.response.IncentiveResponse;
 import live.lbtrip.domain.admin.incentive.model.Incentive;
 import live.lbtrip.domain.admin.incentive.repository.IncentiveRepository;
+import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.IncentiveFixture;
@@ -31,6 +32,9 @@ class IncentiveServiceTest {
     @Mock
     private IncentiveRepository incentiveRepository;
 
+    @Mock
+    private RegionCandidateRepository regionCandidateRepository;
+
     @InjectMocks
     private IncentiveService incentiveService;
 
@@ -41,6 +45,9 @@ class IncentiveServiceTest {
         void 인센티브를_등록한다() {
             Incentive incentive = IncentiveFixture.incentive();
             when(incentiveRepository.save(any(Incentive.class))).thenReturn(incentive);
+            when(regionCandidateRepository.existsByLdongRegnCdAndLdongSignguCd(
+                IncentiveRequestFixture.LDONG_REGN_CD, IncentiveRequestFixture.LDONG_SIGNGU_CD))
+                .thenReturn(true);
 
             IncentiveResponse response = incentiveService.createIncentive(
                 IncentiveRequestFixture.incentiveRequest()
@@ -74,6 +81,9 @@ class IncentiveServiceTest {
             Incentive incentive = IncentiveFixture.incentive();
             when(incentiveRepository.findById(IncentiveResponseFixture.INCENTIVE_ID))
                 .thenReturn(Optional.of(incentive));
+            when(regionCandidateRepository.existsByLdongRegnCdAndLdongSignguCd(
+                IncentiveRequestFixture.LDONG_REGN_CD, IncentiveRequestFixture.LDONG_SIGNGU_CD))
+                .thenReturn(true);
 
             IncentiveResponse response = incentiveService.updateIncentive(
                 IncentiveResponseFixture.INCENTIVE_ID,

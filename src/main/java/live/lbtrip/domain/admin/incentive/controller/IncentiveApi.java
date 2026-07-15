@@ -1,6 +1,7 @@
 package live.lbtrip.domain.admin.incentive.controller;
 
 import static live.lbtrip.global.error.ErrorCode.INCENTIVE_NOT_FOUND;
+import static live.lbtrip.global.error.ErrorCode.INCENTIVE_REGION_INVALID;
 import static live.lbtrip.global.error.ErrorCode.INVALID_ADMIN_ACCESS_TOKEN;
 import static live.lbtrip.global.error.ErrorCode.INVALID_INPUT_VALUE;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -26,11 +27,12 @@ import live.lbtrip.global.web.AdminId;
 public interface IncentiveApi {
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "인센티브 등록", description = "인센티브 행사 제목과 페이지 URL을 등록합니다.")
+    @Operation(summary = "인센티브 등록", description = "인센티브 행사 제목, 페이지 URL, 부가 설명, 적용 지역(법정동 코드) 목록을 등록합니다.")
     @ApiSuccessResponse(status = CREATED, description = "인센티브 등록 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
-        INVALID_ADMIN_ACCESS_TOKEN
+        INVALID_ADMIN_ACCESS_TOKEN,
+        INCENTIVE_REGION_INVALID
     })
     ResponseEntity<IncentiveResponse> createIncentive(
         @AdminId Long adminId,
@@ -44,12 +46,13 @@ public interface IncentiveApi {
     ResponseEntity<List<IncentiveResponse>> getIncentives(@AdminId Long adminId);
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "인센티브 수정", description = "인센티브 행사 제목과 페이지 URL을 수정합니다.")
+    @Operation(summary = "인센티브 수정", description = "인센티브 행사 제목, 페이지 URL, 부가 설명, 적용 지역(법정동 코드) 목록을 수정합니다. 지역 목록은 전체 교체됩니다.")
     @ApiSuccessResponse(description = "인센티브 수정 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         INVALID_ADMIN_ACCESS_TOKEN,
-        INCENTIVE_NOT_FOUND
+        INCENTIVE_NOT_FOUND,
+        INCENTIVE_REGION_INVALID
     })
     ResponseEntity<IncentiveResponse> updateIncentive(
         @AdminId Long adminId,
