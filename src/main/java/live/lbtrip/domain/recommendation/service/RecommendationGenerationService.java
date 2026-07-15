@@ -136,7 +136,8 @@ public class RecommendationGenerationService {
             courses.stream().mapToInt(course -> course.places().size()).sum(), elapsedMillis(stageStartedAt));
 
         return RegionPlan.of(
-            regionStats.regionName(), courses.getFirst().imageUrl(), composition.regionReason(), courses);
+            regionStats.regionName(), regionStats.ldongRegnCd(), regionStats.ldongSignguCd(),
+            courses.getFirst().imageUrl(), composition.regionReason(), courses);
     }
 
     private CoursePlanData buildCourse(
