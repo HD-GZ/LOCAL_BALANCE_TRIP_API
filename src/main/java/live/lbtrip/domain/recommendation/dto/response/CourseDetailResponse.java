@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import live.lbtrip.domain.admin.incentive.model.Incentive;
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 
@@ -18,7 +19,10 @@ public record CourseDetailResponse(
     String title,
 
     @Schema(description = "코스 경유지 타임라인(방문 순서대로)")
-    List<InnerPlaceResponse> places
+    List<InnerPlaceResponse> places,
+
+    @Schema(description = "이 코스에 적용 가능한 혜택 목록")
+    List<InnerBenefitResponse> benefits
 ) {
 
     public record InnerPlaceResponse(
@@ -65,12 +69,29 @@ public record CourseDetailResponse(
         }
     }
 
-    public static CourseDetailResponse of(GeneratedCourse course) {
+    public record InnerBenefitResponse(
+        @Schema(description = "혜택명", example = "KTX 인구감소지역 할인")
+        String title,
+
+        @Schema(description = "혜택 부가 설명. 없으면 null.", nullable = true, example = "코레일 공식 채널로 이동")
+        String description,
+
+        @Schema(description = "혜택 페이지 URL", example = "https://www.letskorail.com/event/discount")
+        String url
+    ) {
+
+        private static InnerBenefitResponse from(Incentive incentive) {
+            return new InnerBenefitResponse(incentive.getTitle(), incentive.getDescription(), incentive.getUrl());
+        }
+    }
+
+    public static CourseDetailResponse of(GeneratedCourse course, List<Incentive> incentives) {
         return new CourseDetailResponse(
             course.getId(),
             course.getRecommendedRegion().getRegionName(),
             course.getName(),
-            course.getPlaces().stream().map(InnerPlaceResponse::from).toList()
+            course.getPlaces().stream().map(InnerPlaceResponse::from).toList(),
+            incentives.stream().map(InnerBenefitResponse::from).toList()
         );
     }
 }

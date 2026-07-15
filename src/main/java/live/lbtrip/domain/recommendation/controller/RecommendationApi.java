@@ -87,7 +87,8 @@ public interface RecommendationApi {
         summary = "코스 상세 조회",
         description = """
             저장된 장소 스냅샷으로 코스 순서 타임라인(장소별 소개·이미지·좌표·도보 시간·오디오)을
-            반환합니다(DB 조회 전용).
+            반환합니다(DB 조회 전용). 코스 지역(법정동 코드)에 매칭되는 적용 가능 혜택 목록(benefits)을
+            함께 반환합니다.
             """
     )
     @ApiSuccessResponse(description = "코스 상세 조회 성공")

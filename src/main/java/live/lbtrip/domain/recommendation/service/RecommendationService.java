@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import live.lbtrip.domain.admin.incentive.model.Incentive;
+import live.lbtrip.domain.admin.incentive.repository.IncentiveRepository;
 import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
@@ -31,6 +33,7 @@ public class RecommendationService {
     private final GeneratedCourseRepository generatedCourseRepository;
     private final SavedCourseRepository savedCourseRepository;
     private final UserRepository userRepository;
+    private final IncentiveRepository incentiveRepository;
 
     public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
         return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
@@ -51,7 +54,14 @@ public class RecommendationService {
         GeneratedCourse course = generatedCourseRepository.findByIdAndUserId(courseId, userId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
 
-        return CourseDetailResponse.of(course);
+        return CourseDetailResponse.of(course, findApplicableIncentives(course.getRecommendedRegion()));
+    }
+
+    private List<Incentive> findApplicableIncentives(RecommendedRegion region) {
+        if (region.getLdongRegnCd() == null || region.getLdongSignguCd() == null) {
+            return List.of();
+        }
+        return incentiveRepository.findAllByRegion(region.getLdongRegnCd(), region.getLdongSignguCd());
     }
 
     @Transactional
