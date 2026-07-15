@@ -39,3 +39,4 @@ tour-api:
   service-key: test-key
   mobile-os: ETC
   mobile-app: lbtrip-test
+  read-timeout: 5s
