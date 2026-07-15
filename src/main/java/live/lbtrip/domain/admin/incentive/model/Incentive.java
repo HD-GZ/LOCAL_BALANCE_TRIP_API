@@ -62,10 +62,12 @@ public class Incentive extends BaseEntity {
     }
 
     public void replaceRegions(List<IncentiveRegion> newRegions) {
-        regions.clear();
+        regions.removeIf(existing -> newRegions.stream().noneMatch(existing::hasSameCode));
         for (IncentiveRegion region : newRegions) {
-            regions.add(region);
-            region.assignIncentive(this);
+            if (regions.stream().noneMatch(region::hasSameCode)) {
+                regions.add(region);
+                region.assignIncentive(this);
+            }
         }
     }
 }

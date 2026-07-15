@@ -53,4 +53,8 @@ public class IncentiveRegion extends BaseEntity {
     void assignIncentive(Incentive incentive) {
         this.incentive = incentive;
     }
+
+    boolean hasSameCode(IncentiveRegion other) {
+        return ldongRegnCd.equals(other.ldongRegnCd) && ldongSignguCd.equals(other.ldongSignguCd);
+    }
 }
