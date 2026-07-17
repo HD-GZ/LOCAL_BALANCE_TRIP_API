@@ -37,6 +37,10 @@ swagger:
 sendgrid:
   api-key: ${SENDGRID_API_KEY}
 
+slack:
+  logging:
+    error: ${SLACK_LOGGING_ERROR_URL}
+
 tour-api:
   base-url: https://apis.data.go.kr/B551011/KorService2
   odii-base-url: https://apis.data.go.kr/B551011/Odii
