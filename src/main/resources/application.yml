@@ -1,4 +1,7 @@
 spring:
+  output:
+    ansi:
+      enabled: ${SPRING_OUTPUT_ANSI_ENABLED:always}
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -36,6 +39,10 @@ swagger:
 
 sendgrid:
   api-key: ${SENDGRID_API_KEY}
+
+slack:
+  logging:
+    error: ${SLACK_LOGGING_ERROR_URL}
 
 tour-api:
   base-url: https://apis.data.go.kr/B551011/KorService2
