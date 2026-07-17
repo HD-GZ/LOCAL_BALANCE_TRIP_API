@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
     <springProperty scope="context" name="SLACK_WEBHOOK_URI" source="slack.logging.error"/>
 
     <property name="consoleLogPattern"
-        value="[%d{yyyy-MM-dd'T'HH:mm:ss.SSS}] %-5level [%thread] %logger{40} : %msg%n%ex"/>
+        value="%clr([%d{yyyy-MM-dd'T'HH:mm:ss.SSS}]){faint} %clr(%-5level) %clr([%thread]){faint} %clr(%logger{40}){cyan} %clr(:){faint} %msg%n%ex"/>
     <property name="slackLogPattern"
         value=":rotating_light: *LOCAL_BALANCE_TRIP_API ERROR*%n*Time:* `%d{yyyy-MM-dd HH:mm:ss.SSS}`%n*Level:* `%level`%n*Logger:* `%logger{40}`%n*Thread:* `%thread`%n*Request ID:* `%X{requestId:-N/A}`%n*Request:* `%X{httpMethod:-N/A} %X{requestPath:-N/A}`%n*Message:*%n```%.2000msg```%n*Exception:*%n```%ex{20}```"/>
 

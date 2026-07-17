@@ -1,4 +1,7 @@
 spring:
+  output:
+    ansi:
+      enabled: ${SPRING_OUTPUT_ANSI_ENABLED:always}
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
