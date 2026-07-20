@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
-import live.lbtrip.domain.recommendation.client.dto.TourPlace;
+import live.lbtrip.domain.recommendation.client.dto.TourPlaceItem;
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
 import live.lbtrip.global.config.TourApiProperties;
 import live.lbtrip.global.error.BusinessException;
@@ -70,7 +70,7 @@ public class TourApiClient {
             totalCount, sampleSize, typeCounts);
     }
 
-    public List<TourPlace> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {
+    public List<TourPlaceItem> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {
         JsonNode body = get("/areaBasedList2", uri -> uri
             .queryParam("numOfRows", PLACES_PAGE_SIZE)
             .queryParam("arrange", "O")
@@ -78,9 +78,9 @@ public class TourApiClient {
             .queryParam("lDongRegnCd", ldongRegnCd)
             .queryParam("lDongSignguCd", ldongSignguCd));
 
-        List<TourPlace> places = new ArrayList<>();
+        List<TourPlaceItem> places = new ArrayList<>();
         for (JsonNode item : items(body)) {
-            places.add(new TourPlace(
+            places.add(new TourPlaceItem(
                 item.path("contentid").asText(),
                 item.path("title").asText(),
                 item.path("contenttypeid").asInt(0),

@@ -11,9 +11,9 @@ import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
 import live.lbtrip.domain.recommendation.client.OdiiClient;
 import live.lbtrip.domain.recommendation.client.TourApiClient;
-import live.lbtrip.domain.recommendation.client.dto.OdiiTheme;
+import live.lbtrip.domain.recommendation.client.dto.OdiiThemeItem;
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
-import live.lbtrip.domain.recommendation.client.dto.TourPlace;
+import live.lbtrip.domain.recommendation.client.dto.TourPlaceItem;
 import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
 import live.lbtrip.domain.recommendation.model.enums.TourContentType;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
@@ -99,9 +99,9 @@ public class RecommendationGenerationService {
 
     private RegionPlan buildRegionPlan(Propensity propensity, RegionStats regionStats) {
         long stageStartedAt = System.nanoTime();
-        Map<String, TourPlace> candidatesById = new LinkedHashMap<>();
+        Map<String, TourPlaceItem> candidatesById = new LinkedHashMap<>();
         for (TourContentType contentType : TourContentType.courseCandidates()) {
-            for (TourPlace place : tourApiClient.fetchPlaces(
+            for (TourPlaceItem place : tourApiClient.fetchPlaces(
                     regionStats.ldongRegnCd(), regionStats.ldongSignguCd(), contentType.getCode())) {
                 candidatesById.putIfAbsent(place.contentId(), place);
             }
@@ -113,7 +113,7 @@ public class RecommendationGenerationService {
         log.info("지역 후보 장소 조회 성공: region={}, placeCount={}, elapsedMs={}",
             regionStats.regionName(), candidatesById.size(), elapsedMillis(stageStartedAt));
 
-        List<TourPlace> candidates = List.copyOf(candidatesById.values());
+        List<TourPlaceItem> candidates = List.copyOf(candidatesById.values());
         stageStartedAt = System.nanoTime();
         CourseComposition composition = courseComposer.compose(
             propensity, regionStats.regionName(), candidates);
@@ -121,7 +121,7 @@ public class RecommendationGenerationService {
             regionStats.regionName(), composition.courses().size(), elapsedMillis(stageStartedAt));
 
         stageStartedAt = System.nanoTime();
-        List<OdiiTheme> themes = odiiClient.fetchThemesNear(
+        List<OdiiThemeItem> themes = odiiClient.fetchThemesNear(
             averageLongitude(candidates), averageLatitude(candidates));
         log.info("Odii 테마 조회 완료: region={}, themeCount={}, elapsedMs={}",
             regionStats.regionName(), themes.size(), elapsedMillis(stageStartedAt));
@@ -142,14 +142,14 @@ public class RecommendationGenerationService {
 
     private CoursePlanData buildCourse(
         CourseComposition.CoursePlan coursePlan,
-        Map<String, TourPlace> candidatesById,
-        List<OdiiTheme> themes
+        Map<String, TourPlaceItem> candidatesById,
+        List<OdiiThemeItem> themes
     ) {
         List<PlaceSnapshot> places = new ArrayList<>();
-        TourPlace previous = null;
+        TourPlaceItem previous = null;
         int visitOrder = 1;
         for (String contentId : coursePlan.placeContentIds()) {
-            TourPlace place = candidatesById.get(contentId);
+            TourPlaceItem place = candidatesById.get(contentId);
             String overview = tourApiClient.fetchOverview(contentId);
             Integer walkMinutes = previous == null ? null : WalkTimeCalculator.walkMinutes(
                 previous.longitude(), previous.latitude(), place.longitude(), place.latitude());
@@ -165,9 +165,9 @@ public class RecommendationGenerationService {
             coursePlan.name(), coursePlan.reason(), places.getFirst().imageUrl(), places);
     }
 
-    private String matchAudio(TourPlace place, List<OdiiTheme> themes) {
+    private String matchAudio(TourPlaceItem place, List<OdiiThemeItem> themes) {
         String placeTitle = normalizeTitle(place.title());
-        for (OdiiTheme theme : themes) {
+        for (OdiiThemeItem theme : themes) {
             Double distance = WalkTimeCalculator.distanceMeters(
                 place.longitude(), place.latitude(), theme.longitude(), theme.latitude());
             if (distance == null || distance > AUDIO_MATCH_RADIUS_METERS) {
@@ -185,14 +185,14 @@ public class RecommendationGenerationService {
         return title == null ? "" : title.replaceAll("\\s", "");
     }
 
-    private double averageLongitude(List<TourPlace> places) {
+    private double averageLongitude(List<TourPlaceItem> places) {
         return places.stream().filter(place -> place.longitude() != null)
-            .mapToDouble(TourPlace::longitude).average().orElse(0);
+            .mapToDouble(TourPlaceItem::longitude).average().orElse(0);
     }
 
-    private double averageLatitude(List<TourPlace> places) {
+    private double averageLatitude(List<TourPlaceItem> places) {
         return places.stream().filter(place -> place.latitude() != null)
-            .mapToDouble(TourPlace::latitude).average().orElse(0);
+            .mapToDouble(TourPlaceItem::latitude).average().orElse(0);
     }
 
     private long elapsedMillis(long startedAt) {
