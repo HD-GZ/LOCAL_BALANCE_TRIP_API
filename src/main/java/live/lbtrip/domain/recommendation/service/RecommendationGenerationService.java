@@ -26,11 +26,6 @@ import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 성향 기반 코스 추천 생성 파이프라인.
- * 외부 API(TourAPI, Odii)를 장시간 순차 호출하므로 트랜잭션 없이 실행하고,
- * 결과 저장만 {@link RecommendationStore}가 별도 트랜잭션으로 처리한다.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
