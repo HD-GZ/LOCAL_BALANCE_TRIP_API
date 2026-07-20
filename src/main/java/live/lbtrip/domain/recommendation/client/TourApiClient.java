@@ -59,13 +59,15 @@ public class TourApiClient {
             .queryParam("lDongSignguCd", candidate.getLdongSignguCd()));
 
         int totalCount = body.path("totalCount").asInt(0);
+        int sampleSize = 0;
         Map<Integer, Integer> typeCounts = new HashMap<>();
         for (JsonNode item : items(body)) {
             typeCounts.merge(item.path("contenttypeid").asInt(0), 1, Integer::sum);
+            sampleSize++;
         }
         return new RegionStats(
             candidate.getName(), candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
-            totalCount, typeCounts);
+            totalCount, sampleSize, typeCounts);
     }
 
     public List<TourPlace> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {
