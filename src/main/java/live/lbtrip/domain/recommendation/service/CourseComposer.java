@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
-import live.lbtrip.domain.recommendation.client.dto.TourPlace;
+import live.lbtrip.domain.recommendation.model.entity.TourPlace;
 import live.lbtrip.domain.recommendation.model.enums.TourContentType;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
@@ -70,9 +70,9 @@ public class CourseComposer {
 
         String candidateLines = candidates.stream()
             .map(place -> "%s | %s | %s".formatted(
-                place.contentId(),
-                TourContentType.koreanNameOf(place.contentTypeId()),
-                place.title()))
+                place.getContentId(),
+                TourContentType.koreanNameOf(place.getContentTypeId()),
+                place.getTitle()))
             .collect(Collectors.joining("\n"));
 
         return promptTemplate.render(Map.ofEntries(
@@ -98,7 +98,7 @@ public class CourseComposer {
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
 
-        Set<String> validIds = candidates.stream().map(TourPlace::contentId).collect(Collectors.toSet());
+        Set<String> validIds = candidates.stream().map(TourPlace::getContentId).collect(Collectors.toSet());
 
         List<CoursePlan> courses = raw.courses().stream()
             .map(course -> CoursePlan.of(

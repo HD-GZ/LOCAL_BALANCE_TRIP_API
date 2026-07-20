@@ -28,6 +28,7 @@ public enum ErrorCode {
     REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "추천 지역을 찾을 수 없습니다."),
     COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "추천 코스를 찾을 수 없습니다."),
     TOUR_API_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "관광 정보 API 호출에 실패했습니다."),
+    TOUR_DATA_NOT_READY(HttpStatus.SERVICE_UNAVAILABLE, "관광 데이터가 아직 준비되지 않았습니다."),
     INVALID_ADMIN_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 어드민 액세스 토큰입니다."),
     INCENTIVE_NOT_FOUND(HttpStatus.NOT_FOUND, "인센티브를 찾을 수 없습니다."),
     INCENTIVE_REGION_INVALID(HttpStatus.BAD_REQUEST, "존재하지 않는 지역 코드입니다."),

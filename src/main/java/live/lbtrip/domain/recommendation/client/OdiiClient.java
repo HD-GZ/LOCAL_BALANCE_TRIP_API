@@ -13,7 +13,7 @@ import org.springframework.web.util.UriBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import live.lbtrip.domain.recommendation.client.dto.OdiiTheme;
+import live.lbtrip.domain.recommendation.client.dto.OdiiThemeItem;
 import live.lbtrip.global.config.TourApiProperties;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,16 +43,16 @@ public class OdiiClient {
         this.mobileApp = properties.mobileApp();
     }
 
-    public List<OdiiTheme> fetchThemesNear(double longitude, double latitude) {
+    public List<OdiiThemeItem> fetchThemesNear(double longitude, double latitude) {
         try {
             JsonNode body = get("/themeLocationBasedList", uri -> uri
                 .queryParam("mapX", longitude)
                 .queryParam("mapY", latitude)
                 .queryParam("radius", MAX_RADIUS_METERS));
 
-            List<OdiiTheme> themes = new ArrayList<>();
+            List<OdiiThemeItem> themes = new ArrayList<>();
             for (JsonNode item : items(body)) {
-                themes.add(new OdiiTheme(
+                themes.add(new OdiiThemeItem(
                     item.path("tid").asText(),
                     item.path("tlid").asText(),
                     item.path("title").asText(),
