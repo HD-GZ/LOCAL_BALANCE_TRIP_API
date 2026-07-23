@@ -12,23 +12,23 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import live.lbtrip.domain.recommendation.dto.request.SavedCourseListRequest;
 import live.lbtrip.domain.recommendation.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.SavedCourseListResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
+import live.lbtrip.global.web.PageQueryRequest;
 import live.lbtrip.global.web.UserId;
 
 @Tag(name = "SavedCourse", description = "저장 코스 API")
 public interface SavedCourseApi {
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "저장 코스 목록 조회", description = "저장한 코스를 최근 저장 순으로 페이지네이션하여 조회합니다.")
+    @Operation(summary = "저장 코스 목록 조회", description = "저장한 코스를 최근 저장 순으로 페이지네이션하여 조회합니다. limit 생략 시 4개씩 조회합니다.")
     @ApiSuccessResponse(description = "조회 성공")
     @ApiErrorCodeResponses({INVALID_INPUT_VALUE, INVALID_ACCESS_TOKEN})
     ResponseEntity<SavedCourseListResponse> getSavedCourses(
         @UserId Long userId,
-        @Valid @ParameterObject @ModelAttribute SavedCourseListRequest request
+        @Valid @ParameterObject @ModelAttribute PageQueryRequest request
     );
 
     @SecurityRequirement(name = "bearerAuth")

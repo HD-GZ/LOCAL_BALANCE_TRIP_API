@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import live.lbtrip.domain.recommendation.dto.request.SavedCourseListRequest;
 import live.lbtrip.domain.recommendation.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.SavedCourseListResponse;
 import live.lbtrip.domain.recommendation.service.SavedCourseService;
+import live.lbtrip.global.web.PageQueryRequest;
 import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 
@@ -25,10 +25,9 @@ public class SavedCourseController implements SavedCourseApi {
     @GetMapping
     public ResponseEntity<SavedCourseListResponse> getSavedCourses(
         @UserId Long userId,
-        @Valid @ModelAttribute SavedCourseListRequest request
+        @Valid @ModelAttribute PageQueryRequest request
     ) {
-        SavedCourseListResponse response = savedCourseService.getSavedCourses(
-            userId, request.page(), request.size());
+        SavedCourseListResponse response = savedCourseService.getSavedCourses(userId, request);
         return ResponseEntity.ok(response);
     }
 

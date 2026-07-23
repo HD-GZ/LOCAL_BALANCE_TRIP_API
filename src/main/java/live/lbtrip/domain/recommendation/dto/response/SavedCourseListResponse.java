@@ -16,7 +16,7 @@ public record SavedCourseListResponse(
     int page,
 
     @Schema(description = "페이지 크기", example = "4")
-    int size,
+    int limit,
 
     @Schema(description = "전체 페이지 수", example = "3")
     int totalPages,
