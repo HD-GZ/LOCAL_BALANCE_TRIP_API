@@ -74,9 +74,11 @@ public class RecommendationService {
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
+        RecommendedRegion region = course.getRecommendedRegion();
         SavedCourse savedCourse = SavedCourse.create(
             user, course.getId(), course.getName(),
-            course.getRecommendedRegion().getRegionName(), course.getReason());
+            region.getRegionName(), course.getReason(),
+            course.getImageUrl(), region.getLdongRegnCd(), region.getLdongSignguCd());
 
         for (CoursePlace place : course.getPlaces()) {
             savedCourse.addPlace(SavedCoursePlace.create(
