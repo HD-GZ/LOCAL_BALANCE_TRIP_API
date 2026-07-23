@@ -47,21 +47,39 @@ public class SavedCourse extends BaseEntity {
     @Column(nullable = false, length = 300)
     private String reason;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
+    @Column(name = "ldong_regn_cd", length = 2)
+    private String ldongRegnCd;
+
+    @Column(name = "ldong_signgu_cd", length = 3)
+    private String ldongSignguCd;
+
     @OneToMany(mappedBy = "savedCourse", cascade = CascadeType.ALL)
+    @OrderBy("visitOrder asc")
     private List<SavedCoursePlace> places = new ArrayList<>();
 
-    private SavedCourse(User user, Long sourceCourseId, String courseName, String regionName, String reason) {
+    private SavedCourse(
+        User user, Long sourceCourseId, String courseName, String regionName, String reason,
+        String imageUrl, String ldongRegnCd, String ldongSignguCd
+    ) {
         this.user = user;
         this.sourceCourseId = sourceCourseId;
         this.courseName = courseName;
         this.regionName = regionName;
         this.reason = reason;
+        this.imageUrl = imageUrl;
+        this.ldongRegnCd = ldongRegnCd;
+        this.ldongSignguCd = ldongSignguCd;
     }
 
     public static SavedCourse create(
-        User user, Long sourceCourseId, String courseName, String regionName, String reason
+        User user, Long sourceCourseId, String courseName, String regionName, String reason,
+        String imageUrl, String ldongRegnCd, String ldongSignguCd
     ) {
-        return new SavedCourse(user, sourceCourseId, courseName, regionName, reason);
+        return new SavedCourse(user, sourceCourseId, courseName, regionName, reason,
+            imageUrl, ldongRegnCd, ldongSignguCd);
     }
 
     public void addPlace(SavedCoursePlace place) {
