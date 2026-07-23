@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
-import live.lbtrip.domain.recommendation.model.entity.TourPlace;
+import live.lbtrip.domain.recommendation.client.dto.TourPlaceItem;
 import live.lbtrip.domain.recommendation.model.enums.TourContentType;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
@@ -45,7 +45,7 @@ public class CourseComposer {
     public CourseComposition compose(
         Propensity propensity,
         String regionName,
-        List<TourPlace> candidates
+        List<TourPlaceItem> candidates
     ) {
         CourseComposition raw;
         try {
@@ -63,16 +63,16 @@ public class CourseComposer {
     private String renderPrompt(
         Propensity propensity,
         String regionName,
-        List<TourPlace> candidates
+        List<TourPlaceItem> candidates
     ) {
         Preference preference = propensity.getPreference();
         ValueConsumption consumption = propensity.getValueConsumption();
 
         String candidateLines = candidates.stream()
             .map(place -> "%s | %s | %s".formatted(
-                place.getContentId(),
-                TourContentType.koreanNameOf(place.getContentTypeId()),
-                place.getTitle()))
+                place.contentId(),
+                TourContentType.koreanNameOf(place.contentTypeId()),
+                place.title()))
             .collect(Collectors.joining("\n"));
 
         return promptTemplate.render(Map.ofEntries(
@@ -92,13 +92,13 @@ public class CourseComposer {
         ));
     }
 
-    private CourseComposition validate(CourseComposition raw, List<TourPlace> candidates, String regionName) {
+    private CourseComposition validate(CourseComposition raw, List<TourPlaceItem> candidates, String regionName) {
         if (raw == null || raw.courses() == null || raw.courses().isEmpty()) {
             log.error("LLM 응답에 코스 없음: region={}", regionName);
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
 
-        Set<String> validIds = candidates.stream().map(TourPlace::getContentId).collect(Collectors.toSet());
+        Set<String> validIds = candidates.stream().map(TourPlaceItem::contentId).collect(Collectors.toSet());
 
         List<CoursePlan> courses = raw.courses().stream()
             .map(course -> CoursePlan.of(
