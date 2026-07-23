@@ -23,7 +23,7 @@ import live.lbtrip.global.web.UserId;
 public interface SavedCourseApi {
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "저장 코스 목록 조회", description = "저장한 코스를 최근 저장 순으로 페이지네이션하여 조회합니다. limit 생략 시 4개씩 조회합니다.")
+    @Operation(summary = "저장 코스 목록 조회", description = "저장한 코스를 최근 저장 순으로 페이지네이션하여 조회합니다. limit 생략 시 10개씩 조회합니다.")
     @ApiSuccessResponse(description = "조회 성공")
     @ApiErrorCodeResponses({INVALID_INPUT_VALUE, INVALID_ACCESS_TOKEN})
     ResponseEntity<SavedCourseListResponse> getSavedCourses(

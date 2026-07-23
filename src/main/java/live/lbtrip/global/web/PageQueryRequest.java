@@ -11,17 +11,18 @@ public record PageQueryRequest(
     @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.")
     Integer page,
 
-    @Parameter(description = "페이지 크기. 생략 시 API 기본값, 최대 50.", example = "4")
+    @Parameter(description = "페이지 크기. 생략 시 10, 최대 50.", example = "10")
     @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.")
     @Max(value = 50, message = "페이지 크기는 50 이하여야 합니다.")
     Integer limit
 ) {
 
     private static final int DEFAULT_PAGE = 1;
+    private static final int DEFAULT_LIMIT = 10;
 
-    public PageRequest toPageRequest(int defaultLimit) {
+    public PageRequest toPageRequest() {
         int resolvedPage = page != null ? page : DEFAULT_PAGE;
-        int resolvedLimit = limit != null ? limit : defaultLimit;
+        int resolvedLimit = limit != null ? limit : DEFAULT_LIMIT;
         return PageRequest.of(resolvedPage - 1, resolvedLimit);
     }
 }

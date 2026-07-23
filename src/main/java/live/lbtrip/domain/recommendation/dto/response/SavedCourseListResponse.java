@@ -15,7 +15,7 @@ public record SavedCourseListResponse(
     @Schema(description = "현재 페이지 번호(1부터 시작)", example = "1")
     int page,
 
-    @Schema(description = "페이지 크기", example = "4")
+    @Schema(description = "페이지 크기", example = "10")
     int limit,
 
     @Schema(description = "전체 페이지 수", example = "3")

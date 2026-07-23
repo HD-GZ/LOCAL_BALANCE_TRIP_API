@@ -22,14 +22,12 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class SavedCourseService {
 
-    private static final int DEFAULT_LIMIT = 4;
-
     private final SavedCourseRepository savedCourseRepository;
     private final IncentiveRepository incentiveRepository;
 
     public SavedCourseListResponse getSavedCourses(Long userId, PageQueryRequest pageQuery) {
         Page<SavedCourse> savedCourses = savedCourseRepository.findAllByUserIdOrderByIdDesc(
-            userId, pageQuery.toPageRequest(DEFAULT_LIMIT));
+            userId, pageQuery.toPageRequest());
 
         return SavedCourseListResponse.from(savedCourses);
     }
