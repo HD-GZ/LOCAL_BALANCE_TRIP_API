@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.model.entity;
+package live.lbtrip.domain.tourism.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

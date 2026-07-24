@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.client.dto;
+package live.lbtrip.domain.tourism.client.dto;
 
 public record OdiiThemeItem(
     String tid,

@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.service;
+package live.lbtrip.domain.tourism.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -6,20 +6,20 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import live.lbtrip.domain.recommendation.client.OdiiClient;
-import live.lbtrip.domain.recommendation.client.TourApiClient;
-import live.lbtrip.domain.recommendation.client.dto.OdiiThemeItem;
-import live.lbtrip.domain.recommendation.client.dto.RegionStats;
-import live.lbtrip.domain.recommendation.client.dto.TourPlaceItem;
-import live.lbtrip.domain.recommendation.model.entity.OdiiTheme;
-import live.lbtrip.domain.recommendation.model.entity.TourPlace;
-import live.lbtrip.domain.recommendation.model.entity.TourRegionStats;
-import live.lbtrip.domain.recommendation.model.enums.TourContentType;
-import live.lbtrip.domain.recommendation.repository.OdiiThemeRepository;
-import live.lbtrip.domain.recommendation.repository.TourPlaceRepository;
-import live.lbtrip.domain.recommendation.repository.TourRegionStatsRepository;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
+import live.lbtrip.domain.tourism.client.OdiiClient;
+import live.lbtrip.domain.tourism.client.TourApiClient;
+import live.lbtrip.domain.tourism.client.dto.OdiiThemeItem;
+import live.lbtrip.domain.tourism.client.dto.RegionStats;
+import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
+import live.lbtrip.domain.tourism.model.entity.OdiiTheme;
+import live.lbtrip.domain.tourism.model.entity.TourPlace;
+import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
+import live.lbtrip.domain.tourism.model.enums.TourContentType;
+import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
+import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
+import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

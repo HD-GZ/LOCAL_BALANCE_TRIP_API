@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.client;
+package live.lbtrip.domain.tourism.client;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import org.springframework.web.util.UriBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import live.lbtrip.domain.recommendation.client.dto.OdiiThemeItem;
+import live.lbtrip.domain.tourism.client.dto.OdiiThemeItem;
 import live.lbtrip.global.config.TourApiProperties;
 import lombok.extern.slf4j.Slf4j;
 

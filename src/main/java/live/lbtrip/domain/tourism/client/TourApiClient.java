@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.client;
+package live.lbtrip.domain.tourism.client;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,9 +15,9 @@ import org.springframework.web.util.UriBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import live.lbtrip.domain.recommendation.client.dto.RegionStats;
-import live.lbtrip.domain.recommendation.client.dto.TourPlaceItem;
 import live.lbtrip.domain.region.model.RegionCandidate;
+import live.lbtrip.domain.tourism.client.dto.RegionStats;
+import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.global.config.TourApiProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;

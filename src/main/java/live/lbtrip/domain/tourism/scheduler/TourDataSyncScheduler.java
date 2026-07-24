@@ -1,9 +1,9 @@
-package live.lbtrip.domain.recommendation.scheduler;
+package live.lbtrip.domain.tourism.scheduler;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import live.lbtrip.domain.recommendation.service.TourDataSyncService;
+import live.lbtrip.domain.tourism.service.TourDataSyncService;
 import lombok.RequiredArgsConstructor;
 
 @Component

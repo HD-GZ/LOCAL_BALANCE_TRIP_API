@@ -1,8 +1,8 @@
-package live.lbtrip.domain.recommendation.client.dto;
+package live.lbtrip.domain.tourism.client.dto;
 
 import java.util.Map;
 
-import live.lbtrip.domain.recommendation.model.entity.TourRegionStats;
+import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 
 public record RegionStats(
     String regionName,

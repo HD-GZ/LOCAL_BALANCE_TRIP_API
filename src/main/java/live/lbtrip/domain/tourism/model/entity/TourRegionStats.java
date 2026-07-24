@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.model.entity;
+package live.lbtrip.domain.tourism.model.entity;
 
 import java.util.Map;
 
@@ -9,7 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import live.lbtrip.domain.recommendation.model.enums.TourContentType;
+import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;

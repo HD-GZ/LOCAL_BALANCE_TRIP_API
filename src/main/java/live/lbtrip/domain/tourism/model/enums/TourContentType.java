@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.model.enums;
+package live.lbtrip.domain.tourism.model.enums;
 
 import java.util.Arrays;
 import java.util.List;
