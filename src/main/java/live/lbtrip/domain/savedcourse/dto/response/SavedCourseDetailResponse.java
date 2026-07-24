@@ -1,12 +1,12 @@
-package live.lbtrip.domain.recommendation.dto.response;
+package live.lbtrip.domain.savedcourse.dto.response;
 
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import live.lbtrip.domain.incentive.model.Incentive;
-import live.lbtrip.domain.recommendation.model.entity.SavedCourse;
-import live.lbtrip.domain.recommendation.model.entity.SavedCoursePlace;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCoursePlace;
 
 public record SavedCourseDetailResponse(
     @Schema(description = "저장 코스 식별자", example = "1")

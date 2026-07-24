@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.dto.response;
+package live.lbtrip.domain.savedcourse.dto.response;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.recommendation.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 
 public record SavedCourseListResponse(
     @Schema(description = "저장한 코스 총 개수", example = "12")

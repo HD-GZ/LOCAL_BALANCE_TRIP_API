@@ -1,8 +1,8 @@
-package live.lbtrip.domain.recommendation.service;
+package live.lbtrip.domain.savedcourse.service;
 
 import org.springframework.stereotype.Component;
 
-import live.lbtrip.domain.recommendation.repository.SavedCourseRepository;
+import live.lbtrip.domain.savedcourse.repository.SavedCourseRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;

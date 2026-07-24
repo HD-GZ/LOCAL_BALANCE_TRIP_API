@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.controller;
+package live.lbtrip.domain.savedcourse.controller;
 
 import static live.lbtrip.global.error.ErrorCode.*;
 
@@ -12,8 +12,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import live.lbtrip.domain.recommendation.dto.response.SavedCourseDetailResponse;
-import live.lbtrip.domain.recommendation.dto.response.SavedCourseListResponse;
+import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
+import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
 import live.lbtrip.global.web.PageQueryRequest;

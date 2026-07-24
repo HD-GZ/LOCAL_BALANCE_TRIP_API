@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.repository;
+package live.lbtrip.domain.savedcourse.repository;
 
 import java.util.Optional;
 
@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import live.lbtrip.domain.recommendation.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 
 public interface SavedCourseRepository extends JpaRepository<SavedCourse, Long> {
 

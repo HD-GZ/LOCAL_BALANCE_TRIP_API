@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.controller;
+package live.lbtrip.domain.savedcourse.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import live.lbtrip.domain.recommendation.dto.response.SavedCourseDetailResponse;
-import live.lbtrip.domain.recommendation.dto.response.SavedCourseListResponse;
-import live.lbtrip.domain.recommendation.service.SavedCourseService;
+import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
+import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
+import live.lbtrip.domain.savedcourse.service.SavedCourseService;
 import live.lbtrip.global.web.PageQueryRequest;
 import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;

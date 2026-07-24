@@ -1,13 +1,13 @@
-package live.lbtrip.domain.recommendation.service;
+package live.lbtrip.domain.savedcourse.service;
 
 import org.springframework.stereotype.Component;
 
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
-import live.lbtrip.domain.recommendation.model.entity.SavedCourse;
-import live.lbtrip.domain.recommendation.model.entity.SavedCoursePlace;
-import live.lbtrip.domain.recommendation.repository.SavedCourseRepository;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCoursePlace;
+import live.lbtrip.domain.savedcourse.repository.SavedCourseRepository;
 import live.lbtrip.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 

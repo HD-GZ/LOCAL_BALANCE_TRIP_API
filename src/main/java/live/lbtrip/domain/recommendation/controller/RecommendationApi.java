@@ -102,22 +102,4 @@ public interface RecommendationApi {
         @PathVariable Long courseId
     );
 
-    @SecurityRequirement(name = "bearerAuth")
-    @Operation(
-        summary = "코스 저장",
-        description = """
-            코스를 사용자의 저장 목록(마이 > SAVE)에 스냅샷으로 복사합니다.
-            이미 저장된 코스면 아무것도 하지 않습니다(멱등). 응답 바디는 없습니다.
-            """
-    )
-    @ApiSuccessResponse(status = CREATED, description = "코스 저장 성공")
-    @ApiErrorCodeResponses({
-        INVALID_ACCESS_TOKEN,
-        COURSE_NOT_FOUND
-    })
-    ResponseEntity<Void> saveCourse(
-        @UserId Long userId,
-        @Parameter(description = "코스 식별자(서비스 생성 코스 ID)", example = "1")
-        @PathVariable Long courseId
-    );
 }

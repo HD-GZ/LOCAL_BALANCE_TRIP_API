@@ -1,4 +1,4 @@
-package live.lbtrip.domain.recommendation.model.entity;
+package live.lbtrip.domain.savedcourse.model.entity;
 
 import java.util.ArrayList;
 import java.util.List;
