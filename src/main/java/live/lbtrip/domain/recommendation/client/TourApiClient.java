@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import live.lbtrip.domain.recommendation.client.dto.RegionStats;
 import live.lbtrip.domain.recommendation.client.dto.TourPlaceItem;
-import live.lbtrip.domain.recommendation.model.entity.RegionCandidate;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.global.config.TourApiProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;

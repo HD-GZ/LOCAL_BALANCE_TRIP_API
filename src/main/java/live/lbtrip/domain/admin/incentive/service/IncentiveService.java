@@ -10,7 +10,7 @@ import live.lbtrip.domain.admin.incentive.dto.response.IncentiveResponse;
 import live.lbtrip.domain.admin.incentive.model.Incentive;
 import live.lbtrip.domain.admin.incentive.model.IncentiveRegion;
 import live.lbtrip.domain.admin.incentive.repository.IncentiveRepository;
-import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
+import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.util.StringNormalizer;
