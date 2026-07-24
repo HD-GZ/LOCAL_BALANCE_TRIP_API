@@ -6,21 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.admin.incentive.model.Incentive;
-import live.lbtrip.domain.admin.incentive.repository.IncentiveRepository;
 import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
-import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
-import live.lbtrip.domain.recommendation.model.entity.SavedCourse;
-import live.lbtrip.domain.recommendation.model.entity.SavedCoursePlace;
-import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
-import live.lbtrip.domain.recommendation.repository.SavedCourseRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.repository.UserRepository;
-import live.lbtrip.global.error.BusinessException;
-import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.domain.user.service.UserFinder;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,12 +20,12 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class RecommendationService {
 
-    private final GeneratedCourseRepository generatedCourseRepository;
-    private final SavedCourseRepository savedCourseRepository;
-    private final UserRepository userRepository;
     private final RecommendedRegionFinder recommendedRegionFinder;
     private final GeneratedCourseFinder generatedCourseFinder;
     private final IncentiveFinder incentiveFinder;
+    private final SaveCourseManager saveCourseManager;
+    private final SaveCourseValidator saveCourseValidator;
+    private final UserFinder userFinder;
 
     public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
         return recommendedRegionFinder.findAllByUserId(userId).stream()
@@ -60,26 +52,9 @@ public class RecommendationService {
 
     @Transactional
     public void saveCourse(Long userId, Long courseId) {
-        if (savedCourseRepository.existsByUserIdAndSourceCourseId(userId, courseId)) {
-            return;
-        }
-        GeneratedCourse course = generatedCourseRepository.findByIdAndUserId(courseId, userId)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
-
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
-        RecommendedRegion region = course.getRecommendedRegion();
-        SavedCourse savedCourse = SavedCourse.create(
-            user, course.getId(), course.getName(),
-            region.getRegionName(), course.getReason(),
-            course.getImageUrl(), region.getLdongRegnCd(), region.getLdongSignguCd());
-
-        for (CoursePlace place : course.getPlaces()) {
-            savedCourse.addPlace(SavedCoursePlace.create(
-                place.getVisitOrder(), place.getName(), place.getOverview(), place.getImageUrl(),
-                place.getLatitude(), place.getLongitude(), place.getWalkMinutes(),
-                place.isHasAudio(), place.getAudioUrl()));
-        }
-        savedCourseRepository.save(savedCourse);
+        saveCourseValidator.validateNew(userId, courseId);
+        GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
+        User user = userFinder.findById(userId);
+        saveCourseManager.add(course, user);
     }
 }
