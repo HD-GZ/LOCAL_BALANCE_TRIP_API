@@ -24,7 +24,7 @@ import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
 import live.lbtrip.global.web.UserId;
 
-@Tag(name = "Recommendation", description = "AI 맞춤 코스 추천 (생성 → 여행지 → 코스 → 상세 → 저장)")
+@Tag(name = "Recommendation", description = "AI 맞춤 코스 추천 (생성 → 여행지 → 코스 → 상세)")
 public interface RecommendationApi {
 
     @SecurityRequirement(name = "bearerAuth")
