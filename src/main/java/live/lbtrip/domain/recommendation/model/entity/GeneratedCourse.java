@@ -13,7 +13,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.model.BaseEntity;
@@ -48,7 +47,6 @@ public class GeneratedCourse extends BaseEntity {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
-    @OrderBy("visitOrder asc")
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<CoursePlace> places = new ArrayList<>();
 

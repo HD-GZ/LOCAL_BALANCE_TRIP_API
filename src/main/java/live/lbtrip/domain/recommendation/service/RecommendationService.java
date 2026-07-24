@@ -16,7 +16,6 @@ import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
 import live.lbtrip.domain.recommendation.model.entity.SavedCourse;
 import live.lbtrip.domain.recommendation.model.entity.SavedCoursePlace;
 import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
-import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.recommendation.repository.SavedCourseRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
@@ -29,39 +28,34 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class RecommendationService {
 
-    private final RecommendedRegionRepository recommendedRegionRepository;
     private final GeneratedCourseRepository generatedCourseRepository;
     private final SavedCourseRepository savedCourseRepository;
     private final UserRepository userRepository;
-    private final IncentiveRepository incentiveRepository;
+    private final RecommendedRegionFinder recommendedRegionFinder;
+    private final GeneratedCourseFinder generatedCourseFinder;
+    private final IncentiveFinder incentiveFinder;
 
     public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
-        return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
+        return recommendedRegionFinder.findAllByUserId(userId).stream()
             .map(RegionRecommendationResponse::from)
             .toList();
     }
 
     public List<CourseCandidateResponse> getRegionCourses(Long userId, Long regionId) {
-        RecommendedRegion region = recommendedRegionRepository.findByIdAndUserId(regionId, userId)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.REGION_NOT_FOUND));
-
-        return region.getCourses().stream()
+        return recommendedRegionFinder.findByIdAndUserId(regionId, userId).getCourses().stream()
             .map(CourseCandidateResponse::from)
             .toList();
     }
 
     public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
-        GeneratedCourse course = generatedCourseRepository.findByIdAndUserId(courseId, userId)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
+        GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
+        RecommendedRegion recommendedRegion = course.getRecommendedRegion();
+        List<Incentive> incentives = incentiveFinder.findAllByRegion(
+            recommendedRegion.getLdongRegnCd(),
+            recommendedRegion.getLdongSignguCd()
+        );
 
-        return CourseDetailResponse.of(course, findApplicableIncentives(course.getRecommendedRegion()));
-    }
-
-    private List<Incentive> findApplicableIncentives(RecommendedRegion region) {
-        if (region.getLdongRegnCd() == null || region.getLdongSignguCd() == null) {
-            return List.of();
-        }
-        return incentiveRepository.findAllByRegion(region.getLdongRegnCd(), region.getLdongSignguCd());
+        return CourseDetailResponse.of(course, incentives);
     }
 
     @Transactional
