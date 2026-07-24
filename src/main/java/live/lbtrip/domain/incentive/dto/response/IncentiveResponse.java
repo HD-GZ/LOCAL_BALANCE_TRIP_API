@@ -1,10 +1,10 @@
-package live.lbtrip.domain.admin.incentive.dto.response;
+package live.lbtrip.domain.incentive.dto.response;
 
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import live.lbtrip.domain.admin.incentive.model.Incentive;
-import live.lbtrip.domain.admin.incentive.model.IncentiveRegion;
+import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.IncentiveRegion;
 
 public record IncentiveResponse(
     @Schema(description = "인센티브 ID", example = "1")

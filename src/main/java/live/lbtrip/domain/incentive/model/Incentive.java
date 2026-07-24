@@ -1,4 +1,4 @@
-package live.lbtrip.domain.admin.incentive.model;
+package live.lbtrip.domain.incentive.model;
 
 import java.util.ArrayList;
 import java.util.List;

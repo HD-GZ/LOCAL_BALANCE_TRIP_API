@@ -1,4 +1,4 @@
-package live.lbtrip.domain.admin.incentive.controller;
+package live.lbtrip.domain.incentive.controller;
 
 import static live.lbtrip.global.error.ErrorCode.INCENTIVE_NOT_FOUND;
 import static live.lbtrip.global.error.ErrorCode.INCENTIVE_REGION_INVALID;
@@ -17,8 +17,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import live.lbtrip.domain.admin.incentive.dto.request.IncentiveRequest;
-import live.lbtrip.domain.admin.incentive.dto.response.IncentiveResponse;
+import live.lbtrip.domain.incentive.dto.request.IncentiveRequest;
+import live.lbtrip.domain.incentive.dto.response.IncentiveResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
 import live.lbtrip.global.web.AdminId;

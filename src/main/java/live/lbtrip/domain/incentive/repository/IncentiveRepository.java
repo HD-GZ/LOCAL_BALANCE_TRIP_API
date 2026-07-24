@@ -1,4 +1,4 @@
-package live.lbtrip.domain.admin.incentive.repository;
+package live.lbtrip.domain.incentive.repository;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import live.lbtrip.domain.admin.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.Incentive;
 
 public interface IncentiveRepository extends JpaRepository<Incentive, Long> {
 

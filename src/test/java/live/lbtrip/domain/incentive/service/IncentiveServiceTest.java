@@ -1,4 +1,4 @@
-package live.lbtrip.domain.admin.incentive.service;
+package live.lbtrip.domain.incentive.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -16,9 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import live.lbtrip.domain.admin.incentive.dto.response.IncentiveResponse;
-import live.lbtrip.domain.admin.incentive.model.Incentive;
-import live.lbtrip.domain.admin.incentive.repository.IncentiveRepository;
+import live.lbtrip.domain.incentive.dto.response.IncentiveResponse;
+import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.repository.IncentiveRepository;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;

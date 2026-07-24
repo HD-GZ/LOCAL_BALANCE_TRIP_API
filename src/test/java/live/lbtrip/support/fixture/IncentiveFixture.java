@@ -2,8 +2,8 @@ package live.lbtrip.support.fixture;
 
 import java.util.List;
 
-import live.lbtrip.domain.admin.incentive.model.Incentive;
-import live.lbtrip.domain.admin.incentive.model.IncentiveRegion;
+import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.IncentiveRegion;
 
 public final class IncentiveFixture {
 

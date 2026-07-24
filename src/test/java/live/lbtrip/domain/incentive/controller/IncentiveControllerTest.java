@@ -1,4 +1,4 @@
-package live.lbtrip.domain.admin.incentive.controller;
+package live.lbtrip.domain.incentive.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,8 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import live.lbtrip.domain.admin.auth.model.AdminJwtTokenSubject;
 import live.lbtrip.domain.admin.auth.service.AdminJwtTokenProvider;
-import live.lbtrip.domain.admin.incentive.dto.request.IncentiveRequest;
-import live.lbtrip.domain.admin.incentive.service.IncentiveService;
+import live.lbtrip.domain.incentive.dto.request.IncentiveRequest;
+import live.lbtrip.domain.incentive.service.IncentiveService;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;

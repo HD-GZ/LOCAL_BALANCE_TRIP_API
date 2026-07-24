@@ -1,4 +1,4 @@
-package live.lbtrip.domain.admin.incentive.model;
+package live.lbtrip.domain.incentive.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

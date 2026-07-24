@@ -1,11 +1,11 @@
-package live.lbtrip.domain.recommendation.service;
+package live.lbtrip.domain.incentive.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import live.lbtrip.domain.admin.incentive.model.Incentive;
-import live.lbtrip.domain.admin.incentive.repository.IncentiveRepository;
+import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.repository.IncentiveRepository;
 import lombok.RequiredArgsConstructor;
 
 @Component

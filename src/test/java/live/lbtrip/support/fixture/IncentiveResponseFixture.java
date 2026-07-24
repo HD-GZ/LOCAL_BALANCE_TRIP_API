@@ -2,7 +2,7 @@ package live.lbtrip.support.fixture;
 
 import java.util.List;
 
-import live.lbtrip.domain.admin.incentive.dto.response.IncentiveResponse;
+import live.lbtrip.domain.incentive.dto.response.IncentiveResponse;
 
 public final class IncentiveResponseFixture {
 

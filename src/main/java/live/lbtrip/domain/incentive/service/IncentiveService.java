@@ -1,15 +1,15 @@
-package live.lbtrip.domain.admin.incentive.service;
+package live.lbtrip.domain.incentive.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import live.lbtrip.domain.admin.incentive.dto.request.IncentiveRequest;
-import live.lbtrip.domain.admin.incentive.dto.response.IncentiveResponse;
-import live.lbtrip.domain.admin.incentive.model.Incentive;
-import live.lbtrip.domain.admin.incentive.model.IncentiveRegion;
-import live.lbtrip.domain.admin.incentive.repository.IncentiveRepository;
+import live.lbtrip.domain.incentive.dto.request.IncentiveRequest;
+import live.lbtrip.domain.incentive.dto.response.IncentiveResponse;
+import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.IncentiveRegion;
+import live.lbtrip.domain.incentive.repository.IncentiveRepository;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;

@@ -1,4 +1,4 @@
-package live.lbtrip.domain.admin.incentive.dto.request;
+package live.lbtrip.domain.incentive.dto.request;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 

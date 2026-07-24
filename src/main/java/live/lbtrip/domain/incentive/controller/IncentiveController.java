@@ -1,4 +1,4 @@
-package live.lbtrip.domain.admin.incentive.controller;
+package live.lbtrip.domain.incentive.controller;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import live.lbtrip.domain.admin.incentive.dto.request.IncentiveRequest;
-import live.lbtrip.domain.admin.incentive.dto.response.IncentiveResponse;
-import live.lbtrip.domain.admin.incentive.service.IncentiveService;
+import live.lbtrip.domain.incentive.dto.request.IncentiveRequest;
+import live.lbtrip.domain.incentive.dto.response.IncentiveResponse;
+import live.lbtrip.domain.incentive.service.IncentiveService;
 import live.lbtrip.global.web.AdminId;
 import lombok.RequiredArgsConstructor;
 
