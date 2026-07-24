@@ -8,7 +8,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.repository.PropensityRepository;
+import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.recommendation.client.OdiiClient;
 import live.lbtrip.domain.recommendation.client.TourApiClient;
 import live.lbtrip.domain.recommendation.client.dto.OdiiThemeItem;
@@ -24,9 +24,7 @@ import live.lbtrip.domain.recommendation.repository.RegionCandidateRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecommendationGenerationService {
@@ -34,101 +32,61 @@ public class RecommendationGenerationService {
     private static final int MAX_REGIONS = 5;
     private static final double AUDIO_MATCH_RADIUS_METERS = 500;
 
-    private final PropensityRepository propensityRepository;
     private final RegionCandidateRepository regionCandidateRepository;
     private final TourApiClient tourApiClient;
     private final OdiiClient odiiClient;
     private final RegionScorer regionScorer;
     private final CourseComposer courseComposer;
     private final RecommendationStore recommendationStore;
+    private final PropensityFinder propensityFinder;
 
     public void createRecommendations(Long userId) {
-        long totalStartedAt = System.nanoTime();
-        log.info("추천 생성 시작: userId={}", userId);
-
-        long stageStartedAt = System.nanoTime();
-        Propensity propensity = propensityRepository.findByUserId(userId)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND));
-        log.info("사용자 성향 조회 성공: userId={}, elapsedMs={}", userId, elapsedMillis(stageStartedAt));
-
-        stageStartedAt = System.nanoTime();
+        Propensity propensity = propensityFinder.findByUserId(userId);
         List<RegionCandidate> regionCandidates = regionCandidateRepository.findAll();
         List<RegionStats> statsList = new ArrayList<>();
         for (RegionCandidate candidate : regionCandidates) {
-            long regionStatsStartedAt = System.nanoTime();
             statsList.add(tourApiClient.fetchRegionStats(candidate));
-            log.info("지역 통계 조회 성공: region={}, elapsedMs={}",
-                candidate.getName(), elapsedMillis(regionStatsStartedAt));
         }
-        log.info("전체 지역 통계 조회 성공: candidateCount={}, elapsedMs={}",
-            regionCandidates.size(), elapsedMillis(stageStartedAt));
 
-        stageStartedAt = System.nanoTime();
         List<RegionStats> selected = regionScorer.selectTop(propensity, statsList, MAX_REGIONS);
-        log.info("추천 지역 선정 성공: selectedCount={}, elapsedMs={}",
-            selected.size(), elapsedMillis(stageStartedAt));
 
-        stageStartedAt = System.nanoTime();
         List<RegionPlan> plans = new ArrayList<>();
         for (RegionStats regionStats : selected) {
-            long regionPlanStartedAt = System.nanoTime();
             RegionPlan plan = buildRegionPlan(propensity, regionStats);
             if (plan != null) {
                 plans.add(plan);
-                log.info("지역 추천 계획 생성 성공: region={}, courseCount={}, elapsedMs={}",
-                    regionStats.regionName(), plan.courses().size(), elapsedMillis(regionPlanStartedAt));
             }
         }
         if (plans.isEmpty()) {
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
-        log.info("전체 지역 추천 계획 생성 성공: planCount={}, elapsedMs={}",
-            plans.size(), elapsedMillis(stageStartedAt));
 
-        stageStartedAt = System.nanoTime();
         recommendationStore.replace(userId, plans);
-        log.info("추천 결과 저장 성공: userId={}, planCount={}, elapsedMs={}",
-            userId, plans.size(), elapsedMillis(stageStartedAt));
-        log.info("추천 생성 완료: userId={}, elapsedMs={}", userId, elapsedMillis(totalStartedAt));
     }
 
     private RegionPlan buildRegionPlan(Propensity propensity, RegionStats regionStats) {
-        long stageStartedAt = System.nanoTime();
         Map<String, TourPlaceItem> candidatesById = new LinkedHashMap<>();
         for (TourContentType contentType : TourContentType.courseCandidates()) {
             for (TourPlaceItem place : tourApiClient.fetchPlaces(
-                    regionStats.ldongRegnCd(), regionStats.ldongSignguCd(), contentType.getCode())) {
+                regionStats.ldongRegnCd(), regionStats.ldongSignguCd(), contentType.getCode())) {
                 candidatesById.putIfAbsent(place.contentId(), place);
             }
         }
         if (candidatesById.isEmpty()) {
-            log.warn("후보 장소 없음 - 지역 제외: {}", regionStats.regionName());
             return null;
         }
-        log.info("지역 후보 장소 조회 성공: region={}, placeCount={}, elapsedMs={}",
-            regionStats.regionName(), candidatesById.size(), elapsedMillis(stageStartedAt));
 
         List<TourPlaceItem> candidates = List.copyOf(candidatesById.values());
-        stageStartedAt = System.nanoTime();
         CourseComposition composition = courseComposer.compose(
             propensity, regionStats.regionName(), candidates);
-        log.info("LLM 코스 구성 성공: region={}, courseCount={}, elapsedMs={}",
-            regionStats.regionName(), composition.courses().size(), elapsedMillis(stageStartedAt));
 
-        stageStartedAt = System.nanoTime();
         List<OdiiThemeItem> themes = odiiClient.fetchThemesNear(
             averageLongitude(candidates), averageLatitude(candidates));
-        log.info("Odii 테마 조회 완료: region={}, themeCount={}, elapsedMs={}",
-            regionStats.regionName(), themes.size(), elapsedMillis(stageStartedAt));
 
-        stageStartedAt = System.nanoTime();
         List<CoursePlanData> courses = new ArrayList<>();
         for (CourseComposition.CoursePlan coursePlan : composition.courses()) {
             courses.add(buildCourse(coursePlan, candidatesById, themes));
         }
-        log.info("코스 상세 구성 성공: region={}, courseCount={}, placeCount={}, elapsedMs={}",
-            regionStats.regionName(), courses.size(),
-            courses.stream().mapToInt(course -> course.places().size()).sum(), elapsedMillis(stageStartedAt));
 
         return RegionPlan.of(
             regionStats.regionName(), regionStats.ldongRegnCd(), regionStats.ldongSignguCd(),
@@ -188,9 +146,5 @@ public class RecommendationGenerationService {
     private double averageLatitude(List<TourPlaceItem> places) {
         return places.stream().filter(place -> place.latitude() != null)
             .mapToDouble(TourPlaceItem::latitude).average().orElse(0);
-    }
-
-    private long elapsedMillis(long startedAt) {
-        return (System.nanoTime() - startedAt) / 1_000_000;
     }
 }
