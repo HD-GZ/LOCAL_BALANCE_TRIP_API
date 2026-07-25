@@ -1,0 +1,42 @@
+package live.lbtrip.support.fixture;
+
+import java.util.List;
+
+import live.lbtrip.admin.incentive.dto.response.AdminIncentiveResponse;
+
+public final class AdminIncentiveResponseFixture {
+
+    public static final long INCENTIVE_ID = 1L;
+
+    private AdminIncentiveResponseFixture() {
+    }
+
+    public static AdminIncentiveResponse incentiveResponse() {
+        return new AdminIncentiveResponse(
+            INCENTIVE_ID,
+            AdminIncentiveRequestFixture.TITLE,
+            AdminIncentiveRequestFixture.URL,
+            AdminIncentiveRequestFixture.DESCRIPTION,
+            regionResponses()
+        );
+    }
+
+    public static AdminIncentiveResponse updatedIncentiveResponse() {
+        return new AdminIncentiveResponse(
+            INCENTIVE_ID,
+            AdminIncentiveRequestFixture.UPDATED_TITLE,
+            AdminIncentiveRequestFixture.UPDATED_URL,
+            AdminIncentiveRequestFixture.UPDATED_DESCRIPTION,
+            regionResponses()
+        );
+    }
+
+    private static List<AdminIncentiveResponse.RegionResponse> regionResponses() {
+        return List.of(new AdminIncentiveResponse.RegionResponse(
+            AdminIncentiveRequestFixture.LDONG_REGN_CD, AdminIncentiveRequestFixture.LDONG_SIGNGU_CD));
+    }
+
+    public static List<AdminIncentiveResponse> incentiveResponses() {
+        return List.of(incentiveResponse());
+    }
+}

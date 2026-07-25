@@ -2,8 +2,8 @@ package live.lbtrip.support.fixture;
 
 import java.util.List;
 
-import live.lbtrip.domain.admin.incentive.model.Incentive;
-import live.lbtrip.domain.admin.incentive.model.IncentiveRegion;
+import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.IncentiveRegion;
 
 public final class IncentiveFixture {
 
@@ -12,9 +12,12 @@ public final class IncentiveFixture {
 
     public static Incentive incentive() {
         Incentive incentive = Incentive.create(
-            IncentiveRequestFixture.TITLE, IncentiveRequestFixture.URL, IncentiveRequestFixture.DESCRIPTION);
+            AdminIncentiveRequestFixture.TITLE,
+            AdminIncentiveRequestFixture.URL,
+            AdminIncentiveRequestFixture.DESCRIPTION);
         incentive.replaceRegions(List.of(IncentiveRegion.create(
-            IncentiveRequestFixture.LDONG_REGN_CD, IncentiveRequestFixture.LDONG_SIGNGU_CD)));
+            AdminIncentiveRequestFixture.LDONG_REGN_CD,
+            AdminIncentiveRequestFixture.LDONG_SIGNGU_CD)));
         return incentive;
     }
 }

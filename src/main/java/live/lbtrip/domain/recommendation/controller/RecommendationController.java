@@ -57,12 +57,4 @@ public class RecommendationController implements RecommendationApi {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/courses/{courseId}/save")
-    public ResponseEntity<Void> saveCourse(
-        @UserId Long userId,
-        @PathVariable Long courseId
-    ) {
-        recommendationService.saveCourse(userId, courseId);
-        return ResponseEntity.status(CREATED).build();
-    }
 }

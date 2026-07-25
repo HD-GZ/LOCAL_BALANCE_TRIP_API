@@ -7,7 +7,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import live.lbtrip.domain.admin.auth.service.AdminJwtTokenProvider;
+import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;

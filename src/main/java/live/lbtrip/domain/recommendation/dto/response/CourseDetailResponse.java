@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.admin.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.Incentive;
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 
