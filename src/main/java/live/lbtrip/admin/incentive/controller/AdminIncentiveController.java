@@ -15,41 +15,41 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import live.lbtrip.domain.incentive.dto.request.IncentiveRequest;
-import live.lbtrip.domain.incentive.dto.response.IncentiveResponse;
-import live.lbtrip.domain.incentive.service.IncentiveService;
+import live.lbtrip.admin.incentive.dto.request.AdminIncentiveRequest;
+import live.lbtrip.admin.incentive.dto.response.AdminIncentiveResponse;
+import live.lbtrip.admin.incentive.service.AdminIncentiveService;
 import live.lbtrip.global.web.AdminId;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/admin/incentives")
 @RequiredArgsConstructor
-public class IncentiveController implements IncentiveApi {
+public class AdminIncentiveController implements AdminIncentiveApi {
 
-    private final IncentiveService incentiveService;
+    private final AdminIncentiveService adminIncentiveService;
 
     @PostMapping
-    public ResponseEntity<IncentiveResponse> createIncentive(
+    public ResponseEntity<AdminIncentiveResponse> createIncentive(
         @AdminId Long adminId,
-        @Valid @RequestBody IncentiveRequest request
+        @Valid @RequestBody AdminIncentiveRequest request
     ) {
-        IncentiveResponse response = incentiveService.createIncentive(request);
+        AdminIncentiveResponse response = adminIncentiveService.createIncentive(request);
         return ResponseEntity.status(CREATED).body(response);
     }
 
     @GetMapping
-    public ResponseEntity<List<IncentiveResponse>> getIncentives(@AdminId Long adminId) {
-        List<IncentiveResponse> response = incentiveService.getIncentives();
+    public ResponseEntity<List<AdminIncentiveResponse>> getIncentives(@AdminId Long adminId) {
+        List<AdminIncentiveResponse> response = adminIncentiveService.getIncentives();
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{incentiveId}")
-    public ResponseEntity<IncentiveResponse> updateIncentive(
+    public ResponseEntity<AdminIncentiveResponse> updateIncentive(
         @AdminId Long adminId,
         @PathVariable Long incentiveId,
-        @Valid @RequestBody IncentiveRequest request
+        @Valid @RequestBody AdminIncentiveRequest request
     ) {
-        IncentiveResponse response = incentiveService.updateIncentive(incentiveId, request);
+        AdminIncentiveResponse response = adminIncentiveService.updateIncentive(incentiveId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -58,7 +58,7 @@ public class IncentiveController implements IncentiveApi {
         @AdminId Long adminId,
         @PathVariable Long incentiveId
     ) {
-        incentiveService.deleteIncentive(incentiveId);
+        adminIncentiveService.deleteIncentive(incentiveId);
         return ResponseEntity.ok().build();
     }
 }

@@ -1,4 +1,4 @@
-package live.lbtrip.domain.incentive.dto.response;
+package live.lbtrip.admin.incentive.dto.response;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import live.lbtrip.domain.incentive.model.Incentive;
 import live.lbtrip.domain.incentive.model.IncentiveRegion;
 
-public record IncentiveResponse(
+public record AdminIncentiveResponse(
     @Schema(description = "인센티브 ID", example = "1")
     Long incentiveId,
 
@@ -36,8 +36,8 @@ public record IncentiveResponse(
         }
     }
 
-    public static IncentiveResponse from(Incentive incentive) {
-        return new IncentiveResponse(
+    public static AdminIncentiveResponse from(Incentive incentive) {
+        return new AdminIncentiveResponse(
             incentive.getId(),
             incentive.getTitle(),
             incentive.getUrl(),

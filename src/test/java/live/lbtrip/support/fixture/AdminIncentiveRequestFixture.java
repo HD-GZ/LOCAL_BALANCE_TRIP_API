@@ -2,9 +2,9 @@ package live.lbtrip.support.fixture;
 
 import java.util.List;
 
-import live.lbtrip.domain.incentive.dto.request.IncentiveRequest;
+import live.lbtrip.admin.incentive.dto.request.AdminIncentiveRequest;
 
-public final class IncentiveRequestFixture {
+public final class AdminIncentiveRequestFixture {
 
     public static final String TITLE = "KTX 인구감소지역 할인";
     public static final String URL = "https://www.letskorail.com/event/discount";
@@ -15,18 +15,18 @@ public final class IncentiveRequestFixture {
     public static final String LDONG_REGN_CD = "46";
     public static final String LDONG_SIGNGU_CD = "710";
 
-    private IncentiveRequestFixture() {
+    private AdminIncentiveRequestFixture() {
     }
 
-    public static IncentiveRequest incentiveRequest() {
-        return new IncentiveRequest(TITLE, URL, DESCRIPTION, regions());
+    public static AdminIncentiveRequest incentiveRequest() {
+        return new AdminIncentiveRequest(TITLE, URL, DESCRIPTION, regions());
     }
 
-    public static IncentiveRequest updatedIncentiveRequest() {
-        return new IncentiveRequest(UPDATED_TITLE, UPDATED_URL, UPDATED_DESCRIPTION, regions());
+    public static AdminIncentiveRequest updatedIncentiveRequest() {
+        return new AdminIncentiveRequest(UPDATED_TITLE, UPDATED_URL, UPDATED_DESCRIPTION, regions());
     }
 
-    public static List<IncentiveRequest.RegionRequest> regions() {
-        return List.of(new IncentiveRequest.RegionRequest(LDONG_REGN_CD, LDONG_SIGNGU_CD));
+    public static List<AdminIncentiveRequest.RegionRequest> regions() {
+        return List.of(new AdminIncentiveRequest.RegionRequest(LDONG_REGN_CD, LDONG_SIGNGU_CD));
     }
 }
