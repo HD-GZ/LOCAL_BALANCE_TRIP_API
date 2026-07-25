@@ -30,9 +30,9 @@ import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
-@WebMvcTest(CourseSaveController.class)
-@Import(CourseSaveControllerTest.TestCorsConfig.class)
-class CourseSaveControllerTest {
+@WebMvcTest(SavedCourseController.class)
+@Import(SavedCourseControllerTest.TestCorsConfig.class)
+class SavedCourseControllerTest {
 
     private static final Long COURSE_ID = 2L;
 

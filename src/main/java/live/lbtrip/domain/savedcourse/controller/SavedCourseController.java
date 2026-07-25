@@ -1,10 +1,12 @@
 package live.lbtrip.domain.savedcourse.controller;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -16,13 +18,21 @@ import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/saved-courses")
 @RequiredArgsConstructor
 public class SavedCourseController implements SavedCourseApi {
 
     private final SavedCourseService savedCourseService;
 
-    @GetMapping
+    @PostMapping("/recommendations/courses/{courseId}/save")
+    public ResponseEntity<Void> saveCourse(
+        @UserId Long userId,
+        @PathVariable Long courseId
+    ) {
+        savedCourseService.saveCourse(userId, courseId);
+        return ResponseEntity.status(CREATED).build();
+    }
+
+    @GetMapping("/saved-courses")
     public ResponseEntity<SavedCourseListResponse> getSavedCourses(
         @UserId Long userId,
         @Valid @ModelAttribute PageQueryRequest request
@@ -31,7 +41,7 @@ public class SavedCourseController implements SavedCourseApi {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{savedCourseId}")
+    @GetMapping("/saved-courses/{savedCourseId}")
     public ResponseEntity<SavedCourseDetailResponse> getSavedCourseDetail(
         @UserId Long userId,
         @PathVariable Long savedCourseId
