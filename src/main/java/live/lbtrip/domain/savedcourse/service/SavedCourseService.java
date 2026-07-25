@@ -10,11 +10,8 @@ import live.lbtrip.domain.recommendation.service.GeneratedCourseFinder;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
-import live.lbtrip.domain.savedcourse.repository.SavedCourseRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
-import live.lbtrip.global.error.BusinessException;
-import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.web.PageQueryRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class SavedCourseService {
 
-    private final SavedCourseRepository savedCourseRepository;
+    private final SavedCourseFinder savedCourseFinder;
     private final IncentiveFinder incentiveFinder;
     private final SaveCourseManager saveCourseManager;
     private final SaveCourseValidator saveCourseValidator;
@@ -39,15 +36,14 @@ public class SavedCourseService {
     }
 
     public SavedCourseListResponse getSavedCourses(Long userId, PageQueryRequest pageQuery) {
-        Page<SavedCourse> savedCourses = savedCourseRepository.findAllByUserIdOrderByIdDesc(
+        Page<SavedCourse> savedCourses = savedCourseFinder.findAllByUserId(
             userId, pageQuery.toPageRequest());
 
         return SavedCourseListResponse.from(savedCourses);
     }
 
     public SavedCourseDetailResponse getSavedCourseDetail(Long userId, Long savedCourseId) {
-        SavedCourse savedCourse = savedCourseRepository.findByIdAndUserId(savedCourseId, userId)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.SAVED_COURSE_NOT_FOUND));
+        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
         return SavedCourseDetailResponse.of(savedCourse, incentiveFinder.findAllByRegion(
             savedCourse.getLdongRegnCd(),

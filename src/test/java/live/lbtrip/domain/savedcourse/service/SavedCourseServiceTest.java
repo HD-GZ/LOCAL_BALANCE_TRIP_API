@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.service.GeneratedCourseFinder;
-import live.lbtrip.domain.savedcourse.repository.SavedCourseRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
@@ -29,7 +28,7 @@ class SavedCourseServiceTest {
     private static final Long COURSE_ID = 2L;
 
     @Mock
-    private SavedCourseRepository savedCourseRepository;
+    private SavedCourseFinder savedCourseFinder;
 
     @Mock
     private IncentiveFinder incentiveFinder;
