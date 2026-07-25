@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
-import live.lbtrip.domain.admin.auth.service.AdminJwtTokenProvider;
+import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.propensity.dto.request.PropensityRequest;
 import live.lbtrip.domain.propensity.service.PropensityService;

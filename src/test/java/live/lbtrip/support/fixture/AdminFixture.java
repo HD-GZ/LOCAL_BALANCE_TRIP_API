@@ -1,6 +1,6 @@
 package live.lbtrip.support.fixture;
 
-import live.lbtrip.domain.admin.admin.model.Admin;
+import live.lbtrip.admin.admin.model.Admin;
 
 public final class AdminFixture {
 
