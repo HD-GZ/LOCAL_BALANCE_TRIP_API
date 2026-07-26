@@ -1,0 +1,5 @@
+ALTER TABLE saved_courses
+    ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'BEFORE_TRIP';
+
+ALTER TABLE saved_courses
+    ALTER COLUMN status DROP DEFAULT;

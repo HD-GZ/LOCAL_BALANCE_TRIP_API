@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 
 public record SavedCourseListResponse(
@@ -33,14 +34,18 @@ public record SavedCourseListResponse(
         String courseName,
 
         @Schema(description = "코스 대표 이미지 URL. 없으면 null.", nullable = true)
-        String imageUrl
+        String imageUrl,
+
+        @Schema(description = "여행 상태(BEFORE_TRIP: 여행전, TRAVELING: 여행중, COMPLETED: 완주)", example = "BEFORE_TRIP")
+        SavedCourseStatus status
     ) {
 
         private static InnerSavedCourseResponse from(SavedCourse savedCourse) {
             return new InnerSavedCourseResponse(
                 savedCourse.getId(),
                 savedCourse.getCourseName(),
-                savedCourse.getImageUrl()
+                savedCourse.getImageUrl(),
+                savedCourse.getStatus()
             );
         }
     }
