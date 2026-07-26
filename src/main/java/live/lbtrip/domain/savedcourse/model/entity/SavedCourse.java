@@ -90,6 +90,10 @@ public class SavedCourse extends BaseEntity {
             imageUrl, ldongRegnCd, ldongSignguCd);
     }
 
+    public void changeStatus(SavedCourseStatus status) {
+        this.status = status;
+    }
+
     public void addPlace(SavedCoursePlace place) {
         places.add(place);
         place.assignSavedCourse(this);

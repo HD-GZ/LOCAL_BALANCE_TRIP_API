@@ -7,12 +7,14 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import live.lbtrip.domain.savedcourse.dto.request.SavedCourseStatusUpdateRequest;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
@@ -60,5 +62,26 @@ public interface SavedCourseApi {
     ResponseEntity<SavedCourseDetailResponse> getSavedCourseDetail(
         @UserId Long userId,
         @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId
+    );
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "[테스트] 저장 코스 여행 상태 변경",
+        description = """
+            클라이언트 테스트용 API입니다.
+            저장 코스의 여행 상태(BEFORE_TRIP: 여행전, TRAVELING: 여행중, COMPLETED: 완주)를 변경합니다.
+            본인이 저장한 코스만 변경할 수 있습니다.
+            """
+    )
+    @ApiSuccessResponse(description = "상태 변경 성공")
+    @ApiErrorCodeResponses({
+        INVALID_INPUT_VALUE,
+        INVALID_ACCESS_TOKEN,
+        SAVED_COURSE_NOT_FOUND
+    })
+    ResponseEntity<Void> updateSavedCourseStatus(
+        @UserId Long userId,
+        @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId,
+        @Valid @RequestBody SavedCourseStatusUpdateRequest request
     );
 }

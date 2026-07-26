@@ -5,11 +5,14 @@ import static org.springframework.http.HttpStatus.CREATED;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import live.lbtrip.domain.savedcourse.dto.request.SavedCourseStatusUpdateRequest;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
 import live.lbtrip.domain.savedcourse.service.SavedCourseService;
@@ -48,5 +51,15 @@ public class SavedCourseController implements SavedCourseApi {
     ) {
         SavedCourseDetailResponse response = savedCourseService.getSavedCourseDetail(userId, savedCourseId);
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/saved-courses/{savedCourseId}/status")
+    public ResponseEntity<Void> updateSavedCourseStatus(
+        @UserId Long userId,
+        @PathVariable Long savedCourseId,
+        @Valid @RequestBody SavedCourseStatusUpdateRequest request
+    ) {
+        savedCourseService.updateStatus(userId, savedCourseId, request.status());
+        return ResponseEntity.ok().build();
     }
 }
