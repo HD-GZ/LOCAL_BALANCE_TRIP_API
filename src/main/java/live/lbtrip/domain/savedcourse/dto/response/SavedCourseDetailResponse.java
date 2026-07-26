@@ -5,6 +5,7 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCoursePlace;
 
@@ -17,6 +18,9 @@ public record SavedCourseDetailResponse(
 
     @Schema(description = "코스명", example = "전라남도 담양군 골목 미식 코스")
     String title,
+
+    @Schema(description = "여행 상태(BEFORE_TRIP: 여행전, TRAVELING: 여행중, COMPLETED: 완주)", example = "BEFORE_TRIP")
+    SavedCourseStatus status,
 
     @Schema(description = "코스 경유지 타임라인(방문 순서대로)")
     List<InnerPlaceResponse> places,
@@ -90,6 +94,7 @@ public record SavedCourseDetailResponse(
             savedCourse.getId(),
             savedCourse.getRegionName(),
             savedCourse.getCourseName(),
+            savedCourse.getStatus(),
             savedCourse.getPlaces().stream().map(InnerPlaceResponse::from).toList(),
             incentives.stream().map(InnerBenefitResponse::from).toList()
         );

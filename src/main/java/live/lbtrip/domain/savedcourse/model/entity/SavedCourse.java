@@ -6,6 +6,8 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,6 +17,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
@@ -56,6 +59,10 @@ public class SavedCourse extends BaseEntity {
     @Column(name = "ldong_signgu_cd", length = 3)
     private String ldongSignguCd;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private SavedCourseStatus status;
+
     @OneToMany(mappedBy = "savedCourse", cascade = CascadeType.ALL)
     @OrderBy("visitOrder asc")
     private List<SavedCoursePlace> places = new ArrayList<>();
@@ -72,6 +79,7 @@ public class SavedCourse extends BaseEntity {
         this.imageUrl = imageUrl;
         this.ldongRegnCd = ldongRegnCd;
         this.ldongSignguCd = ldongSignguCd;
+        this.status = SavedCourseStatus.BEFORE_TRIP;
     }
 
     public static SavedCourse create(
