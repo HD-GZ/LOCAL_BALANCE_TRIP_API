@@ -9,6 +9,7 @@ import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.service.GeneratedCourseFinder;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
+import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
@@ -40,6 +41,12 @@ public class SavedCourseService {
             userId, pageQuery.toPageRequest());
 
         return SavedCourseListResponse.from(savedCourses);
+    }
+
+    @Transactional
+    public void updateStatus(Long userId, Long savedCourseId, SavedCourseStatus status) {
+        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        savedCourse.changeStatus(status);
     }
 
     public SavedCourseDetailResponse getSavedCourseDetail(Long userId, Long savedCourseId) {
