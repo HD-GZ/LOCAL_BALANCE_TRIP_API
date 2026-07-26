@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,6 +18,7 @@ import jakarta.validation.Valid;
 import live.lbtrip.domain.savedcourse.dto.request.SavedCourseStatusUpdateRequest;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
+import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
 import live.lbtrip.global.web.PageQueryRequest;
@@ -47,11 +49,13 @@ public interface SavedCourseApi {
     );
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "저장 코스 목록 조회", description = "저장한 코스를 최근 저장 순으로 페이지네이션하여 조회합니다. limit 생략 시 10개씩 조회합니다.")
+    @Operation(summary = "저장 코스 목록 조회", description = "저장한 코스를 최근 저장 순으로 페이지네이션하여 조회합니다. limit 생략 시 10개씩 조회합니다. status 지정 시 해당 여행 상태의 코스만 조회합니다.")
     @ApiSuccessResponse(description = "조회 성공")
     @ApiErrorCodeResponses({INVALID_INPUT_VALUE, INVALID_ACCESS_TOKEN})
     ResponseEntity<SavedCourseListResponse> getSavedCourses(
         @UserId Long userId,
+        @Parameter(description = "여행 상태 필터(BEFORE_TRIP: 여행전, TRAVELING: 여행중, COMPLETED: 완주). 생략 시 전체 조회.", example = "TRAVELING")
+        @RequestParam(required = false) SavedCourseStatus status,
         @Valid @ParameterObject @ModelAttribute PageQueryRequest request
     );
 

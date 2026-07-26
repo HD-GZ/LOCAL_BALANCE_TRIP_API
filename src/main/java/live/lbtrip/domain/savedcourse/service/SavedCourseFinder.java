@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.repository.SavedCourseRepository;
 import live.lbtrip.global.error.BusinessException;
@@ -16,8 +17,11 @@ public class SavedCourseFinder {
 
     private final SavedCourseRepository savedCourseRepository;
 
-    public Page<SavedCourse> findAllByUserId(Long userId, Pageable pageable) {
-        return savedCourseRepository.findAllByUserIdOrderByIdDesc(userId, pageable);
+    public Page<SavedCourse> findAllByUserId(Long userId, SavedCourseStatus status, Pageable pageable) {
+        if (status == null) {
+            return savedCourseRepository.findAllByUserIdOrderByIdDesc(userId, pageable);
+        }
+        return savedCourseRepository.findAllByUserIdAndStatusOrderByIdDesc(userId, status, pageable);
     }
 
     public SavedCourse findByIdAndUserId(Long id, Long userId) {
