@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import live.lbtrip.domain.savedcourse.dto.request.SavedCourseStatusUpdateRequest;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
+import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.service.SavedCourseService;
 import live.lbtrip.global.web.PageQueryRequest;
 import live.lbtrip.global.web.UserId;
@@ -38,9 +40,10 @@ public class SavedCourseController implements SavedCourseApi {
     @GetMapping("/saved-courses")
     public ResponseEntity<SavedCourseListResponse> getSavedCourses(
         @UserId Long userId,
+        @RequestParam(required = false) SavedCourseStatus status,
         @Valid @ModelAttribute PageQueryRequest request
     ) {
-        SavedCourseListResponse response = savedCourseService.getSavedCourses(userId, request);
+        SavedCourseListResponse response = savedCourseService.getSavedCourses(userId, status, request);
         return ResponseEntity.ok(response);
     }
 

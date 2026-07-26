@@ -36,9 +36,9 @@ public class SavedCourseService {
         saveCourseManager.add(course, user);
     }
 
-    public SavedCourseListResponse getSavedCourses(Long userId, PageQueryRequest pageQuery) {
+    public SavedCourseListResponse getSavedCourses(Long userId, SavedCourseStatus status, PageQueryRequest pageQuery) {
         Page<SavedCourse> savedCourses = savedCourseFinder.findAllByUserId(
-            userId, pageQuery.toPageRequest());
+            userId, status, pageQuery.toPageRequest());
 
         return SavedCourseListResponse.from(savedCourses);
     }
