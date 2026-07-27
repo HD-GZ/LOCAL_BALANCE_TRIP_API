@@ -49,6 +49,12 @@ public class SavedCourseService {
         savedCourse.changeStatus(status);
     }
 
+    @Transactional
+    public void deleteSavedCourse(Long userId, Long savedCourseId) {
+        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        saveCourseManager.remove(savedCourse);
+    }
+
     public SavedCourseDetailResponse getSavedCourseDetail(Long userId, Long savedCourseId) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
