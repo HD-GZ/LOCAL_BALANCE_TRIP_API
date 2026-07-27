@@ -30,9 +30,13 @@ public class S3ImageStorage implements ImageStorage {
     }
 
     @Override
-    public String store(ValidatedImage image, String directory) {
+    public String store(ValidatedImage image, ImageDirectory directory) {
         String key = "%s/%s/%s.%s".formatted(
-            directory, LocalDate.now().format(KEY_DATE_FORMAT), UUID.randomUUID(), image.extension());
+            directory.path(),
+            LocalDate.now().format(KEY_DATE_FORMAT),
+            UUID.randomUUID(),
+            image.extension()
+        );
 
         PutObjectRequest request = PutObjectRequest.builder()
             .bucket(properties.s3().bucket())

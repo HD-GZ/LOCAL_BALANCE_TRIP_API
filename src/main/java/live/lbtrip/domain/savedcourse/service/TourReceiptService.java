@@ -1,5 +1,7 @@
 package live.lbtrip.domain.savedcourse.service;
 
+import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -28,8 +30,6 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class TourReceiptService {
 
-    private static final String RECEIPT_IMAGE_DIRECTORY = "receipts";
-
     private final SavedCourseFinder savedCourseFinder;
     private final TourReceiptRepository tourReceiptRepository;
     private final ImageStorage imageStorage;
@@ -41,7 +41,7 @@ public class TourReceiptService {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
         ValidatedImage validatedImage = imageFileValidator.validate(image);
-        String imageKey = imageStorage.store(validatedImage, RECEIPT_IMAGE_DIRECTORY);
+        String imageKey = imageStorage.store(validatedImage, RECEIPT);
         StoredImage storedImage = storedImageService.registerReceipt(
             savedCourse,
             imageKey,

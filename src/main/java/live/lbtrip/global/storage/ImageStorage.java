@@ -2,7 +2,7 @@ package live.lbtrip.global.storage;
 
 public interface ImageStorage {
 
-    String store(ValidatedImage image, String directory);
+    String store(ValidatedImage image, ImageDirectory directory);
 
     void delete(String key);
 

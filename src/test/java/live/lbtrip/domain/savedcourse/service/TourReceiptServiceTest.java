@@ -1,5 +1,6 @@
 package live.lbtrip.domain.savedcourse.service;
 
+import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -90,7 +91,7 @@ class TourReceiptServiceTest {
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
             when(imageFileValidator.validate(multipartFile)).thenReturn(validatedImage);
-            when(imageStorage.store(validatedImage, "receipts")).thenReturn(IMAGE_KEY);
+            when(imageStorage.store(validatedImage, RECEIPT)).thenReturn(IMAGE_KEY);
             when(storedImageService.registerReceipt(
                 savedCourse,
                 IMAGE_KEY,

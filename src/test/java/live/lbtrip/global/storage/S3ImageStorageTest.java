@@ -1,5 +1,6 @@
 package live.lbtrip.global.storage;
 
+import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,7 +56,7 @@ class S3ImageStorageTest {
             when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenReturn(PutObjectResponse.builder().build());
 
-            String key = imageStorage.store(image, "receipts");
+            String key = imageStorage.store(image, RECEIPT);
 
             ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
             verify(s3Client).putObject(requestCaptor.capture(), any(RequestBody.class));
@@ -73,7 +74,7 @@ class S3ImageStorageTest {
             when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                 .thenThrow(new RuntimeException("upload failed"));
 
-            assertThatThrownBy(() -> imageStorage.store(image, "receipts"))
+            assertThatThrownBy(() -> imageStorage.store(image, RECEIPT))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.IMAGE_UPLOAD_FAILED);
