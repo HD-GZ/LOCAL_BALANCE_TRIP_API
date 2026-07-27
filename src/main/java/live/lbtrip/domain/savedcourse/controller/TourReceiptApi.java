@@ -49,13 +49,15 @@ public interface TourReceiptApi {
     @Operation(
         summary = "환급 증빙 등록",
         description = """
-            스캔한 영수증 이미지 키와 사용자가 확인·수정한 가맹점명, 결제 금액, 결제 일자로 환급 증빙을 등록합니다.
+            스캔한 영수증 이미지 식별자와 사용자가 확인·수정한 가맹점명, 결제 금액, 결제 일자로 환급 증빙을 등록합니다.
             """
     )
     @ApiSuccessResponse(description = "환급 증빙 등록 성공")
     @ApiErrorCodeResponses({
         INVALID_ACCESS_TOKEN,
         SAVED_COURSE_NOT_FOUND,
+        RECEIPT_IMAGE_NOT_FOUND,
+        RECEIPT_IMAGE_ALREADY_USED,
         INVALID_INPUT_VALUE
     })
     ResponseEntity<TourReceiptResponse> createReceipt(

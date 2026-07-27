@@ -12,10 +12,10 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record TourReceiptCreateRequest(
-    @Schema(description = "영수증 스캔 응답으로 받은 이미지 키", example = "receipts/2026/07/550e8400-e29b-41d4-a716-446655440000.jpg", requiredMode = REQUIRED)
-    @NotBlank(message = "영수증 이미지 키는 필수입니다.")
-    @Size(max = 300, message = "영수증 이미지 키는 300자 이하여야 합니다.")
-    String imageKey,
+    @Schema(description = "영수증 스캔 응답으로 받은 이미지 식별자", example = "1", requiredMode = REQUIRED)
+    @NotNull(message = "영수증 이미지 식별자는 필수입니다.")
+    @Positive(message = "영수증 이미지 식별자는 0보다 커야 합니다.")
+    Long imageId,
 
     @Schema(description = "가맹점명", example = "국수거리 노포", requiredMode = REQUIRED)
     @NotBlank(message = "가맹점명은 필수입니다.")

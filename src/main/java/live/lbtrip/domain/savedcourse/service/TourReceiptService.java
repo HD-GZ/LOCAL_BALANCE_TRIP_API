@@ -12,6 +12,7 @@ import live.lbtrip.domain.savedcourse.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptResponse;
 import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.model.entity.StoredImage;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.error.BusinessException;
@@ -31,30 +32,38 @@ public class TourReceiptService {
     private final TourReceiptRepository tourReceiptRepository;
     private final ImageStorage imageStorage;
     private final ReceiptOcrExtractor receiptOcrExtractor;
+    private final StoredImageService storedImageService;
 
     public ReceiptScanResponse scan(Long userId, Long savedCourseId, MultipartFile image) {
-        savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
         String imageKey = imageStorage.store(image, RECEIPT_IMAGE_DIRECTORY);
+        StoredImage storedImage = storedImageService.registerReceipt(
+            savedCourse,
+            imageKey,
+            image.getContentType(),
+            image.getSize()
+        );
         ReceiptOcrResult result = receiptOcrExtractor.extract(image);
 
-        return ReceiptScanResponse.of(imageKey, imageStorage.publicUrl(imageKey), result);
+        return ReceiptScanResponse.of(storedImage.getId(), imageStorage.publicUrl(imageKey), result);
     }
 
     @Transactional
     public TourReceiptResponse create(Long userId, Long savedCourseId, TourReceiptCreateRequest request) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        StoredImage image = storedImageService.claimReceipt(request.imageId(), savedCourseId);
 
         TourReceipt receipt = TourReceipt.create(
             savedCourse,
             StringNormalizer.trim(request.merchantName()),
             request.amount(),
             request.paidDate(),
-            StringNormalizer.trim(request.imageKey())
+            image
         );
         tourReceiptRepository.save(receipt);
 
-        return TourReceiptResponse.of(receipt, imageStorage.publicUrl(receipt.getImageKey()));
+        return TourReceiptResponse.of(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
     }
 
     public TourReceiptListResponse getReceipts(Long userId, Long savedCourseId) {
@@ -68,7 +77,7 @@ public class TourReceiptService {
         savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
         TourReceipt receipt = findReceipt(receiptId, savedCourseId);
-        return TourReceiptResponse.of(receipt, imageStorage.publicUrl(receipt.getImageKey()));
+        return TourReceiptResponse.of(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
     }
 
     @Transactional
@@ -76,7 +85,7 @@ public class TourReceiptService {
         savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
         TourReceipt receipt = findReceipt(receiptId, savedCourseId);
-        String imageKey = receipt.getImageKey();
+        String imageKey = receipt.getImage().getStorageKey();
         tourReceiptRepository.delete(receipt);
         imageStorage.delete(imageKey);
     }

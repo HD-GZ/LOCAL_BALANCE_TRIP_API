@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
@@ -26,7 +27,7 @@ public class TourReceipt extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "saved_course_id", nullable = false)
     private SavedCourse savedCourse;
 
@@ -39,20 +40,21 @@ public class TourReceipt extends BaseEntity {
     @Column(name = "paid_date", nullable = false)
     private LocalDate paidDate;
 
-    @Column(name = "image_key", nullable = false, length = 300)
-    private String imageKey;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id", nullable = false, unique = true)
+    private StoredImage image;
 
-    private TourReceipt(SavedCourse savedCourse, String merchantName, int amount, LocalDate paidDate, String imageKey) {
+    private TourReceipt(SavedCourse savedCourse, String merchantName, int amount, LocalDate paidDate, StoredImage image) {
         this.savedCourse = savedCourse;
         this.merchantName = merchantName;
         this.amount = amount;
         this.paidDate = paidDate;
-        this.imageKey = imageKey;
+        this.image = image;
     }
 
     public static TourReceipt create(
-        SavedCourse savedCourse, String merchantName, int amount, LocalDate paidDate, String imageKey
+        SavedCourse savedCourse, String merchantName, int amount, LocalDate paidDate, StoredImage image
     ) {
-        return new TourReceipt(savedCourse, merchantName, amount, paidDate, imageKey);
+        return new TourReceipt(savedCourse, merchantName, amount, paidDate, image);
     }
 }
