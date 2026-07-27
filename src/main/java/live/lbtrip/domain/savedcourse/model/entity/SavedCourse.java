@@ -121,11 +121,11 @@ public class SavedCourse extends BaseEntity {
 
     public void checkInPlace(Long placeId) {
         validateTraveling();
-        SavedCoursePlace place = places.stream()
+        places.stream()
             .filter(p -> p.getId().equals(placeId))
             .findFirst()
-            .orElseThrow(() -> BusinessException.of(ErrorCode.SAVED_COURSE_PLACE_NOT_FOUND));
-        place.checkIn();
+            .orElseThrow(() -> BusinessException.of(ErrorCode.SAVED_COURSE_PLACE_NOT_FOUND))
+            .checkIn();
     }
 
     public boolean endTour() {
