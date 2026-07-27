@@ -24,8 +24,8 @@ import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/saved-courses/{savedCourseId}/receipts")
 @RequiredArgsConstructor
+@RequestMapping("/saved-courses/{savedCourseId}/receipts")
 public class TourReceiptController implements TourReceiptApi {
 
     private final TourReceiptService tourReceiptService;
