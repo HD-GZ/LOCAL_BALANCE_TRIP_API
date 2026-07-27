@@ -17,7 +17,6 @@ import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.storage.ImageFileValidator;
-import live.lbtrip.global.storage.ImageStorage;
 import live.lbtrip.global.storage.ValidatedImage;
 import live.lbtrip.global.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,6 @@ public class TourReceiptService {
 
     private final SavedCourseFinder savedCourseFinder;
     private final TourReceiptRepository tourReceiptRepository;
-    private final ImageStorage imageStorage;
     private final ImageFileValidator imageFileValidator;
     private final ReceiptOcrExtractor receiptOcrExtractor;
     private final ImageService imageService;
@@ -38,19 +36,16 @@ public class TourReceiptService {
         savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
         ValidatedImage validatedImage = imageFileValidator.validate(image);
-        String imageKey = imageStorage.store(validatedImage, RECEIPT);
         Image registeredImage = imageService.register(
             userId,
             RECEIPT,
-            imageKey,
-            validatedImage.mediaType().toString(),
-            validatedImage.size()
+            validatedImage
         );
         ReceiptOcrResult result = receiptOcrExtractor.extract(validatedImage);
 
         return ReceiptScanResponse.of(
             registeredImage.getId(),
-            imageStorage.publicUrl(imageKey),
+            imageService.getPublicUrl(registeredImage),
             result
         );
     }
@@ -69,7 +64,7 @@ public class TourReceiptService {
         );
         tourReceiptRepository.save(receipt);
 
-        return TourReceiptResponse.from(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
+        return TourReceiptResponse.from(receipt, imageService.getPublicUrl(image));
     }
 
     public TourReceiptListResponse getReceipts(Long userId, Long savedCourseId) {
@@ -80,15 +75,14 @@ public class TourReceiptService {
     public TourReceiptResponse getReceipt(Long userId, Long savedCourseId, Long receiptId) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
         TourReceipt receipt = savedCourse.findReceiptById(receiptId);
-        return TourReceiptResponse.from(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
+        return TourReceiptResponse.from(receipt, imageService.getPublicUrl(receipt.getImage()));
     }
 
     @Transactional
     public void delete(Long userId, Long savedCourseId, Long receiptId) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
         TourReceipt receipt = savedCourse.findReceiptById(receiptId);
-        String imageKey = receipt.getImage().getStorageKey();
         tourReceiptRepository.delete(receipt);
-        imageStorage.delete(imageKey);
+        imageService.delete(receipt.getImage());
     }
 }

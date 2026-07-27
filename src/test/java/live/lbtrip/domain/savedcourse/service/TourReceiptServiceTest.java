@@ -34,7 +34,6 @@ import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.ImageFileValidator;
-import live.lbtrip.global.storage.ImageStorage;
 import live.lbtrip.global.storage.ValidatedImage;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,9 +52,6 @@ class TourReceiptServiceTest {
 
     @Mock
     private TourReceiptRepository tourReceiptRepository;
-
-    @Mock
-    private ImageStorage imageStorage;
 
     @Mock
     private ImageFileValidator imageFileValidator;
@@ -91,17 +87,10 @@ class TourReceiptServiceTest {
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
             when(imageFileValidator.validate(multipartFile)).thenReturn(validatedImage);
-            when(imageStorage.store(validatedImage, RECEIPT)).thenReturn(IMAGE_KEY);
-            when(imageService.register(
-                USER_ID,
-                RECEIPT,
-                IMAGE_KEY,
-                MediaType.IMAGE_JPEG_VALUE,
-                validatedImage.size()
-            )).thenReturn(image);
+            when(imageService.register(USER_ID, RECEIPT, validatedImage)).thenReturn(image);
             when(image.getId()).thenReturn(IMAGE_ID);
             when(receiptOcrExtractor.extract(validatedImage)).thenReturn(ReceiptOcrResult.empty());
-            when(imageStorage.publicUrl(IMAGE_KEY)).thenReturn(IMAGE_URL);
+            when(imageService.getPublicUrl(image)).thenReturn(IMAGE_URL);
 
             ReceiptScanResponse result = tourReceiptService.scan(USER_ID, SAVED_COURSE_ID, multipartFile);
 
@@ -123,7 +112,7 @@ class TourReceiptServiceTest {
             );
 
             verify(imageFileValidator, never()).validate(any());
-            verify(imageStorage, never()).store(any(), any());
+            verify(imageService, never()).register(any(), any(), any());
         }
     }
 
@@ -142,8 +131,7 @@ class TourReceiptServiceTest {
                 .thenReturn(savedCourse);
             when(imageService.claim(IMAGE_ID, USER_ID, RECEIPT))
                 .thenReturn(image);
-            when(image.getStorageKey()).thenReturn(IMAGE_KEY);
-            when(imageStorage.publicUrl(IMAGE_KEY)).thenReturn(IMAGE_URL);
+            when(imageService.getPublicUrl(image)).thenReturn(IMAGE_URL);
 
             TourReceiptResponse result = tourReceiptService.create(USER_ID, SAVED_COURSE_ID, request);
 
@@ -201,12 +189,11 @@ class TourReceiptServiceTest {
                 .thenReturn(savedCourse);
             when(savedCourse.findReceiptById(RECEIPT_ID))
                 .thenReturn(receipt);
-            when(image.getStorageKey()).thenReturn(IMAGE_KEY);
 
             tourReceiptService.delete(USER_ID, SAVED_COURSE_ID, RECEIPT_ID);
 
             verify(tourReceiptRepository).delete(receipt);
-            verify(imageStorage).delete(IMAGE_KEY);
+            verify(imageService).delete(image);
         }
     }
 
