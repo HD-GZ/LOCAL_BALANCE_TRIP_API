@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 
 public record TourReceiptListResponse(
@@ -39,15 +40,10 @@ public record TourReceiptListResponse(
         }
     }
 
-    public static TourReceiptListResponse of(int totalAmount, List<InnerReceiptResponse> receipts) {
-        return new TourReceiptListResponse(totalAmount, receipts);
-    }
-
-    public static TourReceiptListResponse from(List<TourReceipt> receipts) {
-        int totalAmount = receipts.stream().mapToInt(TourReceipt::getAmount).sum();
-        return of(
-            totalAmount,
-            receipts.stream().map(InnerReceiptResponse::from).toList()
+    public static TourReceiptListResponse from(SavedCourse savedCourse) {
+        return new TourReceiptListResponse(
+            savedCourse.calculateTotalReceiptAmount(),
+            savedCourse.getReceipts().stream().map(InnerReceiptResponse::from).toList()
         );
     }
 }

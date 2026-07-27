@@ -1,5 +1,6 @@
 package live.lbtrip.domain.savedcourse.controller;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,6 +26,7 @@ import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.savedcourse.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourSummaryResponse;
 import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.service.TourService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
@@ -60,12 +62,11 @@ class TourControllerTest {
         @Test
         void 투어를_시작하고_진행_상황을_응답한다() throws Exception {
             인증된_사용자();
-            TourProgressResponse response = TourProgressResponse.of(
-                SAVED_COURSE_ID,
-                SavedCourseStatus.TRAVELING,
-                null,
-                List.of()
-            );
+            SavedCourse savedCourse = mock(SavedCourse.class);
+            when(savedCourse.getId()).thenReturn(SAVED_COURSE_ID);
+            when(savedCourse.getStatus()).thenReturn(SavedCourseStatus.TRAVELING);
+            when(savedCourse.getPlaces()).thenReturn(List.of());
+            TourProgressResponse response = TourProgressResponse.from(savedCourse);
             when(tourService.startTour(AuthResponseFixture.USER_ID, SAVED_COURSE_ID))
                 .thenReturn(response);
 

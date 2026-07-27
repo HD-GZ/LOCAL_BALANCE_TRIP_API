@@ -1,6 +1,7 @@
 package live.lbtrip.domain.savedcourse.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -32,6 +33,8 @@ import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.savedcourse.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptResponse;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.service.TourReceiptService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
@@ -103,11 +106,12 @@ class TourReceiptControllerTest {
         @Test
         void 사용자가_확정한_필드로_증빙을_등록한다() throws Exception {
             인증된_사용자();
+            TourReceiptResponse response = receiptResponse();
             when(tourReceiptService.create(
                 org.mockito.ArgumentMatchers.eq(AuthResponseFixture.USER_ID),
                 org.mockito.ArgumentMatchers.eq(SAVED_COURSE_ID),
                 any()
-            )).thenReturn(receiptResponse());
+            )).thenReturn(response);
 
             mockMvc.perform(post("/saved-courses/{savedCourseId}/receipts", SAVED_COURSE_ID)
                     .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
@@ -177,8 +181,14 @@ class TourReceiptControllerTest {
         @Test
         void 증빙_목록을_조회한다() throws Exception {
             인증된_사용자();
+            SavedCourse savedCourse = mock(SavedCourse.class);
+            TourReceipt receipt = mock(TourReceipt.class);
+            when(receipt.getAmount()).thenReturn(18000);
+            when(savedCourse.calculateTotalReceiptAmount()).thenReturn(18000);
+            when(savedCourse.getReceipts()).thenReturn(List.of(receipt));
+            TourReceiptListResponse response = TourReceiptListResponse.from(savedCourse);
             when(tourReceiptService.getReceipts(AuthResponseFixture.USER_ID, SAVED_COURSE_ID))
-                .thenReturn(TourReceiptListResponse.of(18000, List.of()));
+                .thenReturn(response);
 
             mockMvc.perform(get("/saved-courses/{savedCourseId}/receipts", SAVED_COURSE_ID)
                     .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
@@ -190,11 +200,12 @@ class TourReceiptControllerTest {
         @Test
         void 증빙_상세를_조회한다() throws Exception {
             인증된_사용자();
+            TourReceiptResponse response = receiptResponse();
             when(tourReceiptService.getReceipt(
                 AuthResponseFixture.USER_ID,
                 SAVED_COURSE_ID,
                 RECEIPT_ID
-            )).thenReturn(receiptResponse());
+            )).thenReturn(response);
 
             mockMvc.perform(get(
                     "/saved-courses/{savedCourseId}/receipts/{receiptId}",
@@ -228,13 +239,12 @@ class TourReceiptControllerTest {
     }
 
     private TourReceiptResponse receiptResponse() {
-        return TourReceiptResponse.of(
-            RECEIPT_ID,
-            "국수거리 노포",
-            18000,
-            PAID_DATE,
-            "https://images.example.com/receipt.jpg"
-        );
+        TourReceipt receipt = mock(TourReceipt.class);
+        when(receipt.getId()).thenReturn(RECEIPT_ID);
+        when(receipt.getMerchantName()).thenReturn("국수거리 노포");
+        when(receipt.getAmount()).thenReturn(18000);
+        when(receipt.getPaidDate()).thenReturn(PAID_DATE);
+        return TourReceiptResponse.from(receipt, "https://images.example.com/receipt.jpg");
     }
 
     private void 인증된_사용자() {

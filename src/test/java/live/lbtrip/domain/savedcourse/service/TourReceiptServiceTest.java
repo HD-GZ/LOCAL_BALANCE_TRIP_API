@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -51,6 +50,9 @@ class TourReceiptServiceTest {
 
     @Mock
     private SavedCourseFinder savedCourseFinder;
+
+    @Mock
+    private TourReceiptFinder tourReceiptFinder;
 
     @Mock
     private TourReceiptRepository tourReceiptRepository;
@@ -167,8 +169,8 @@ class TourReceiptServiceTest {
             TourReceipt second = receipt(20000);
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
-            when(tourReceiptRepository.findAllBySavedCourseIdOrderByIdDesc(SAVED_COURSE_ID))
-                .thenReturn(List.of(first, second));
+            when(savedCourse.getReceipts()).thenReturn(List.of(first, second));
+            when(savedCourse.calculateTotalReceiptAmount()).thenReturn(30000);
 
             TourReceiptListResponse result = tourReceiptService.getReceipts(USER_ID, SAVED_COURSE_ID);
 
@@ -180,8 +182,8 @@ class TourReceiptServiceTest {
         void 저장_코스에_없는_증빙이면_예외를_던진다() {
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
-            when(tourReceiptRepository.findByIdAndSavedCourseId(RECEIPT_ID, SAVED_COURSE_ID))
-                .thenReturn(Optional.empty());
+            when(tourReceiptFinder.findByIdAndSavedCourseId(RECEIPT_ID, SAVED_COURSE_ID))
+                .thenThrow(BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
 
             assertErrorCode(
                 () -> tourReceiptService.getReceipt(USER_ID, SAVED_COURSE_ID, RECEIPT_ID),
@@ -200,8 +202,8 @@ class TourReceiptServiceTest {
             );
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
-            when(tourReceiptRepository.findByIdAndSavedCourseId(RECEIPT_ID, SAVED_COURSE_ID))
-                .thenReturn(Optional.of(receipt));
+            when(tourReceiptFinder.findByIdAndSavedCourseId(RECEIPT_ID, SAVED_COURSE_ID))
+                .thenReturn(receipt);
             when(image.getStorageKey()).thenReturn(IMAGE_KEY);
 
             tourReceiptService.delete(USER_ID, SAVED_COURSE_ID, RECEIPT_ID);

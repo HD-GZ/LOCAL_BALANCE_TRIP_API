@@ -23,18 +23,8 @@ public record TourReceiptResponse(
     String imageUrl
 ) {
 
-    public static TourReceiptResponse of(
-        Long receiptId,
-        String merchantName,
-        int amount,
-        LocalDate paidDate,
-        String imageUrl
-    ) {
-        return new TourReceiptResponse(receiptId, merchantName, amount, paidDate, imageUrl);
-    }
-
-    public static TourReceiptResponse of(TourReceipt receipt, String imageUrl) {
-        return of(
+    public static TourReceiptResponse from(TourReceipt receipt, String imageUrl) {
+        return new TourReceiptResponse(
             receipt.getId(),
             receipt.getMerchantName(),
             receipt.getAmount(),

@@ -2,8 +2,6 @@ package live.lbtrip.domain.savedcourse.service;
 
 import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,8 +16,6 @@ import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
-import live.lbtrip.global.error.BusinessException;
-import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.ImageFileValidator;
 import live.lbtrip.global.storage.ImageStorage;
 import live.lbtrip.global.storage.ValidatedImage;
@@ -32,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class TourReceiptService {
 
     private final SavedCourseFinder savedCourseFinder;
+    private final TourReceiptFinder tourReceiptFinder;
     private final TourReceiptRepository tourReceiptRepository;
     private final ImageStorage imageStorage;
     private final ImageFileValidator imageFileValidator;
@@ -73,35 +70,28 @@ public class TourReceiptService {
         );
         tourReceiptRepository.save(receipt);
 
-        return TourReceiptResponse.of(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
+        return TourReceiptResponse.from(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
     }
 
     public TourReceiptListResponse getReceipts(Long userId, Long savedCourseId) {
-        savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
-
-        List<TourReceipt> receipts = tourReceiptRepository.findAllBySavedCourseIdOrderByIdDesc(savedCourseId);
-        return TourReceiptListResponse.from(receipts);
+        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        return TourReceiptListResponse.from(savedCourse);
     }
 
     public TourReceiptResponse getReceipt(Long userId, Long savedCourseId, Long receiptId) {
         savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
-        TourReceipt receipt = findReceipt(receiptId, savedCourseId);
-        return TourReceiptResponse.of(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
+        TourReceipt receipt = tourReceiptFinder.findByIdAndSavedCourseId(receiptId, savedCourseId);
+        return TourReceiptResponse.from(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
     }
 
     @Transactional
     public void delete(Long userId, Long savedCourseId, Long receiptId) {
         savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
-        TourReceipt receipt = findReceipt(receiptId, savedCourseId);
+        TourReceipt receipt = tourReceiptFinder.findByIdAndSavedCourseId(receiptId, savedCourseId);
         String imageKey = receipt.getImage().getStorageKey();
         tourReceiptRepository.delete(receipt);
         imageStorage.delete(imageKey);
-    }
-
-    private TourReceipt findReceipt(Long receiptId, Long savedCourseId) {
-        return tourReceiptRepository.findByIdAndSavedCourseId(receiptId, savedCourseId)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
     }
 }

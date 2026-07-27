@@ -77,6 +77,10 @@ public class SavedCourse extends BaseEntity {
     @OrderBy("visitOrder asc")
     private List<SavedCoursePlace> places = new ArrayList<>();
 
+    @OneToMany(mappedBy = "savedCourse")
+    @OrderBy("id desc")
+    private List<TourReceipt> receipts = new ArrayList<>();
+
     private SavedCourse(
         User user, Long sourceCourseId, String courseName, String regionName, String reason,
         String imageUrl, String ldongRegnCd, String ldongSignguCd
@@ -107,6 +111,16 @@ public class SavedCourse extends BaseEntity {
     public void addPlace(SavedCoursePlace place) {
         places.add(place);
         place.assignSavedCourse(this);
+    }
+
+    void addReceipt(TourReceipt receipt) {
+        receipts.add(receipt);
+    }
+
+    public int calculateTotalReceiptAmount() {
+        return receipts.stream()
+            .mapToInt(TourReceipt::getAmount)
+            .sum();
     }
 
     public void startTour() {

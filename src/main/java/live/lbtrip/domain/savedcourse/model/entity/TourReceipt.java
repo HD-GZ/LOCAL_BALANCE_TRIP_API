@@ -51,6 +51,7 @@ public class TourReceipt extends BaseEntity {
         this.amount = amount;
         this.paidDate = paidDate;
         this.image = image;
+        savedCourse.addReceipt(this);
     }
 
     public static TourReceipt create(
