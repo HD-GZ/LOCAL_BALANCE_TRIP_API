@@ -43,6 +43,9 @@ class ImageServiceTest {
     private ImageRepository imageRepository;
 
     @Mock
+    private ImageManager imageManager;
+
+    @Mock
     private UserFinder userFinder;
 
     @Mock
@@ -53,6 +56,9 @@ class ImageServiceTest {
 
     @Mock
     private MultipartFile imageFile;
+
+    @Mock
+    private Image registeredImage;
 
     @Mock
     private User uploader;
@@ -73,19 +79,14 @@ class ImageServiceTest {
             when(userFinder.findById(UPLOADER_ID)).thenReturn(uploader);
             when(imageFileValidator.validate(imageFile)).thenReturn(validatedImage);
             when(imageStorage.store(validatedImage, RECEIPT)).thenReturn(IMAGE_KEY);
-            when(imageRepository.save(any(Image.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+            when(imageManager.add(uploader, RECEIPT, IMAGE_KEY, validatedImage))
+                .thenReturn(registeredImage);
 
             ImageRegistration result = imageService.register(UPLOADER_ID, RECEIPT, imageFile);
 
-            assertThat(result.image().getUploader()).isSameAs(uploader);
-            assertThat(result.image().getDirectory()).isEqualTo(RECEIPT);
-            assertThat(result.image().getStorageKey()).isEqualTo(IMAGE_KEY);
-            assertThat(result.image().getContentType()).isEqualTo(MediaType.IMAGE_JPEG_VALUE);
-            assertThat(result.image().getFileSize()).isEqualTo(validatedImage.size());
-            assertThat(result.image().getStatus()).isEqualTo(ImageStatus.TEMPORARY);
+            assertThat(result.image()).isSameAs(registeredImage);
             assertThat(result.validatedImage()).isSameAs(validatedImage);
-            verify(imageRepository).save(result.image());
+            verify(imageManager).add(uploader, RECEIPT, IMAGE_KEY, validatedImage);
         }
 
         @Test
@@ -100,7 +101,7 @@ class ImageServiceTest {
                 .isEqualTo(ErrorCode.INVALID_IMAGE_TYPE);
 
             verify(imageStorage, never()).store(any(), any());
-            verify(imageRepository, never()).save(any());
+            verify(imageManager, never()).add(any(), any(), any(), any());
         }
     }
 

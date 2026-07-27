@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class ImageService {
 
     private final ImageRepository imageRepository;
+    private final ImageManager imageManager;
     private final UserFinder userFinder;
     private final ImageFileValidator imageFileValidator;
     private final ImageStorage imageStorage;
@@ -36,14 +37,12 @@ public class ImageService {
         User uploader = userFinder.findById(uploaderId);
         ValidatedImage validatedImage = imageFileValidator.validate(imageFile);
         String storageKey = imageStorage.store(validatedImage, directory);
-        Image image = Image.create(
+        Image registeredImage = imageManager.add(
             uploader,
             directory,
             storageKey,
-            validatedImage.mediaType().toString(),
-            validatedImage.size()
+            validatedImage
         );
-        Image registeredImage = imageRepository.save(image);
         return ImageRegistration.of(registeredImage, validatedImage);
     }
 
