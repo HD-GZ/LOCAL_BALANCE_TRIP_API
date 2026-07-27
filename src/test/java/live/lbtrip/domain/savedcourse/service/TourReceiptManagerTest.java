@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.image.model.entity.Image;
+import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
@@ -25,6 +26,9 @@ class TourReceiptManagerTest {
 
     @Mock
     private TourReceiptRepository tourReceiptRepository;
+
+    @Mock
+    private ImageService imageService;
 
     @Mock
     private SavedCourse savedCourse;
@@ -54,5 +58,21 @@ class TourReceiptManagerTest {
         assertThat(result.getPaidDate()).isEqualTo(PAID_DATE);
         assertThat(result.getImage()).isSameAs(image);
         verify(tourReceiptRepository).save(result);
+    }
+
+    @Test
+    void 환급_증빙과_연결된_이미지를_삭제한다() {
+        TourReceipt receipt = TourReceipt.create(
+            savedCourse,
+            "국수거리 노포",
+            18000,
+            PAID_DATE,
+            image
+        );
+
+        tourReceiptManager.delete(receipt);
+
+        verify(tourReceiptRepository).delete(receipt);
+        verify(imageService).delete(image);
     }
 }

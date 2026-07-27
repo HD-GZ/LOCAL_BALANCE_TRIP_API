@@ -30,7 +30,6 @@ import live.lbtrip.domain.savedcourse.dto.response.TourReceiptResponse;
 import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
-import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.ValidatedImage;
@@ -48,9 +47,6 @@ class TourReceiptServiceTest {
 
     @Mock
     private SavedCourseFinder savedCourseFinder;
-
-    @Mock
-    private TourReceiptRepository tourReceiptRepository;
 
     @Mock
     private TourReceiptManager tourReceiptManager;
@@ -206,8 +202,7 @@ class TourReceiptServiceTest {
 
             tourReceiptService.delete(USER_ID, SAVED_COURSE_ID, RECEIPT_ID);
 
-            verify(tourReceiptRepository).delete(receipt);
-            verify(imageService).delete(image);
+            verify(tourReceiptManager).delete(receipt);
         }
     }
 

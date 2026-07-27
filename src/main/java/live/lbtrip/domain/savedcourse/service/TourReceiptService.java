@@ -16,7 +16,6 @@ import live.lbtrip.domain.savedcourse.dto.response.TourReceiptResponse;
 import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
-import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +26,6 @@ public class TourReceiptService {
 
     private final SavedCourseFinder savedCourseFinder;
     private final TourReceiptManager tourReceiptManager;
-    private final TourReceiptRepository tourReceiptRepository;
     private final ReceiptOcrExtractor receiptOcrExtractor;
     private final ImageService imageService;
 
@@ -75,7 +73,6 @@ public class TourReceiptService {
     public void delete(Long userId, Long savedCourseId, Long receiptId) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
         TourReceipt receipt = savedCourse.findReceiptById(receiptId);
-        tourReceiptRepository.delete(receipt);
-        imageService.delete(receipt.getImage());
+        tourReceiptManager.delete(receipt);
     }
 }
