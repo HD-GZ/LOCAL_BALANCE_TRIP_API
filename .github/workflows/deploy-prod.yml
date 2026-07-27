@@ -1,0 +1,60 @@
+name: LOCAL_BALANCE_TRIP_API CD (production)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: true
+
+      - name: Build production JAR
+        run: ./gradlew clean bootJar
+
+      - name: SCP JAR to production server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PRODUCTION_SERVER_HOST }}
+          username: ${{ secrets.PRODUCTION_SERVER_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PRODUCTION_SERVER_PORT }}
+          source: ${{ secrets.PRODUCTION_SOURCE_JAR_PATH }}
+          target: ${{ secrets.PRODUCTION_SERVER_TARGET_DIR }}
+          strip_components: 2
+
+      - name: Run deploy script on production server
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SPRING_PROFILES_ACTIVE: prod
+        with:
+          host: ${{ secrets.PRODUCTION_SERVER_HOST }}
+          username: ${{ secrets.PRODUCTION_SERVER_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PRODUCTION_SERVER_PORT }}
+          envs: SPRING_PROFILES_ACTIVE
+          script: ${{ secrets.PRODUCTION_DEPLOY_SCRIPT_PATH }}
