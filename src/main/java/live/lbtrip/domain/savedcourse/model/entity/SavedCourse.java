@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -121,6 +122,13 @@ public class SavedCourse extends BaseEntity {
         return receipts.stream()
             .mapToInt(TourReceipt::getAmount)
             .sum();
+    }
+
+    public TourReceipt findReceiptById(Long receiptId) {
+        return receipts.stream()
+            .filter(receipt -> Objects.equals(receipt.getId(), receiptId))
+            .findFirst()
+            .orElseThrow(() -> BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
     }
 
     public void startTour() {

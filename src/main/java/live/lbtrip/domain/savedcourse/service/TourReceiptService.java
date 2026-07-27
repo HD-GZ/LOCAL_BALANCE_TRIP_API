@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class TourReceiptService {
 
     private final SavedCourseFinder savedCourseFinder;
-    private final TourReceiptFinder tourReceiptFinder;
     private final TourReceiptRepository tourReceiptRepository;
     private final ImageStorage imageStorage;
     private final ImageFileValidator imageFileValidator;
@@ -79,17 +78,15 @@ public class TourReceiptService {
     }
 
     public TourReceiptResponse getReceipt(Long userId, Long savedCourseId, Long receiptId) {
-        savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
-
-        TourReceipt receipt = tourReceiptFinder.findByIdAndSavedCourseId(receiptId, savedCourseId);
+        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        TourReceipt receipt = savedCourse.findReceiptById(receiptId);
         return TourReceiptResponse.from(receipt, imageStorage.publicUrl(receipt.getImage().getStorageKey()));
     }
 
     @Transactional
     public void delete(Long userId, Long savedCourseId, Long receiptId) {
-        savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
-
-        TourReceipt receipt = tourReceiptFinder.findByIdAndSavedCourseId(receiptId, savedCourseId);
+        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        TourReceipt receipt = savedCourse.findReceiptById(receiptId);
         String imageKey = receipt.getImage().getStorageKey();
         tourReceiptRepository.delete(receipt);
         imageStorage.delete(imageKey);

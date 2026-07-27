@@ -52,9 +52,6 @@ class TourReceiptServiceTest {
     private SavedCourseFinder savedCourseFinder;
 
     @Mock
-    private TourReceiptFinder tourReceiptFinder;
-
-    @Mock
     private TourReceiptRepository tourReceiptRepository;
 
     @Mock
@@ -182,7 +179,7 @@ class TourReceiptServiceTest {
         void 저장_코스에_없는_증빙이면_예외를_던진다() {
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
-            when(tourReceiptFinder.findByIdAndSavedCourseId(RECEIPT_ID, SAVED_COURSE_ID))
+            when(savedCourse.findReceiptById(RECEIPT_ID))
                 .thenThrow(BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
 
             assertErrorCode(
@@ -202,7 +199,7 @@ class TourReceiptServiceTest {
             );
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
-            when(tourReceiptFinder.findByIdAndSavedCourseId(RECEIPT_ID, SAVED_COURSE_ID))
+            when(savedCourse.findReceiptById(RECEIPT_ID))
                 .thenReturn(receipt);
             when(image.getStorageKey()).thenReturn(IMAGE_KEY);
 
