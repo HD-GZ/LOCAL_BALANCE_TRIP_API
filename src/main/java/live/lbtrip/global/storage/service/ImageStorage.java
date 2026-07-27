@@ -1,4 +1,4 @@
-package live.lbtrip.global.storage;
+package live.lbtrip.global.storage.service;
 
 import live.lbtrip.global.storage.enums.ImageDirectory;
 import live.lbtrip.global.storage.vo.ValidatedImage;

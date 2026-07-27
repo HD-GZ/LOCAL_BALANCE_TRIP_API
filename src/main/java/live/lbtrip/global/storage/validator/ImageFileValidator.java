@@ -1,4 +1,4 @@
-package live.lbtrip.global.storage;
+package live.lbtrip.global.storage.validator;
 
 import java.io.IOException;
 import java.util.Locale;

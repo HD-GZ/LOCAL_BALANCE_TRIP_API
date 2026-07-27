@@ -11,9 +11,9 @@ import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
-import live.lbtrip.global.storage.ImageFileValidator;
-import live.lbtrip.global.storage.ImageStorage;
 import live.lbtrip.global.storage.enums.ImageDirectory;
+import live.lbtrip.global.storage.service.ImageStorage;
+import live.lbtrip.global.storage.validator.ImageFileValidator;
 import live.lbtrip.global.storage.vo.ValidatedImage;
 import lombok.RequiredArgsConstructor;
 

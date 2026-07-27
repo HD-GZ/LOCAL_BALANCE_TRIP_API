@@ -1,4 +1,4 @@
-package live.lbtrip.global.storage;
+package live.lbtrip.global.storage.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

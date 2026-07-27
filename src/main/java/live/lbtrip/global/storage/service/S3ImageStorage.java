@@ -1,4 +1,4 @@
-package live.lbtrip.global.storage;
+package live.lbtrip.global.storage.service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

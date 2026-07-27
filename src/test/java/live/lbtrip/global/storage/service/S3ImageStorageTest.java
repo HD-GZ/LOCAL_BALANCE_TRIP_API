@@ -1,4 +1,4 @@
-package live.lbtrip.global.storage;
+package live.lbtrip.global.storage.service;
 
 import static live.lbtrip.global.storage.enums.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
