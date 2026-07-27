@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -17,6 +18,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class S3ImageStorage implements ImageStorage {
 
     private static final DateTimeFormatter KEY_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy/MM");
@@ -24,15 +26,10 @@ public class S3ImageStorage implements ImageStorage {
     private final S3Client s3Client;
     private final StorageProperties properties;
 
-    public S3ImageStorage(S3Client s3Client, StorageProperties properties) {
-        this.s3Client = s3Client;
-        this.properties = properties;
-    }
-
     @Override
     public String store(ValidatedImage image, ImageDirectory directory) {
         String key = "%s/%s/%s.%s".formatted(
-            directory.path(),
+            directory.getPath(),
             LocalDate.now().format(KEY_DATE_FORMAT),
             UUID.randomUUID(),
             image.extension()
