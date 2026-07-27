@@ -36,6 +36,9 @@ public enum ErrorCode {
     RECOMMENDATION_GENERATION_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "코스 추천 생성에 실패했습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."),
     DUPLICATE_SAVE_COURSE(HttpStatus.CONFLICT, "이미 저장된 코스입니다."),
+    SAVED_COURSE_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "저장한 코스의 장소를 찾을 수 없습니다."),
+    TOUR_ALREADY_COMPLETED(HttpStatus.CONFLICT, "이미 완주한 코스입니다."),
+    TOUR_NOT_IN_PROGRESS(HttpStatus.CONFLICT, "진행 중인 투어가 아닙니다."),
     ;
 
     private final HttpStatus status;

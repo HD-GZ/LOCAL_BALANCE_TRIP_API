@@ -1,5 +1,6 @@
 package live.lbtrip.domain.savedcourse.model.entity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,8 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
 import live.lbtrip.domain.user.model.User;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -63,6 +66,12 @@ public class SavedCourse extends BaseEntity {
     @Column(nullable = false, length = 20)
     private SavedCourseStatus status;
 
+    @Column(name = "tour_started_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime tourStartedAt;
+
+    @Column(name = "tour_ended_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime tourEndedAt;
+
     @OneToMany(mappedBy = "savedCourse", cascade = CascadeType.ALL)
     @OrderBy("visitOrder asc")
     private List<SavedCoursePlace> places = new ArrayList<>();
@@ -97,5 +106,41 @@ public class SavedCourse extends BaseEntity {
     public void addPlace(SavedCoursePlace place) {
         places.add(place);
         place.assignSavedCourse(this);
+    }
+
+    public void startTour() {
+        if (status == SavedCourseStatus.COMPLETED) {
+            throw BusinessException.of(ErrorCode.TOUR_ALREADY_COMPLETED);
+        }
+        this.status = SavedCourseStatus.TRAVELING;
+        if (tourStartedAt == null) {
+            this.tourStartedAt = LocalDateTime.now();
+        }
+        this.tourEndedAt = null;
+    }
+
+    public void checkInPlace(Long placeId) {
+        validateTraveling();
+        SavedCoursePlace place = places.stream()
+            .filter(p -> p.getId().equals(placeId))
+            .findFirst()
+            .orElseThrow(() -> BusinessException.of(ErrorCode.SAVED_COURSE_PLACE_NOT_FOUND));
+        place.checkIn();
+    }
+
+    public boolean endTour() {
+        validateTraveling();
+        this.tourEndedAt = LocalDateTime.now();
+        boolean completed = places.stream().allMatch(SavedCoursePlace::isVisited);
+        if (completed) {
+            this.status = SavedCourseStatus.COMPLETED;
+        }
+        return completed;
+    }
+
+    private void validateTraveling() {
+        if (status != SavedCourseStatus.TRAVELING) {
+            throw BusinessException.of(ErrorCode.TOUR_NOT_IN_PROGRESS);
+        }
     }
 }

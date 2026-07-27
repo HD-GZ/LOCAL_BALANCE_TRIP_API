@@ -1,5 +1,7 @@
 package live.lbtrip.domain.savedcourse.model.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -53,6 +55,9 @@ public class SavedCoursePlace extends BaseEntity {
     @Column(name = "audio_url", length = 500)
     private String audioUrl;
 
+    @Column(name = "visited_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime visitedAt;
+
     private SavedCoursePlace(
         int visitOrder, String name, String overview, String imageUrl,
         Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl
@@ -78,5 +83,15 @@ public class SavedCoursePlace extends BaseEntity {
 
     void assignSavedCourse(SavedCourse savedCourse) {
         this.savedCourse = savedCourse;
+    }
+
+    public boolean isVisited() {
+        return visitedAt != null;
+    }
+
+    void checkIn() {
+        if (visitedAt == null) {
+            this.visitedAt = LocalDateTime.now();
+        }
     }
 }
