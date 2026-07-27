@@ -28,15 +28,17 @@ public interface TourReceiptApi {
         summary = "영수증 스캔",
         description = """
             영수증 이미지를 업로드하고 OCR로 가맹점명·결제 금액·결제 일자를 추출합니다.
-            이미지는 즉시 저장되며 응답의 imageKey를 증빙 등록 요청에 그대로 전달해야 합니다.
-            OCR 인식에 실패한 필드는 null로 반환되므로 사용자가 직접 입력하도록 안내합니다.
-            지원 형식: jpg, jpeg, png, webp (기본 최대 10MB, 환경별 설정)
+            이미지는 즉시 저장되며, 응답의 imageId를 환급 증빙 등록 요청에 전달해야 합니다.
+            OCR 인식에 실패한 필드는 null로 반환되므로 사용자가 직접 입력한 값을 등록 요청에 전달해야 합니다.
+            지원 형식은 jpg, jpeg, png, webp이며, 기본 최대 크기는 10MB로 환경별 설정에 따라 달라질 수 있습니다.
             """
     )
     @ApiSuccessResponse(description = "영수증 스캔 성공")
     @ApiErrorCodeResponses({
         INVALID_ACCESS_TOKEN,
         SAVED_COURSE_NOT_FOUND,
+        USER_NOT_FOUND,
+        INVALID_INPUT_VALUE,
         INVALID_IMAGE_TYPE,
         IMAGE_SIZE_EXCEEDED,
         IMAGE_UPLOAD_FAILED
@@ -51,7 +53,8 @@ public interface TourReceiptApi {
     @Operation(
         summary = "환급 증빙 등록",
         description = """
-            스캔한 영수증 이미지 식별자와 사용자가 확인·수정한 가맹점명, 결제 금액, 결제 일자로 환급 증빙을 등록합니다.
+            영수증 스캔 응답의 imageId와 사용자가 확인·수정한 가맹점명, 결제 금액, 결제 일자로 환급 증빙을 등록합니다.
+            등록된 환급 증빙 정보와 영수증 이미지 URL을 반환합니다.
             """
     )
     @ApiSuccessResponse(status = CREATED, description = "환급 증빙 등록 성공")
@@ -90,7 +93,8 @@ public interface TourReceiptApi {
     @Operation(
         summary = "환급 증빙 상세 조회",
         description = """
-            환급 증빙의 상세 정보를 조회합니다. 영수증 원본 이미지 URL을 포함합니다.
+            환급 증빙의 상세 정보를 조회합니다.
+            가맹점명, 결제 금액, 결제 일자와 영수증 원본 이미지 URL을 반환합니다.
             """
     )
     @ApiSuccessResponse(description = "환급 증빙 상세 조회 성공")
@@ -109,7 +113,8 @@ public interface TourReceiptApi {
     @Operation(
         summary = "환급 증빙 삭제",
         description = """
-            환급 증빙을 삭제합니다. 저장된 영수증 원본 이미지도 함께 삭제됩니다.
+            환급 증빙을 삭제합니다.
+            증빙에 연결된 영수증 원본 이미지도 함께 삭제합니다.
             """
     )
     @ApiSuccessResponse(description = "환급 증빙 삭제 성공")

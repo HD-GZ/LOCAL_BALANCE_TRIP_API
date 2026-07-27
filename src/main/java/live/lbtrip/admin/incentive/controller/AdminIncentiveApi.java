@@ -27,7 +27,13 @@ import live.lbtrip.global.web.AdminId;
 public interface AdminIncentiveApi {
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "인센티브 등록", description = "인센티브 행사 제목, 페이지 URL, 부가 설명, 적용 지역(법정동 코드) 목록을 등록합니다.")
+    @Operation(
+        summary = "인센티브 등록",
+        description = """
+            행사 제목, 페이지 URL, 부가 설명과 적용 지역(법정동 코드) 목록을 등록합니다.
+            등록된 인센티브 정보를 반환합니다.
+            """
+    )
     @ApiSuccessResponse(status = CREATED, description = "인센티브 등록 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
@@ -40,13 +46,25 @@ public interface AdminIncentiveApi {
     );
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "인센티브 목록 조회", description = "등록된 인센티브 전체 목록을 조회합니다.")
+    @Operation(
+        summary = "인센티브 목록 조회",
+        description = """
+            등록된 인센티브 전체 목록을 조회합니다.
+            각 인센티브의 적용 지역 목록을 함께 반환합니다.
+            """
+    )
     @ApiSuccessResponse(description = "인센티브 목록 조회 성공")
     @ApiErrorCodeResponses(INVALID_ADMIN_ACCESS_TOKEN)
     ResponseEntity<List<AdminIncentiveResponse>> getIncentives(@AdminId Long adminId);
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "인센티브 수정", description = "인센티브 행사 제목, 페이지 URL, 부가 설명, 적용 지역(법정동 코드) 목록을 수정합니다. 지역 목록은 전체 교체됩니다.")
+    @Operation(
+        summary = "인센티브 수정",
+        description = """
+            행사 제목, 페이지 URL, 부가 설명과 적용 지역(법정동 코드) 목록을 수정합니다.
+            적용 지역 목록은 요청 값으로 전체 교체되며, 수정된 인센티브 정보를 반환합니다.
+            """
+    )
     @ApiSuccessResponse(description = "인센티브 수정 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
@@ -61,7 +79,12 @@ public interface AdminIncentiveApi {
     );
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "인센티브 삭제", description = "인센티브를 삭제합니다.")
+    @Operation(
+        summary = "인센티브 삭제",
+        description = """
+            인센티브와 연결된 적용 지역 정보를 삭제합니다.
+            """
+    )
     @ApiSuccessResponse(description = "인센티브 삭제 성공")
     @ApiErrorCodeResponses({
         INVALID_ADMIN_ACCESS_TOKEN,

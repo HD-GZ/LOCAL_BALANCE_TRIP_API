@@ -25,7 +25,10 @@ public interface PropensityApi {
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
         summary = "취향 진단과 가치소비 등록",
-        description = "5축 취향 진단과 가치소비 결과를 등록하거나 재진단 시 기존 결과를 덮어씁니다. 진단 유형 라벨/설명과 점수를 함께 반환합니다."
+        description = """
+            5축 취향 진단과 가치소비 결과를 등록합니다.
+            재진단 시 기존 결과를 덮어쓰며, 진단 유형 라벨·설명과 점수를 반환합니다.
+            """
     )
     @ApiSuccessResponse(status = CREATED, description = "진단 결과 등록 성공")
     @ApiErrorCodeResponses({
@@ -41,7 +44,10 @@ public interface PropensityApi {
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
         summary = "취향 진단과 가치소비 결과 조회",
-        description = "현재 로그인한 사용자의 진단 유형 라벨/설명, 5축 취향 진단 점수, 가치소비 점수를 조회합니다."
+        description = """
+            현재 로그인한 사용자의 취향 진단과 가치소비 결과를 조회합니다.
+            진단 유형 라벨·설명, 5축 취향 진단 점수와 가치소비 점수를 반환합니다.
+            """
     )
     @ApiSuccessResponse(description = "진단 결과 조회 성공")
     @ApiErrorCodeResponses({
