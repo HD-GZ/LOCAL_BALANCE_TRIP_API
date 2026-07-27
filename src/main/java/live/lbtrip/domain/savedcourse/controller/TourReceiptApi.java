@@ -58,8 +58,8 @@ public interface TourReceiptApi {
     @ApiErrorCodeResponses({
         INVALID_ACCESS_TOKEN,
         SAVED_COURSE_NOT_FOUND,
-        RECEIPT_IMAGE_NOT_FOUND,
-        RECEIPT_IMAGE_ALREADY_USED,
+        IMAGE_NOT_FOUND,
+        IMAGE_ALREADY_ATTACHED,
         INVALID_INPUT_VALUE
     })
     ResponseEntity<TourReceiptResponse> createReceipt(

@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,7 +28,7 @@ public class TourReceipt extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "saved_course_id", nullable = false)
     private SavedCourse savedCourse;
 
@@ -40,11 +41,11 @@ public class TourReceipt extends BaseEntity {
     @Column(name = "paid_date", nullable = false)
     private LocalDate paidDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id", nullable = false, unique = true)
-    private StoredImage image;
+    private Image image;
 
-    private TourReceipt(SavedCourse savedCourse, String merchantName, int amount, LocalDate paidDate, StoredImage image) {
+    private TourReceipt(SavedCourse savedCourse, String merchantName, int amount, LocalDate paidDate, Image image) {
         this.savedCourse = savedCourse;
         this.merchantName = merchantName;
         this.amount = amount;
@@ -53,7 +54,7 @@ public class TourReceipt extends BaseEntity {
     }
 
     public static TourReceipt create(
-        SavedCourse savedCourse, String merchantName, int amount, LocalDate paidDate, StoredImage image
+        SavedCourse savedCourse, String merchantName, int amount, LocalDate paidDate, Image image
     ) {
         return new TourReceipt(savedCourse, merchantName, amount, paidDate, image);
     }

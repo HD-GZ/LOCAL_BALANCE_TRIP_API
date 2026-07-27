@@ -22,13 +22,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
+import live.lbtrip.domain.image.model.entity.Image;
+import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.dto.request.TourReceiptCreateRequest;
 import live.lbtrip.domain.savedcourse.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptResponse;
 import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
-import live.lbtrip.domain.savedcourse.model.entity.StoredImage;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.error.BusinessException;
@@ -64,13 +65,13 @@ class TourReceiptServiceTest {
     private ReceiptOcrExtractor receiptOcrExtractor;
 
     @Mock
-    private StoredImageService storedImageService;
+    private ImageService imageService;
 
     @Mock
     private SavedCourse savedCourse;
 
     @Mock
-    private StoredImage storedImage;
+    private Image image;
 
     @Mock
     private MultipartFile multipartFile;
@@ -92,13 +93,14 @@ class TourReceiptServiceTest {
                 .thenReturn(savedCourse);
             when(imageFileValidator.validate(multipartFile)).thenReturn(validatedImage);
             when(imageStorage.store(validatedImage, RECEIPT)).thenReturn(IMAGE_KEY);
-            when(storedImageService.registerReceipt(
-                savedCourse,
+            when(imageService.register(
+                USER_ID,
+                RECEIPT,
                 IMAGE_KEY,
                 MediaType.IMAGE_JPEG_VALUE,
                 validatedImage.size()
-            )).thenReturn(storedImage);
-            when(storedImage.getId()).thenReturn(IMAGE_ID);
+            )).thenReturn(image);
+            when(image.getId()).thenReturn(IMAGE_ID);
             when(receiptOcrExtractor.extract(validatedImage)).thenReturn(ReceiptOcrResult.empty());
             when(imageStorage.publicUrl(IMAGE_KEY)).thenReturn(IMAGE_URL);
 
@@ -139,9 +141,9 @@ class TourReceiptServiceTest {
             );
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
-            when(storedImageService.claimReceipt(IMAGE_ID, SAVED_COURSE_ID))
-                .thenReturn(storedImage);
-            when(storedImage.getStorageKey()).thenReturn(IMAGE_KEY);
+            when(imageService.claim(IMAGE_ID, USER_ID, RECEIPT))
+                .thenReturn(image);
+            when(image.getStorageKey()).thenReturn(IMAGE_KEY);
             when(imageStorage.publicUrl(IMAGE_KEY)).thenReturn(IMAGE_URL);
 
             TourReceiptResponse result = tourReceiptService.create(USER_ID, SAVED_COURSE_ID, request);
@@ -150,7 +152,7 @@ class TourReceiptServiceTest {
             verify(tourReceiptRepository).save(receiptCaptor.capture());
             TourReceipt savedReceipt = receiptCaptor.getValue();
             assertThat(savedReceipt.getMerchantName()).isEqualTo("국수거리 노포");
-            assertThat(savedReceipt.getImage()).isSameAs(storedImage);
+            assertThat(savedReceipt.getImage()).isSameAs(image);
             assertThat(result.amount()).isEqualTo(18000);
             assertThat(result.imageUrl()).isEqualTo(IMAGE_URL);
         }
@@ -194,13 +196,13 @@ class TourReceiptServiceTest {
                 "국수거리 노포",
                 18000,
                 PAID_DATE,
-                storedImage
+                image
             );
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
             when(tourReceiptRepository.findByIdAndSavedCourseId(RECEIPT_ID, SAVED_COURSE_ID))
                 .thenReturn(Optional.of(receipt));
-            when(storedImage.getStorageKey()).thenReturn(IMAGE_KEY);
+            when(image.getStorageKey()).thenReturn(IMAGE_KEY);
 
             tourReceiptService.delete(USER_ID, SAVED_COURSE_ID, RECEIPT_ID);
 
@@ -215,7 +217,7 @@ class TourReceiptServiceTest {
             "가맹점",
             amount,
             PAID_DATE,
-            storedImage
+            image
         );
     }
 

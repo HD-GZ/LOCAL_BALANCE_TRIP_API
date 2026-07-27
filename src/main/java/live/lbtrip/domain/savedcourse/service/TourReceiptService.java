@@ -8,13 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import live.lbtrip.domain.image.model.entity.Image;
+import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.dto.request.TourReceiptCreateRequest;
 import live.lbtrip.domain.savedcourse.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptResponse;
 import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
-import live.lbtrip.domain.savedcourse.model.entity.StoredImage;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.error.BusinessException;
@@ -35,28 +36,33 @@ public class TourReceiptService {
     private final ImageStorage imageStorage;
     private final ImageFileValidator imageFileValidator;
     private final ReceiptOcrExtractor receiptOcrExtractor;
-    private final StoredImageService storedImageService;
+    private final ImageService imageService;
 
     public ReceiptScanResponse scan(Long userId, Long savedCourseId, MultipartFile image) {
-        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
         ValidatedImage validatedImage = imageFileValidator.validate(image);
         String imageKey = imageStorage.store(validatedImage, RECEIPT);
-        StoredImage storedImage = storedImageService.registerReceipt(
-            savedCourse,
+        Image registeredImage = imageService.register(
+            userId,
+            RECEIPT,
             imageKey,
             validatedImage.mediaType().toString(),
             validatedImage.size()
         );
         ReceiptOcrResult result = receiptOcrExtractor.extract(validatedImage);
 
-        return ReceiptScanResponse.of(storedImage.getId(), imageStorage.publicUrl(imageKey), result);
+        return ReceiptScanResponse.of(
+            registeredImage.getId(),
+            imageStorage.publicUrl(imageKey),
+            result
+        );
     }
 
     @Transactional
     public TourReceiptResponse create(Long userId, Long savedCourseId, TourReceiptCreateRequest request) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
-        StoredImage image = storedImageService.claimReceipt(request.imageId(), savedCourseId);
+        Image image = imageService.claim(request.imageId(), userId, RECEIPT);
 
         TourReceipt receipt = TourReceipt.create(
             savedCourse,

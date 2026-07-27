@@ -1,4 +1,4 @@
-package live.lbtrip.domain.savedcourse.model.entity;
+package live.lbtrip.domain.image.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,11 +11,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import live.lbtrip.domain.savedcourse.model.ImagePurpose;
-import live.lbtrip.domain.savedcourse.model.StoredImageStatus;
+import live.lbtrip.domain.image.model.ImageStatus;
+import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.model.BaseEntity;
+import live.lbtrip.global.storage.ImageDirectory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,24 +25,24 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "images")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StoredImage extends BaseEntity {
+public class Image extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "saved_course_id", nullable = false)
-    private SavedCourse savedCourse;
+    @JoinColumn(name = "uploader_id", nullable = false)
+    private User uploader;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private ImagePurpose purpose;
+    @Column(name = "storage_directory", nullable = false, length = 30)
+    private ImageDirectory directory;
 
     @Column(name = "storage_key", nullable = false, unique = true, length = 300)
     private String storageKey;
 
-    @Column(name = "content_type", length = 50)
+    @Column(name = "content_type", nullable = false, length = 50)
     private String contentType;
 
     @Column(name = "file_size", nullable = false)
@@ -49,44 +50,45 @@ public class StoredImage extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private StoredImageStatus status;
+    private ImageStatus status;
 
-    private StoredImage(
-        SavedCourse savedCourse,
-        ImagePurpose purpose,
+    private Image(
+        User uploader,
+        ImageDirectory directory,
         String storageKey,
         String contentType,
         long fileSize,
-        StoredImageStatus status
+        ImageStatus status
     ) {
-        this.savedCourse = savedCourse;
-        this.purpose = purpose;
+        this.uploader = uploader;
+        this.directory = directory;
         this.storageKey = storageKey;
         this.contentType = contentType;
         this.fileSize = fileSize;
         this.status = status;
     }
 
-    public static StoredImage createReceipt(
-        SavedCourse savedCourse,
+    public static Image create(
+        User uploader,
+        ImageDirectory directory,
         String storageKey,
         String contentType,
         long fileSize
     ) {
-        return new StoredImage(
-            savedCourse,
-            ImagePurpose.RECEIPT,
+        return new Image(
+            uploader,
+            directory,
             storageKey,
             contentType,
             fileSize,
-            StoredImageStatus.PENDING
+            ImageStatus.TEMPORARY
         );
     }
 
     public void attach() {
-        if (status == StoredImageStatus.ATTACHED) {
-            throw BusinessException.of(ErrorCode.RECEIPT_IMAGE_ALREADY_USED);
+        if (status == ImageStatus.ATTACHED) {
+            throw BusinessException.of(ErrorCode.IMAGE_ALREADY_ATTACHED);
         }
-        this.status = StoredImageStatus.ATTACHED;
+        this.status = ImageStatus.ATTACHED;
     }
 }

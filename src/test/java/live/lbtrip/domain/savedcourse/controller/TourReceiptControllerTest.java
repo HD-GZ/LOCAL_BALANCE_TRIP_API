@@ -146,13 +146,13 @@ class TourReceiptControllerTest {
         }
 
         @Test
-        void 다른_코스의_이미지면_예외를_응답한다() throws Exception {
+        void 사용할_수_없는_이미지면_예외를_응답한다() throws Exception {
             인증된_사용자();
             when(tourReceiptService.create(
                 org.mockito.ArgumentMatchers.eq(AuthResponseFixture.USER_ID),
                 org.mockito.ArgumentMatchers.eq(SAVED_COURSE_ID),
                 any()
-            )).thenThrow(BusinessException.of(ErrorCode.RECEIPT_IMAGE_NOT_FOUND));
+            )).thenThrow(BusinessException.of(ErrorCode.IMAGE_NOT_FOUND));
 
             mockMvc.perform(post("/saved-courses/{savedCourseId}/receipts", SAVED_COURSE_ID)
                     .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
@@ -167,7 +167,7 @@ class TourReceiptControllerTest {
                         """))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.result").value("ERROR"))
-                .andExpect(jsonPath("$.error.code").value("RECEIPT_IMAGE_NOT_FOUND"));
+                .andExpect(jsonPath("$.error.code").value("IMAGE_NOT_FOUND"));
         }
     }
 
