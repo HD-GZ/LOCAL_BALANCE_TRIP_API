@@ -5,12 +5,14 @@ import static live.lbtrip.global.error.ErrorCode.*;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import live.lbtrip.domain.user.dto.request.EmailAvailabilityRequest;
+import live.lbtrip.domain.user.dto.request.UserUpdateRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.dto.response.UserResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
@@ -32,4 +34,13 @@ public interface UserApi {
     @ApiSuccessResponse(description = "조회 성공")
     @ApiErrorCodeResponses({INVALID_ACCESS_TOKEN, USER_NOT_FOUND})
     ResponseEntity<UserResponse> getUser(@UserId Long userId);
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "내 정보 수정",
+        description = "이름, 생년월일, 성별을 수정합니다. 비밀번호는 값이 있을 때만 변경되며, 이메일은 변경할 수 없습니다."
+    )
+    @ApiSuccessResponse(description = "수정 성공")
+    @ApiErrorCodeResponses({INVALID_INPUT_VALUE, INVALID_ACCESS_TOKEN, USER_NOT_FOUND})
+    ResponseEntity<UserResponse> updateUser(@UserId Long userId, @Valid @RequestBody UserUpdateRequest request);
 }
