@@ -14,6 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.util.unit.DataSize;
 
 import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
@@ -35,7 +36,8 @@ class S3ImageStorageTest {
     void setUp() {
         StorageProperties properties = new StorageProperties(
             new StorageProperties.S3("bucket", "ap-northeast-2", "access-key", "secret-key"),
-            "https://images.example.com"
+            "https://images.example.com",
+            DataSize.ofMegabytes(10)
         );
         imageStorage = new S3ImageStorage(s3Client, properties);
     }

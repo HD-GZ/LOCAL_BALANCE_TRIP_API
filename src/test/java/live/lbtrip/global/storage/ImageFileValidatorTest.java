@@ -7,13 +7,19 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.util.unit.DataSize;
 
+import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 
 class ImageFileValidatorTest {
 
-    private final ImageFileValidator imageFileValidator = new ImageFileValidator();
+    private static final long MAX_IMAGE_SIZE = 1024;
+
+    private final ImageFileValidator imageFileValidator = new ImageFileValidator(
+        new StorageProperties(null, null, DataSize.ofBytes(MAX_IMAGE_SIZE))
+    );
 
     @Nested
     class 검증_성공 {
@@ -78,7 +84,7 @@ class ImageFileValidatorTest {
 
         @Test
         void 이미지가_10MB를_초과하면_예외를_던진다() {
-            byte[] content = new byte[(int) ImageFileValidator.MAX_IMAGE_SIZE + 1];
+            byte[] content = new byte[(int) MAX_IMAGE_SIZE + 1];
             content[0] = (byte) 0xFF;
             content[1] = (byte) 0xD8;
             content[2] = (byte) 0xFF;

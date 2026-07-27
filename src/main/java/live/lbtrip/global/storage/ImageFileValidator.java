@@ -9,13 +9,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class ImageFileValidator {
-
-    static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024;
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
     private static final Map<ImageType, Set<String>> COMPATIBLE_EXTENSIONS = Map.of(
@@ -24,11 +25,13 @@ public class ImageFileValidator {
         ImageType.WEBP, Set.of("webp")
     );
 
+    private final StorageProperties properties;
+
     public ValidatedImage validate(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw BusinessException.of(ErrorCode.INVALID_INPUT_VALUE);
         }
-        if (file.getSize() > MAX_IMAGE_SIZE) {
+        if (file.getSize() > properties.maxImageSize().toBytes()) {
             throw BusinessException.of(ErrorCode.IMAGE_SIZE_EXCEEDED);
         }
 

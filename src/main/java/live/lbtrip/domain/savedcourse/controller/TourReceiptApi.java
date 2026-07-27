@@ -30,7 +30,7 @@ public interface TourReceiptApi {
             영수증 이미지를 업로드하고 OCR로 가맹점명·결제 금액·결제 일자를 추출합니다.
             이미지는 즉시 저장되며 응답의 imageKey를 증빙 등록 요청에 그대로 전달해야 합니다.
             OCR 인식에 실패한 필드는 null로 반환되므로 사용자가 직접 입력하도록 안내합니다.
-            지원 형식: jpg, jpeg, png, webp (최대 10MB)
+            지원 형식: jpg, jpeg, png, webp (기본 최대 10MB, 환경별 설정)
             """
     )
     @ApiSuccessResponse(description = "영수증 스캔 성공")
