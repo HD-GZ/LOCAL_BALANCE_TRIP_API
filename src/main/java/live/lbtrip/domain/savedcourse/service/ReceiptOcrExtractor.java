@@ -11,11 +11,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
+import live.lbtrip.global.storage.ValidatedImage;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -37,12 +35,11 @@ public class ReceiptOcrExtractor {
         }
     }
 
-    public ReceiptOcrResult extract(MultipartFile image) {
+    public ReceiptOcrResult extract(ValidatedImage image) {
         try {
-            byte[] imageBytes = image.getBytes();
             RawOcrResult raw = chatClient.prompt()
                 .user(spec -> spec.text(prompt)
-                    .media(resolveMimeType(image), new ByteArrayResource(imageBytes)))
+                    .media(image.mediaType(), new ByteArrayResource(image.bytes())))
                 .call()
                 .entity(RawOcrResult.class);
             return normalize(raw);
@@ -69,14 +66,6 @@ public class ReceiptOcrExtractor {
             log.warn("영수증 결제일 파싱 실패: value={}", value);
             return null;
         }
-    }
-
-    private MimeType resolveMimeType(MultipartFile image) {
-        String contentType = image.getContentType();
-        if (contentType == null || contentType.isBlank()) {
-            return MimeTypeUtils.IMAGE_JPEG;
-        }
-        return MimeTypeUtils.parseMimeType(contentType);
     }
 
     private record RawOcrResult(String merchantName, Integer amount, String paidDate) {

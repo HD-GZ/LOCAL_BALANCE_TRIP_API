@@ -1,10 +1,8 @@
 package live.lbtrip.global.storage;
 
-import org.springframework.web.multipart.MultipartFile;
-
 public interface ImageStorage {
 
-    String store(MultipartFile file, String directory);
+    String store(ValidatedImage image, String directory);
 
     void delete(String key);
 

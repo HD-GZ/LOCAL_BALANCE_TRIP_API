@@ -37,6 +37,7 @@ public interface TourReceiptApi {
         INVALID_ACCESS_TOKEN,
         SAVED_COURSE_NOT_FOUND,
         INVALID_IMAGE_TYPE,
+        IMAGE_SIZE_EXCEEDED,
         IMAGE_UPLOAD_FAILED
     })
     ResponseEntity<ReceiptScanResponse> scanReceipt(

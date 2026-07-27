@@ -17,7 +17,9 @@ import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.ImageFileValidator;
 import live.lbtrip.global.storage.ImageStorage;
+import live.lbtrip.global.storage.ValidatedImage;
 import live.lbtrip.global.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
 
@@ -31,20 +33,22 @@ public class TourReceiptService {
     private final SavedCourseFinder savedCourseFinder;
     private final TourReceiptRepository tourReceiptRepository;
     private final ImageStorage imageStorage;
+    private final ImageFileValidator imageFileValidator;
     private final ReceiptOcrExtractor receiptOcrExtractor;
     private final StoredImageService storedImageService;
 
     public ReceiptScanResponse scan(Long userId, Long savedCourseId, MultipartFile image) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
-        String imageKey = imageStorage.store(image, RECEIPT_IMAGE_DIRECTORY);
+        ValidatedImage validatedImage = imageFileValidator.validate(image);
+        String imageKey = imageStorage.store(validatedImage, RECEIPT_IMAGE_DIRECTORY);
         StoredImage storedImage = storedImageService.registerReceipt(
             savedCourse,
             imageKey,
-            image.getContentType(),
-            image.getSize()
+            validatedImage.mediaType().toString(),
+            validatedImage.size()
         );
-        ReceiptOcrResult result = receiptOcrExtractor.extract(image);
+        ReceiptOcrResult result = receiptOcrExtractor.extract(validatedImage);
 
         return ReceiptScanResponse.of(storedImage.getId(), imageStorage.publicUrl(imageKey), result);
     }

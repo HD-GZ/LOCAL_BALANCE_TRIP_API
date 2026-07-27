@@ -1,14 +1,10 @@
 package live.lbtrip.global.storage;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
@@ -23,7 +19,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @Component
 public class S3ImageStorage implements ImageStorage {
 
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
     private static final DateTimeFormatter KEY_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy/MM");
 
     private final S3Client s3Client;
@@ -35,23 +30,19 @@ public class S3ImageStorage implements ImageStorage {
     }
 
     @Override
-    public String store(MultipartFile file, String directory) {
-        if (file == null || file.isEmpty()) {
-            throw BusinessException.of(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        String extension = extractExtension(file);
+    public String store(ValidatedImage image, String directory) {
         String key = "%s/%s/%s.%s".formatted(
-            directory, LocalDate.now().format(KEY_DATE_FORMAT), UUID.randomUUID(), extension);
+            directory, LocalDate.now().format(KEY_DATE_FORMAT), UUID.randomUUID(), image.extension());
 
         PutObjectRequest request = PutObjectRequest.builder()
             .bucket(properties.s3().bucket())
             .key(key)
-            .contentType(file.getContentType())
+            .contentType(image.mediaType().toString())
             .build();
 
         try {
-            s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
-        } catch (IOException | RuntimeException e) {
+            s3Client.putObject(request, RequestBody.fromBytes(image.bytes()));
+        } catch (RuntimeException e) {
             log.error("S3 이미지 업로드 실패: key={}", key, e);
             throw BusinessException.of(ErrorCode.IMAGE_UPLOAD_FAILED);
         }
@@ -76,15 +67,4 @@ public class S3ImageStorage implements ImageStorage {
         return "%s/%s".formatted(properties.cdnBaseUrl(), key);
     }
 
-    private String extractExtension(MultipartFile file) {
-        String filename = file.getOriginalFilename();
-        if (filename == null || !filename.contains(".")) {
-            throw BusinessException.of(ErrorCode.INVALID_IMAGE_TYPE);
-        }
-        String extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw BusinessException.of(ErrorCode.INVALID_IMAGE_TYPE);
-        }
-        return extension;
-    }
 }
