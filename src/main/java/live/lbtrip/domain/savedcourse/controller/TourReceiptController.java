@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,12 +24,13 @@ import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequestMapping("/saved-courses/{savedCourseId}/receipts")
 @RequiredArgsConstructor
 public class TourReceiptController implements TourReceiptApi {
 
     private final TourReceiptService tourReceiptService;
 
-    @PostMapping(value = "/saved-courses/{savedCourseId}/receipts/scan", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/scan", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ReceiptScanResponse> scanReceipt(
         @UserId Long userId,
         @PathVariable Long savedCourseId,
@@ -38,7 +40,7 @@ public class TourReceiptController implements TourReceiptApi {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/saved-courses/{savedCourseId}/receipts")
+    @PostMapping
     public ResponseEntity<TourReceiptResponse> createReceipt(
         @UserId Long userId,
         @PathVariable Long savedCourseId,
@@ -48,7 +50,7 @@ public class TourReceiptController implements TourReceiptApi {
         return ResponseEntity.status(CREATED).body(response);
     }
 
-    @GetMapping("/saved-courses/{savedCourseId}/receipts")
+    @GetMapping
     public ResponseEntity<TourReceiptListResponse> getReceipts(
         @UserId Long userId,
         @PathVariable Long savedCourseId
@@ -57,7 +59,7 @@ public class TourReceiptController implements TourReceiptApi {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/saved-courses/{savedCourseId}/receipts/{receiptId}")
+    @GetMapping("/{receiptId}")
     public ResponseEntity<TourReceiptResponse> getReceipt(
         @UserId Long userId,
         @PathVariable Long savedCourseId,
@@ -67,7 +69,7 @@ public class TourReceiptController implements TourReceiptApi {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/saved-courses/{savedCourseId}/receipts/{receiptId}")
+    @DeleteMapping("/{receiptId}")
     public ResponseEntity<Void> deleteReceipt(
         @UserId Long userId,
         @PathVariable Long savedCourseId,
