@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
+import live.lbtrip.domain.savedcourse.model.vo.ReceiptOcrResult;
 
 public record ReceiptScanResponse(
     @Schema(description = "저장된 영수증 이미지 식별자. 증빙 등록 시 그대로 전달.", example = "1")

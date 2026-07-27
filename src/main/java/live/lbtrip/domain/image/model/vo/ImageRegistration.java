@@ -1,7 +1,7 @@
-package live.lbtrip.domain.image.model;
+package live.lbtrip.domain.image.model.vo;
 
 import live.lbtrip.domain.image.model.entity.Image;
-import live.lbtrip.global.storage.ValidatedImage;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 
 public record ImageRegistration(
     Image image,

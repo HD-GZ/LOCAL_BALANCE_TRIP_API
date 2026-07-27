@@ -9,7 +9,7 @@ import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.service.GeneratedCourseFinder;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
-import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;

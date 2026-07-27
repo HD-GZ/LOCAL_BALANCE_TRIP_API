@@ -16,7 +16,7 @@ import jakarta.validation.Valid;
 import live.lbtrip.domain.savedcourse.dto.request.SavedCourseStatusUpdateRequest;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.dto.response.SavedCourseListResponse;
-import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.service.SavedCourseService;
 import live.lbtrip.global.web.PageQueryRequest;
 import live.lbtrip.global.web.UserId;

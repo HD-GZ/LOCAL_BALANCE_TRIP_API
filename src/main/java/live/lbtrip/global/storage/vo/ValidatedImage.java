@@ -1,4 +1,4 @@
-package live.lbtrip.global.storage;
+package live.lbtrip.global.storage.vo;
 
 import org.springframework.http.MediaType;
 

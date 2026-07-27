@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 
 public interface SavedCourseRepository extends JpaRepository<SavedCourse, Long> {

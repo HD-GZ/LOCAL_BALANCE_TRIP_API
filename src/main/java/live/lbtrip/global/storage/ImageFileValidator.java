@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.enums.ImageType;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 import lombok.RequiredArgsConstructor;
 
 @Component

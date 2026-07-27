@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.domain.image.repository.ImageRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.global.storage.ImageDirectory;
-import live.lbtrip.global.storage.ValidatedImage;
+import live.lbtrip.global.storage.enums.ImageDirectory;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 import lombok.RequiredArgsConstructor;
 
 @Component

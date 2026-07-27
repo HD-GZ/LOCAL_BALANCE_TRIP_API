@@ -1,6 +1,6 @@
 package live.lbtrip.domain.image.model.entity;
 
-import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
+import static live.lbtrip.global.storage.enums.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -8,7 +8,7 @@ import static org.mockito.Mockito.mock;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import live.lbtrip.domain.image.model.ImageStatus;
+import live.lbtrip.domain.image.model.enums.ImageStatus;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;

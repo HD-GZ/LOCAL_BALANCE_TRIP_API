@@ -1,6 +1,6 @@
 package live.lbtrip.global.storage;
 
-import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
+import static live.lbtrip.global.storage.enums.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,6 +20,7 @@ import org.springframework.util.unit.DataSize;
 import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;

@@ -1,6 +1,6 @@
 package live.lbtrip.domain.image.service;
 
-import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
+import static live.lbtrip.global.storage.enums.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -13,11 +13,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 
-import live.lbtrip.domain.image.model.ImageStatus;
+import live.lbtrip.domain.image.model.enums.ImageStatus;
 import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.domain.image.repository.ImageRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.global.storage.ValidatedImage;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 
 @ExtendWith(MockitoExtension.class)
 class ImageManagerTest {

@@ -12,8 +12,8 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
-import live.lbtrip.global.storage.ValidatedImage;
+import live.lbtrip.domain.savedcourse.model.vo.ReceiptOcrResult;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

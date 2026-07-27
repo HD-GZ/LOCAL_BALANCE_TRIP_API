@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Lock;
 
 import jakarta.persistence.LockModeType;
 import live.lbtrip.domain.image.model.entity.Image;
-import live.lbtrip.global.storage.ImageDirectory;
+import live.lbtrip.global.storage.enums.ImageDirectory;
 
 public interface ImageRepository extends JpaRepository<Image, Long> {
 

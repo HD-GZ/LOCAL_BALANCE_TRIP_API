@@ -1,4 +1,4 @@
-package live.lbtrip.domain.savedcourse.model;
+package live.lbtrip.domain.savedcourse.model.vo;
 
 import java.time.LocalDate;
 

@@ -1,4 +1,4 @@
-package live.lbtrip.global.storage;
+package live.lbtrip.global.storage.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.enums.ImageDirectory;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;

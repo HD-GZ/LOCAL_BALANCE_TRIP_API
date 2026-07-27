@@ -25,7 +25,7 @@ import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.savedcourse.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourSummaryResponse;
-import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.service.TourService;
 import live.lbtrip.global.config.CorsProperties;

@@ -85,7 +85,7 @@ class TourReceiptControllerTest {
             )).thenReturn(ReceiptScanResponse.of(
                 IMAGE_ID,
                 "https://images.example.com/receipt.jpg",
-                live.lbtrip.domain.savedcourse.model.ReceiptOcrResult.empty()
+                live.lbtrip.domain.savedcourse.model.vo.ReceiptOcrResult.empty()
             ));
 
             mockMvc.perform(multipart("/saved-courses/{savedCourseId}/receipts/scan", SAVED_COURSE_ID)

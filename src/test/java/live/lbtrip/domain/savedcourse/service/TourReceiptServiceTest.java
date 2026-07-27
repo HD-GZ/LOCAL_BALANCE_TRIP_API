@@ -1,6 +1,6 @@
 package live.lbtrip.domain.savedcourse.service;
 
-import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
+import static live.lbtrip.global.storage.enums.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,19 +20,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
-import live.lbtrip.domain.image.model.ImageRegistration;
 import live.lbtrip.domain.image.model.entity.Image;
+import live.lbtrip.domain.image.model.vo.ImageRegistration;
 import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.dto.request.TourReceiptCreateRequest;
 import live.lbtrip.domain.savedcourse.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourReceiptResponse;
-import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
+import live.lbtrip.domain.savedcourse.model.vo.ReceiptOcrResult;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
-import live.lbtrip.global.storage.ValidatedImage;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 
 @ExtendWith(MockitoExtension.class)
 class TourReceiptServiceTest {

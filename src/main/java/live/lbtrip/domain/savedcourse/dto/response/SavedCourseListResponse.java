@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 
 public record SavedCourseListResponse(

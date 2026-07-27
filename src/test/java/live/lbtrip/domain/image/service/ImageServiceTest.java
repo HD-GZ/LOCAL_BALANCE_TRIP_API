@@ -1,6 +1,6 @@
 package live.lbtrip.domain.image.service;
 
-import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
+import static live.lbtrip.global.storage.enums.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,9 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
-import live.lbtrip.domain.image.model.ImageRegistration;
-import live.lbtrip.domain.image.model.ImageStatus;
+import live.lbtrip.domain.image.model.enums.ImageStatus;
 import live.lbtrip.domain.image.model.entity.Image;
+import live.lbtrip.domain.image.model.vo.ImageRegistration;
 import live.lbtrip.domain.image.repository.ImageRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
@@ -29,7 +29,7 @@ import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.ImageFileValidator;
 import live.lbtrip.global.storage.ImageStorage;
-import live.lbtrip.global.storage.ValidatedImage;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 
 @ExtendWith(MockitoExtension.class)
 class ImageServiceTest {

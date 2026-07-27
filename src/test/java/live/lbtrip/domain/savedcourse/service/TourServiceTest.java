@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.savedcourse.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.dto.response.TourSummaryResponse;
-import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 
 @ExtendWith(MockitoExtension.class)

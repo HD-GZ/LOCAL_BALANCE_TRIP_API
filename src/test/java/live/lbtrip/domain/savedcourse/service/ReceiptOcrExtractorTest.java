@@ -18,8 +18,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 
-import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
-import live.lbtrip.global.storage.ValidatedImage;
+import live.lbtrip.domain.savedcourse.model.vo.ReceiptOcrResult;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 
 @ExtendWith(MockitoExtension.class)
 class ReceiptOcrExtractorTest {

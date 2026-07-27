@@ -12,6 +12,7 @@ import org.springframework.util.unit.DataSize;
 import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.vo.ValidatedImage;
 
 class ImageFileValidatorTest {
 
