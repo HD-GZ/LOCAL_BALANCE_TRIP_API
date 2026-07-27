@@ -14,7 +14,6 @@ import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -52,6 +51,9 @@ class TourReceiptServiceTest {
 
     @Mock
     private TourReceiptRepository tourReceiptRepository;
+
+    @Mock
+    private TourReceiptManager tourReceiptManager;
 
     @Mock
     private ReceiptOcrExtractor receiptOcrExtractor;
@@ -127,15 +129,31 @@ class TourReceiptServiceTest {
                 .thenReturn(savedCourse);
             when(imageService.claim(IMAGE_ID, USER_ID, RECEIPT))
                 .thenReturn(image);
+            TourReceipt receipt = TourReceipt.create(
+                savedCourse,
+                "국수거리 노포",
+                18000,
+                PAID_DATE,
+                image
+            );
+            when(tourReceiptManager.add(
+                savedCourse,
+                "국수거리 노포",
+                18000,
+                PAID_DATE,
+                image
+            )).thenReturn(receipt);
             when(imageService.getPublicUrl(image)).thenReturn(IMAGE_URL);
 
             TourReceiptResponse result = tourReceiptService.create(USER_ID, SAVED_COURSE_ID, request);
 
-            ArgumentCaptor<TourReceipt> receiptCaptor = ArgumentCaptor.forClass(TourReceipt.class);
-            verify(tourReceiptRepository).save(receiptCaptor.capture());
-            TourReceipt savedReceipt = receiptCaptor.getValue();
-            assertThat(savedReceipt.getMerchantName()).isEqualTo("국수거리 노포");
-            assertThat(savedReceipt.getImage()).isSameAs(image);
+            verify(tourReceiptManager).add(
+                savedCourse,
+                "국수거리 노포",
+                18000,
+                PAID_DATE,
+                image
+            );
             assertThat(result.amount()).isEqualTo(18000);
             assertThat(result.imageUrl()).isEqualTo(IMAGE_URL);
         }

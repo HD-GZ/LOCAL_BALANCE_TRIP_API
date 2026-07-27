@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class TourReceiptService {
 
     private final SavedCourseFinder savedCourseFinder;
+    private final TourReceiptManager tourReceiptManager;
     private final TourReceiptRepository tourReceiptRepository;
     private final ReceiptOcrExtractor receiptOcrExtractor;
     private final ImageService imageService;
@@ -48,14 +49,13 @@ public class TourReceiptService {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
         Image image = imageService.claim(request.imageId(), userId, RECEIPT);
 
-        TourReceipt receipt = TourReceipt.create(
+        TourReceipt receipt = tourReceiptManager.add(
             savedCourse,
             StringNormalizer.trim(request.merchantName()),
             request.amount(),
             request.paidDate(),
             image
         );
-        tourReceiptRepository.save(receipt);
 
         return TourReceiptResponse.from(receipt, imageService.getPublicUrl(image));
     }
