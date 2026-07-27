@@ -1,5 +1,7 @@
 package live.lbtrip.domain.savedcourse.controller;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,7 +45,7 @@ public class TourReceiptController implements TourReceiptApi {
         @Valid @RequestBody TourReceiptCreateRequest request
     ) {
         TourReceiptResponse response = tourReceiptService.create(userId, savedCourseId, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(CREATED).body(response);
     }
 
     @GetMapping("/saved-courses/{savedCourseId}/receipts")

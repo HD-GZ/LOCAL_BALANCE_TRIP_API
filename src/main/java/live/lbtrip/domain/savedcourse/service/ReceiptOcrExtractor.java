@@ -68,6 +68,6 @@ public class ReceiptOcrExtractor {
         }
     }
 
-    private record RawOcrResult(String merchantName, Integer amount, String paidDate) {
+    record RawOcrResult(String merchantName, Integer amount, String paidDate) {
     }
 }

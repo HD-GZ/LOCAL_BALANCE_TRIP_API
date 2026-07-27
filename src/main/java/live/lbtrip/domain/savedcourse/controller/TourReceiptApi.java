@@ -1,6 +1,7 @@
 package live.lbtrip.domain.savedcourse.controller;
 
 import static live.lbtrip.global.error.ErrorCode.*;
+import static org.springframework.http.HttpStatus.CREATED;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,7 +54,7 @@ public interface TourReceiptApi {
             스캔한 영수증 이미지 식별자와 사용자가 확인·수정한 가맹점명, 결제 금액, 결제 일자로 환급 증빙을 등록합니다.
             """
     )
-    @ApiSuccessResponse(description = "환급 증빙 등록 성공")
+    @ApiSuccessResponse(status = CREATED, description = "환급 증빙 등록 성공")
     @ApiErrorCodeResponses({
         INVALID_ACCESS_TOKEN,
         SAVED_COURSE_NOT_FOUND,
