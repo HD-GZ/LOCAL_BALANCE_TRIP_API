@@ -38,16 +38,9 @@ public interface UserApi {
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
         summary = "내 정보 수정",
-        description = "이름, 생년월일, 성별, 비밀번호를 부분 수정합니다. 값을 보낸 필드만 변경되며, 비밀번호 변경 시 현재 비밀번호 검증이 필요합니다. 이메일은 변경할 수 없습니다."
+        description = "이름, 생년월일, 성별을 수정합니다. 비밀번호는 값이 있을 때만 변경되며, 이메일은 변경할 수 없습니다."
     )
     @ApiSuccessResponse(description = "수정 성공")
-    @ApiErrorCodeResponses({
-        INVALID_INPUT_VALUE,
-        INVALID_ACCESS_TOKEN,
-        USER_NOT_FOUND,
-        CURRENT_PASSWORD_REQUIRED,
-        CURRENT_PASSWORD_MISMATCH,
-        PASSWORD_CONFIRM_MISMATCH
-    })
+    @ApiErrorCodeResponses({INVALID_INPUT_VALUE, INVALID_ACCESS_TOKEN, USER_NOT_FOUND})
     ResponseEntity<UserResponse> updateUser(@UserId Long userId, @Valid @RequestBody UserUpdateRequest request);
 }

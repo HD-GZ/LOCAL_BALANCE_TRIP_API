@@ -123,15 +123,9 @@ public class User extends BaseEntity {
         this.status = UserStatus.ACTIVE;
     }
 
-    public void changeName(String name) {
+    public void update(String name, LocalDate birthDate, Gender gender) {
         this.name = name;
-    }
-
-    public void changeBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
-    }
-
-    public void changeGender(Gender gender) {
         this.gender = gender;
     }
 

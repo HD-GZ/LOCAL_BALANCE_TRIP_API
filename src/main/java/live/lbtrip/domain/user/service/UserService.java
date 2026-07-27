@@ -38,26 +38,11 @@ public class UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
 
-        if (request.name() != null) {
-            user.changeName(StringNormalizer.trim(request.name()));
-        }
-        if (request.birthDate() != null) {
-            user.changeBirthDate(request.birthDate());
-        }
-        if (request.gender() != null) {
-            user.changeGender(request.gender());
-        }
-        if (request.newPassword() != null) {
-            changePassword(user, request.currentPassword(), request.newPassword());
+        user.update(StringNormalizer.trim(request.name()), request.birthDate(), request.gender());
+        if (request.password() != null) {
+            user.changePassword(passwordEncoder.encode(request.password()));
         }
 
         return UserResponse.from(user);
-    }
-
-    private void changePassword(User user, String currentPassword, String newPassword) {
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw BusinessException.of(ErrorCode.CURRENT_PASSWORD_MISMATCH);
-        }
-        user.changePassword(passwordEncoder.encode(newPassword));
     }
 }
