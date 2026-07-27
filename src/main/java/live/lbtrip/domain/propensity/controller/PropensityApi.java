@@ -3,6 +3,7 @@ package live.lbtrip.domain.propensity.controller;
 import static live.lbtrip.global.error.ErrorCode.INVALID_ACCESS_TOKEN;
 import static live.lbtrip.global.error.ErrorCode.INVALID_INPUT_VALUE;
 import static live.lbtrip.global.error.ErrorCode.PROPENSITY_NOT_FOUND;
+import static live.lbtrip.global.error.ErrorCode.TRAVEL_PROFILE_NOT_FOUND;
 import static org.springframework.http.HttpStatus.CREATED;
 
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,8 @@ public interface PropensityApi {
     @ApiSuccessResponse(status = CREATED, description = "진단 결과 등록 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
-        INVALID_ACCESS_TOKEN
+        INVALID_ACCESS_TOKEN,
+        TRAVEL_PROFILE_NOT_FOUND
     })
     ResponseEntity<PropensityResponse> setPropensity(
         @UserId Long userId,
@@ -44,7 +46,8 @@ public interface PropensityApi {
     @ApiSuccessResponse(description = "진단 결과 조회 성공")
     @ApiErrorCodeResponses({
         INVALID_ACCESS_TOKEN,
-        PROPENSITY_NOT_FOUND
+        PROPENSITY_NOT_FOUND,
+        TRAVEL_PROFILE_NOT_FOUND
     })
     ResponseEntity<PropensityResponse> getPropensity(
         @UserId Long userId

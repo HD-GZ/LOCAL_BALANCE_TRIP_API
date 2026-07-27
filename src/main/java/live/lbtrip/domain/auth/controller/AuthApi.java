@@ -28,14 +28,19 @@ public interface AuthApi {
 
     @Operation(
         summary = "회원가입",
-        description = "회원가입 후 6자리 이메일 인증 코드를 발송합니다. 요청 body의 gender는 MALE, FEMALE, NOT_SPECIFIED 중 하나입니다."
+        description = """
+            회원가입 후 6자리 이메일 인증 코드를 발송합니다.
+            가입된 사용자 정보와 인증 코드 만료까지 남은 시간(초)을 반환합니다.
+            요청 body의 gender는 MALE, FEMALE, NOT_SPECIFIED 중 하나입니다.
+            """
     )
     @ApiSuccessResponse(status = CREATED, description = "회원가입 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         PASSWORD_CONFIRM_MISMATCH,
         REQUIRED_AGREEMENT_NOT_ACCEPTED,
-        DUPLICATE_EMAIL
+        DUPLICATE_EMAIL,
+        EMAIL_SEND_FAILED
     })
     ResponseEntity<SignupResponse> signup(
         @Valid @RequestBody SignupRequest request
@@ -52,7 +57,10 @@ public interface AuthApi {
         @Valid @RequestBody LoginRequest request
     );
 
-    @Operation(summary = "토큰 갱신", description = "refresh token으로 새 access token을 발급합니다.")
+    @Operation(
+        summary = "토큰 갱신",
+        description = "refresh token으로 새 access token을 발급하고, 요청에 사용한 기존 refresh token과 함께 반환합니다."
+    )
     @ApiSuccessResponse(description = "토큰 갱신 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
@@ -86,7 +94,8 @@ public interface AuthApi {
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         USER_NOT_FOUND,
-        EMAIL_ALREADY_VERIFIED
+        EMAIL_ALREADY_VERIFIED,
+        EMAIL_SEND_FAILED
     })
     ResponseEntity<EmailVerificationResponse> resendEmailVerification(
         @Valid @RequestBody EmailVerificationResendRequest request
