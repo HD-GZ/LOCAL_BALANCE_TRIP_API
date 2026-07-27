@@ -3,6 +3,7 @@ package live.lbtrip.domain.savedcourse.controller;
 import static org.springframework.http.HttpStatus.CREATED;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -54,6 +55,15 @@ public class SavedCourseController implements SavedCourseApi {
     ) {
         SavedCourseDetailResponse response = savedCourseService.getSavedCourseDetail(userId, savedCourseId);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/saved-courses/{savedCourseId}")
+    public ResponseEntity<Void> deleteSavedCourse(
+        @UserId Long userId,
+        @PathVariable Long savedCourseId
+    ) {
+        savedCourseService.deleteSavedCourse(userId, savedCourseId);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/saved-courses/{savedCourseId}/status")
