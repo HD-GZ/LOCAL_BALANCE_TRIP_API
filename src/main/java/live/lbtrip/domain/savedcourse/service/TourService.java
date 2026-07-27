@@ -34,6 +34,11 @@ public class TourService {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
         boolean completed = savedCourse.endTour();
 
-        return TourSummaryResponse.of(savedCourse, completed);
+        return TourSummaryResponse.of(
+            completed,
+            savedCourse.countVisitedPlaces(),
+            savedCourse.getPlaces().size(),
+            savedCourse.tourDurationMinutes()
+        );
     }
 }

@@ -1,5 +1,6 @@
 package live.lbtrip.domain.savedcourse.model.entity;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,6 +137,17 @@ public class SavedCourse extends BaseEntity {
             this.status = SavedCourseStatus.COMPLETED;
         }
         return completed;
+    }
+
+    public int countVisitedPlaces() {
+        return (int) places.stream().filter(SavedCoursePlace::isVisited).count();
+    }
+
+    public long tourDurationMinutes() {
+        if (tourStartedAt == null || tourEndedAt == null) {
+            return 0;
+        }
+        return Duration.between(tourStartedAt, tourEndedAt).toMinutes();
     }
 
     private void validateTraveling() {
