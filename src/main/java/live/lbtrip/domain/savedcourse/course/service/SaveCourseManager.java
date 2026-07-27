@@ -46,4 +46,8 @@ public class SaveCourseManager {
         }
         savedCourseRepository.save(savedCourse);
     }
+
+    public void remove(SavedCourse savedCourse) {
+        savedCourseRepository.delete(savedCourse);
+    }
 }

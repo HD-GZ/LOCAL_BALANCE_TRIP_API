@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.service.GeneratedCourseFinder;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
@@ -26,6 +27,7 @@ class SavedCourseServiceTest {
 
     private static final Long USER_ID = 1L;
     private static final Long COURSE_ID = 2L;
+    private static final Long SAVED_COURSE_ID = 3L;
 
     @Mock
     private SavedCourseFinder savedCourseFinder;
@@ -50,6 +52,9 @@ class SavedCourseServiceTest {
 
     @Mock
     private User user;
+
+    @Mock
+    private SavedCourse savedCourse;
 
     @InjectMocks
     private SavedCourseService savedCourseService;
@@ -110,6 +115,33 @@ class SavedCourseServiceTest {
                 .isEqualTo(ErrorCode.USER_NOT_FOUND);
 
             verify(saveCourseManager, never()).add(generatedCourse, user);
+        }
+    }
+
+    @Nested
+    class 삭제 {
+
+        @Test
+        void 저장한_코스를_삭제한다() {
+            when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
+                .thenReturn(savedCourse);
+
+            savedCourseService.deleteSavedCourse(USER_ID, SAVED_COURSE_ID);
+
+            verify(saveCourseManager).remove(savedCourse);
+        }
+
+        @Test
+        void 저장한_코스가_없으면_예외를_던진다() {
+            when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
+                .thenThrow(BusinessException.of(ErrorCode.SAVED_COURSE_NOT_FOUND));
+
+            assertThatThrownBy(() -> savedCourseService.deleteSavedCourse(USER_ID, SAVED_COURSE_ID))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.SAVED_COURSE_NOT_FOUND);
+
+            verify(saveCourseManager, never()).remove(savedCourse);
         }
     }
 }

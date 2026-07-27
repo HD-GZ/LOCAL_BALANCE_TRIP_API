@@ -123,6 +123,16 @@ public class User extends BaseEntity {
         this.status = UserStatus.ACTIVE;
     }
 
+    public void update(String name, LocalDate birthDate, Gender gender) {
+        this.name = name;
+        this.birthDate = birthDate;
+        this.gender = gender;
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
     public boolean isActive() {
         return status == UserStatus.ACTIVE;
     }

@@ -21,4 +21,16 @@ public final class UserResponseFixture {
             MARKETING_AGREED
         );
     }
+
+    public static UserResponse updatedUserResponse() {
+        return new UserResponse(
+            AuthResponseFixture.USER_ID,
+            UserRequestFixture.NEW_NAME,
+            UserFixture.EMAIL,
+            UserRequestFixture.NEW_BIRTH_DATE,
+            UserRequestFixture.NEW_GENDER,
+            UserStatus.ACTIVE,
+            MARKETING_AGREED
+        );
+    }
 }

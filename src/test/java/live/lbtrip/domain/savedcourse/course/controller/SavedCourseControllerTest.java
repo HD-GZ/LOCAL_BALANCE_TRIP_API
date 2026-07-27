@@ -3,6 +3,7 @@ package live.lbtrip.domain.savedcourse.course.controller;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,6 +36,7 @@ import live.lbtrip.support.fixture.TokenFixture;
 class SavedCourseControllerTest {
 
     private static final Long COURSE_ID = 2L;
+    private static final Long SAVED_COURSE_ID = 3L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -82,6 +84,43 @@ class SavedCourseControllerTest {
         @Test
         void 인증_토큰이_없으면_예외를_응답한다() throws Exception {
             mockMvc.perform(post("/recommendations/courses/{courseId}/save", COURSE_ID))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
+        }
+    }
+
+    @Nested
+    class 삭제 {
+
+        @Test
+        void 저장한_코스를_삭제한다() throws Exception {
+            인증된_사용자();
+
+            mockMvc.perform(delete("/saved-courses/{savedCourseId}", SAVED_COURSE_ID)
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"));
+
+            verify(savedCourseService).deleteSavedCourse(AuthResponseFixture.USER_ID, SAVED_COURSE_ID);
+        }
+
+        @Test
+        void 저장한_코스가_없으면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+            doThrow(BusinessException.of(ErrorCode.SAVED_COURSE_NOT_FOUND))
+                .when(savedCourseService).deleteSavedCourse(AuthResponseFixture.USER_ID, SAVED_COURSE_ID);
+
+            mockMvc.perform(delete("/saved-courses/{savedCourseId}", SAVED_COURSE_ID)
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("SAVED_COURSE_NOT_FOUND"));
+        }
+
+        @Test
+        void 인증_토큰이_없으면_예외를_응답한다() throws Exception {
+            mockMvc.perform(delete("/saved-courses/{savedCourseId}", SAVED_COURSE_ID))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));

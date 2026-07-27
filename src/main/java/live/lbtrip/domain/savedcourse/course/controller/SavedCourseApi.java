@@ -70,6 +70,24 @@ public interface SavedCourseApi {
 
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
+        summary = "저장 코스 삭제",
+        description = """
+            저장한 코스를 저장 목록에서 삭제합니다.
+            코스에 포함된 장소 정보도 함께 삭제되며, 본인이 저장한 코스만 삭제할 수 있습니다.
+            """
+    )
+    @ApiSuccessResponse(description = "코스 삭제 성공")
+    @ApiErrorCodeResponses({
+        INVALID_ACCESS_TOKEN,
+        SAVED_COURSE_NOT_FOUND
+    })
+    ResponseEntity<Void> deleteSavedCourse(
+        @UserId Long userId,
+        @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId
+    );
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
         summary = "[테스트] 저장 코스 여행 상태 변경",
         description = """
             클라이언트 테스트용 API입니다.
