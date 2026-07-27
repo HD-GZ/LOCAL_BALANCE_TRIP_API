@@ -4,6 +4,7 @@ import static live.lbtrip.global.storage.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,7 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
+import live.lbtrip.domain.image.model.ImageRegistration;
 import live.lbtrip.domain.image.model.ImageStatus;
 import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.domain.image.repository.ImageRepository;
@@ -24,6 +27,7 @@ import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.ImageFileValidator;
 import live.lbtrip.global.storage.ImageStorage;
 import live.lbtrip.global.storage.ValidatedImage;
 
@@ -42,7 +46,13 @@ class ImageServiceTest {
     private UserFinder userFinder;
 
     @Mock
+    private ImageFileValidator imageFileValidator;
+
+    @Mock
     private ImageStorage imageStorage;
+
+    @Mock
+    private MultipartFile imageFile;
 
     @Mock
     private User uploader;
@@ -61,19 +71,36 @@ class ImageServiceTest {
                 MediaType.IMAGE_JPEG
             );
             when(userFinder.findById(UPLOADER_ID)).thenReturn(uploader);
+            when(imageFileValidator.validate(imageFile)).thenReturn(validatedImage);
             when(imageStorage.store(validatedImage, RECEIPT)).thenReturn(IMAGE_KEY);
             when(imageRepository.save(any(Image.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-            Image result = imageService.register(UPLOADER_ID, RECEIPT, validatedImage);
+            ImageRegistration result = imageService.register(UPLOADER_ID, RECEIPT, imageFile);
 
-            assertThat(result.getUploader()).isSameAs(uploader);
-            assertThat(result.getDirectory()).isEqualTo(RECEIPT);
-            assertThat(result.getStorageKey()).isEqualTo(IMAGE_KEY);
-            assertThat(result.getContentType()).isEqualTo(MediaType.IMAGE_JPEG_VALUE);
-            assertThat(result.getFileSize()).isEqualTo(validatedImage.size());
-            assertThat(result.getStatus()).isEqualTo(ImageStatus.TEMPORARY);
-            verify(imageRepository).save(result);
+            assertThat(result.image().getUploader()).isSameAs(uploader);
+            assertThat(result.image().getDirectory()).isEqualTo(RECEIPT);
+            assertThat(result.image().getStorageKey()).isEqualTo(IMAGE_KEY);
+            assertThat(result.image().getContentType()).isEqualTo(MediaType.IMAGE_JPEG_VALUE);
+            assertThat(result.image().getFileSize()).isEqualTo(validatedImage.size());
+            assertThat(result.image().getStatus()).isEqualTo(ImageStatus.TEMPORARY);
+            assertThat(result.validatedImage()).isSameAs(validatedImage);
+            verify(imageRepository).save(result.image());
+        }
+
+        @Test
+        void 유효하지_않은_이미지는_저장소에_업로드하지_않는다() {
+            when(userFinder.findById(UPLOADER_ID)).thenReturn(uploader);
+            when(imageFileValidator.validate(imageFile))
+                .thenThrow(BusinessException.of(ErrorCode.INVALID_IMAGE_TYPE));
+
+            assertThatThrownBy(() -> imageService.register(UPLOADER_ID, RECEIPT, imageFile))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_IMAGE_TYPE);
+
+            verify(imageStorage, never()).store(any(), any());
+            verify(imageRepository, never()).save(any());
         }
     }
 

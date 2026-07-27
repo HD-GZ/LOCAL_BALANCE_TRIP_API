@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import live.lbtrip.domain.image.model.ImageRegistration;
 import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.dto.request.TourReceiptCreateRequest;
@@ -16,8 +17,6 @@ import live.lbtrip.domain.savedcourse.model.ReceiptOcrResult;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
-import live.lbtrip.global.storage.ImageFileValidator;
-import live.lbtrip.global.storage.ValidatedImage;
 import live.lbtrip.global.util.StringNormalizer;
 import lombok.RequiredArgsConstructor;
 
@@ -28,24 +27,18 @@ public class TourReceiptService {
 
     private final SavedCourseFinder savedCourseFinder;
     private final TourReceiptRepository tourReceiptRepository;
-    private final ImageFileValidator imageFileValidator;
     private final ReceiptOcrExtractor receiptOcrExtractor;
     private final ImageService imageService;
 
     public ReceiptScanResponse scan(Long userId, Long savedCourseId, MultipartFile image) {
         savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
-        ValidatedImage validatedImage = imageFileValidator.validate(image);
-        Image registeredImage = imageService.register(
-            userId,
-            RECEIPT,
-            validatedImage
-        );
-        ReceiptOcrResult result = receiptOcrExtractor.extract(validatedImage);
+        ImageRegistration registration = imageService.register(userId, RECEIPT, image);
+        ReceiptOcrResult result = receiptOcrExtractor.extract(registration.validatedImage());
 
         return ReceiptScanResponse.of(
-            registeredImage.getId(),
-            imageService.getPublicUrl(registeredImage),
+            registration.image().getId(),
+            imageService.getPublicUrl(registration.image()),
             result
         );
     }

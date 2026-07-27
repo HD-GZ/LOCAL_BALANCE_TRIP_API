@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
+import live.lbtrip.domain.image.model.ImageRegistration;
 import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.dto.request.TourReceiptCreateRequest;
@@ -33,7 +34,6 @@ import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.repository.TourReceiptRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
-import live.lbtrip.global.storage.ImageFileValidator;
 import live.lbtrip.global.storage.ValidatedImage;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,9 +52,6 @@ class TourReceiptServiceTest {
 
     @Mock
     private TourReceiptRepository tourReceiptRepository;
-
-    @Mock
-    private ImageFileValidator imageFileValidator;
 
     @Mock
     private ReceiptOcrExtractor receiptOcrExtractor;
@@ -86,8 +83,8 @@ class TourReceiptServiceTest {
             );
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
-            when(imageFileValidator.validate(multipartFile)).thenReturn(validatedImage);
-            when(imageService.register(USER_ID, RECEIPT, validatedImage)).thenReturn(image);
+            when(imageService.register(USER_ID, RECEIPT, multipartFile))
+                .thenReturn(ImageRegistration.of(image, validatedImage));
             when(image.getId()).thenReturn(IMAGE_ID);
             when(receiptOcrExtractor.extract(validatedImage)).thenReturn(ReceiptOcrResult.empty());
             when(imageService.getPublicUrl(image)).thenReturn(IMAGE_URL);
@@ -111,7 +108,6 @@ class TourReceiptServiceTest {
                 ErrorCode.SAVED_COURSE_NOT_FOUND
             );
 
-            verify(imageFileValidator, never()).validate(any());
             verify(imageService, never()).register(any(), any(), any());
         }
     }
