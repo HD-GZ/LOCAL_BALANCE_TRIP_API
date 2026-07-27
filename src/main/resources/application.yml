@@ -1,11 +1,11 @@
 spring:
   output:
     ansi:
-      enabled: ${SPRING_OUTPUT_ANSI_ENABLED:always}
+      enabled: ${SPRING_OUTPUT_ANSI_ENABLED}
   servlet:
     multipart:
-      max-file-size: ${MAX_IMAGE_SIZE:10MB}
-      max-request-size: ${MAX_REQUEST_SIZE:11MB}
+      max-file-size: ${MAX_IMAGE_SIZE}
+      max-request-size: ${MAX_REQUEST_SIZE}
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}

@@ -1,4 +1,11 @@
 spring:
+  output:
+    ansi:
+      enabled: never
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
   datasource:
     url: jdbc:h2:mem:lbtrip-test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
     username: sa
