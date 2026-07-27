@@ -2,10 +2,7 @@ package live.lbtrip.global.storage;
 
 import java.io.IOException;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,13 +14,6 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class ImageFileValidator {
-
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
-    private static final Map<ImageType, Set<String>> COMPATIBLE_EXTENSIONS = Map.of(
-        ImageType.JPEG, Set.of("jpg", "jpeg"),
-        ImageType.PNG, Set.of("png"),
-        ImageType.WEBP, Set.of("webp")
-    );
 
     private final StorageProperties properties;
 
@@ -38,10 +28,10 @@ public class ImageFileValidator {
         String extension = extractExtension(file.getOriginalFilename());
         byte[] bytes = readBytes(file);
         ImageType imageType = detectImageType(bytes);
-        if (!COMPATIBLE_EXTENSIONS.get(imageType).contains(extension)) {
+        if (!imageType.supportsExtension(extension)) {
             throw BusinessException.of(ErrorCode.INVALID_IMAGE_TYPE);
         }
-        return new ValidatedImage(bytes, extension, imageType.mediaType);
+        return new ValidatedImage(bytes, extension, imageType.mediaType());
     }
 
     private String extractExtension(String filename) {
@@ -49,7 +39,7 @@ public class ImageFileValidator {
             throw BusinessException.of(ErrorCode.INVALID_IMAGE_TYPE);
         }
         String extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+        if (extension.isBlank()) {
             throw BusinessException.of(ErrorCode.INVALID_IMAGE_TYPE);
         }
         return extension;
@@ -113,17 +103,5 @@ public class ImageFileValidator {
 
     private int unsigned(byte value) {
         return Byte.toUnsignedInt(value);
-    }
-
-    private enum ImageType {
-        JPEG(MediaType.IMAGE_JPEG),
-        PNG(MediaType.IMAGE_PNG),
-        WEBP(MediaType.parseMediaType("image/webp"));
-
-        private final MediaType mediaType;
-
-        ImageType(MediaType mediaType) {
-            this.mediaType = mediaType;
-        }
     }
 }
