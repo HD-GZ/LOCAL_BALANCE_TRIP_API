@@ -16,6 +16,14 @@ app:
   cors:
     allowed-origins:
       - http://localhost:3000
+  storage:
+    max-image-size: 10MB
+    s3:
+      bucket: test-bucket
+      region: ap-northeast-2
+      access-key: test-access-key
+      secret-key: test-secret-key
+    cdn-base-url: http://localhost
   jwt:
     secret: test-secret-key-that-is-at-least-32-bytes-long
     access-token-expiration: 30m
