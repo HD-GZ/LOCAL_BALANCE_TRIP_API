@@ -39,9 +39,13 @@ public record TourReceiptListResponse(
         }
     }
 
+    public static TourReceiptListResponse of(int totalAmount, List<InnerReceiptResponse> receipts) {
+        return new TourReceiptListResponse(totalAmount, receipts);
+    }
+
     public static TourReceiptListResponse from(List<TourReceipt> receipts) {
         int totalAmount = receipts.stream().mapToInt(TourReceipt::getAmount).sum();
-        return new TourReceiptListResponse(
+        return of(
             totalAmount,
             receipts.stream().map(InnerReceiptResponse::from).toList()
         );

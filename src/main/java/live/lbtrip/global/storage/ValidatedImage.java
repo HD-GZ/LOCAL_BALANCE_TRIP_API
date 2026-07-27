@@ -8,6 +8,10 @@ public record ValidatedImage(
     MediaType mediaType
 ) {
 
+    public static ValidatedImage of(byte[] bytes, String extension, MediaType mediaType) {
+        return new ValidatedImage(bytes, extension, mediaType);
+    }
+
     public long size() {
         return bytes.length;
     }

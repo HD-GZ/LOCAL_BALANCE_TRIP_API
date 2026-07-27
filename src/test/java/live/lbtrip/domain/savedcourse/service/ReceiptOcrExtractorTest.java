@@ -52,7 +52,7 @@ class ReceiptOcrExtractorTest {
 
         @Test
         void OCR_결과를_정규화한다() {
-            mockOcrResponse(new ReceiptOcrExtractor.RawOcrResult(
+            mockOcrResponse(ReceiptOcrExtractor.RawOcrResult.of(
                 "국수거리 노포",
                 18000,
                 "2026-07-17"
@@ -67,7 +67,7 @@ class ReceiptOcrExtractorTest {
 
         @Test
         void 결제일을_파싱할_수_없으면_해당_필드만_null로_반환한다() {
-            mockOcrResponse(new ReceiptOcrExtractor.RawOcrResult(
+            mockOcrResponse(ReceiptOcrExtractor.RawOcrResult.of(
                 "국수거리 노포",
                 18000,
                 "잘못된 날짜"
@@ -101,7 +101,7 @@ class ReceiptOcrExtractorTest {
     }
 
     private ValidatedImage image() {
-        return new ValidatedImage(
+        return ValidatedImage.of(
             new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF},
             "jpg",
             MediaType.IMAGE_JPEG

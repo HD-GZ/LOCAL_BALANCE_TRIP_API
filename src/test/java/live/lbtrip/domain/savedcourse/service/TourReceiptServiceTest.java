@@ -82,7 +82,7 @@ class TourReceiptServiceTest {
 
         @Test
         void OCR_결과가_없어도_이미지_정보를_반환한다() {
-            ValidatedImage validatedImage = new ValidatedImage(
+            ValidatedImage validatedImage = ValidatedImage.of(
                 new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF},
                 "jpg",
                 MediaType.IMAGE_JPEG
@@ -130,7 +130,7 @@ class TourReceiptServiceTest {
 
         @Test
         void 사용자가_직접_입력한_필드로_증빙을_등록한다() {
-            TourReceiptCreateRequest request = new TourReceiptCreateRequest(
+            TourReceiptCreateRequest request = TourReceiptCreateRequest.of(
                 IMAGE_ID,
                 "  국수거리 노포  ",
                 18000,

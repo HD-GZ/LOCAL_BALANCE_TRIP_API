@@ -47,7 +47,7 @@ class S3ImageStorageTest {
 
         @Test
         void 검증된_MIME_타입으로_이미지를_저장한다() {
-            ValidatedImage image = new ValidatedImage(
+            ValidatedImage image = ValidatedImage.of(
                 new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF},
                 "jpg",
                 MediaType.IMAGE_JPEG
@@ -65,7 +65,7 @@ class S3ImageStorageTest {
 
         @Test
         void S3_업로드에_실패하면_비즈니스_예외를_던진다() {
-            ValidatedImage image = new ValidatedImage(
+            ValidatedImage image = ValidatedImage.of(
                 new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF},
                 "jpg",
                 MediaType.IMAGE_JPEG

@@ -31,7 +31,7 @@ public class ImageFileValidator {
         if (!imageType.supportsExtension(extension)) {
             throw BusinessException.of(ErrorCode.INVALID_IMAGE_TYPE);
         }
-        return new ValidatedImage(bytes, extension, imageType.mediaType());
+        return ValidatedImage.of(bytes, extension, imageType.mediaType());
     }
 
     private String extractExtension(String filename) {

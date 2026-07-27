@@ -32,4 +32,13 @@ public record TourReceiptCreateRequest(
     @PastOrPresent(message = "결제 일자는 미래일 수 없습니다.")
     LocalDate paidDate
 ) {
+
+    public static TourReceiptCreateRequest of(
+        Long imageId,
+        String merchantName,
+        Integer amount,
+        LocalDate paidDate
+    ) {
+        return new TourReceiptCreateRequest(imageId, merchantName, amount, paidDate);
+    }
 }

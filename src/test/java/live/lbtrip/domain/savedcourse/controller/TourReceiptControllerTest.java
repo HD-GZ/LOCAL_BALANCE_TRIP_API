@@ -79,12 +79,10 @@ class TourReceiptControllerTest {
                 org.mockito.ArgumentMatchers.eq(AuthResponseFixture.USER_ID),
                 org.mockito.ArgumentMatchers.eq(SAVED_COURSE_ID),
                 any()
-            )).thenReturn(new ReceiptScanResponse(
+            )).thenReturn(ReceiptScanResponse.of(
                 IMAGE_ID,
                 "https://images.example.com/receipt.jpg",
-                null,
-                null,
-                null
+                live.lbtrip.domain.savedcourse.model.ReceiptOcrResult.empty()
             ));
 
             mockMvc.perform(multipart("/saved-courses/{savedCourseId}/receipts/scan", SAVED_COURSE_ID)
@@ -180,7 +178,7 @@ class TourReceiptControllerTest {
         void 증빙_목록을_조회한다() throws Exception {
             인증된_사용자();
             when(tourReceiptService.getReceipts(AuthResponseFixture.USER_ID, SAVED_COURSE_ID))
-                .thenReturn(new TourReceiptListResponse(18000, List.of()));
+                .thenReturn(TourReceiptListResponse.of(18000, List.of()));
 
             mockMvc.perform(get("/saved-courses/{savedCourseId}/receipts", SAVED_COURSE_ID)
                     .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
@@ -230,7 +228,7 @@ class TourReceiptControllerTest {
     }
 
     private TourReceiptResponse receiptResponse() {
-        return new TourReceiptResponse(
+        return TourReceiptResponse.of(
             RECEIPT_ID,
             "국수거리 노포",
             18000,

@@ -51,8 +51,17 @@ public record TourProgressResponse(
         }
     }
 
+    public static TourProgressResponse of(
+        Long savedCourseId,
+        SavedCourseStatus status,
+        LocalDateTime tourStartedAt,
+        List<InnerTourPlaceResponse> places
+    ) {
+        return new TourProgressResponse(savedCourseId, status, tourStartedAt, places);
+    }
+
     public static TourProgressResponse from(SavedCourse savedCourse) {
-        return new TourProgressResponse(
+        return of(
             savedCourse.getId(),
             savedCourse.getStatus(),
             savedCourse.getTourStartedAt(),

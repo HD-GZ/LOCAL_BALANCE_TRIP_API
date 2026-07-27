@@ -60,7 +60,7 @@ class TourControllerTest {
         @Test
         void 투어를_시작하고_진행_상황을_응답한다() throws Exception {
             인증된_사용자();
-            TourProgressResponse response = new TourProgressResponse(
+            TourProgressResponse response = TourProgressResponse.of(
                 SAVED_COURSE_ID,
                 SavedCourseStatus.TRAVELING,
                 null,
@@ -118,7 +118,7 @@ class TourControllerTest {
         void 투어를_종료하고_요약을_응답한다() throws Exception {
             인증된_사용자();
             when(tourService.endTour(AuthResponseFixture.USER_ID, SAVED_COURSE_ID))
-                .thenReturn(new TourSummaryResponse(true, 2, 2, 60));
+                .thenReturn(TourSummaryResponse.of(true, 2, 2, 60));
 
             mockMvc.perform(post("/saved-courses/{savedCourseId}/tour/end", SAVED_COURSE_ID)
                     .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))

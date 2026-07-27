@@ -69,5 +69,9 @@ public class ReceiptOcrExtractor {
     }
 
     record RawOcrResult(String merchantName, Integer amount, String paidDate) {
+
+        static RawOcrResult of(String merchantName, Integer amount, String paidDate) {
+            return new RawOcrResult(merchantName, amount, paidDate);
+        }
     }
 }
