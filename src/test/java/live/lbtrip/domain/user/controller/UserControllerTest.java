@@ -1,7 +1,11 @@
 package live.lbtrip.domain.user.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,9 +22,12 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
+import live.lbtrip.domain.user.dto.request.UserUpdateRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.service.UserService;
 import live.lbtrip.global.config.CorsProperties;
@@ -29,6 +36,7 @@ import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 import live.lbtrip.support.fixture.UserFixture;
+import live.lbtrip.support.fixture.UserRequestFixture;
 import live.lbtrip.support.fixture.UserResponseFixture;
 
 @WebMvcTest(UserController.class)
@@ -37,6 +45,8 @@ class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @MockitoBean
     private UserService userService;
@@ -115,6 +125,79 @@ class UserControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("USER_NOT_FOUND"));
+        }
+    }
+
+    @Nested
+    class 내_정보_수정 {
+
+        @Test
+        void 회원_정보를_수정한다() throws Exception {
+            인증된_사용자();
+            when(userService.updateUser(eq(AuthResponseFixture.USER_ID), any(UserUpdateRequest.class)))
+                .thenReturn(UserResponseFixture.updatedUserResponse());
+
+            mockMvc.perform(patch("/users/me")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(UserRequestFixture.userUpdateRequest())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.userId").value(AuthResponseFixture.USER_ID))
+                .andExpect(jsonPath("$.data.name").value(UserRequestFixture.NEW_NAME))
+                .andExpect(jsonPath("$.data.birthDate").value(UserRequestFixture.NEW_BIRTH_DATE.toString()))
+                .andExpect(jsonPath("$.data.gender").value(UserRequestFixture.NEW_GENDER.name()))
+                .andExpect(jsonPath("$.data.email").value(UserFixture.EMAIL));
+        }
+
+        @Test
+        void 이름이_없으면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+            UserUpdateRequest request = new UserUpdateRequest(
+                null,
+                UserRequestFixture.NEW_BIRTH_DATE,
+                UserRequestFixture.NEW_GENDER,
+                null,
+                null
+            );
+
+            mockMvc.perform(patch("/users/me")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
+        }
+
+        @Test
+        void 비밀번호_확인이_일치하지_않으면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+            UserUpdateRequest request = new UserUpdateRequest(
+                UserRequestFixture.NEW_NAME,
+                UserRequestFixture.NEW_BIRTH_DATE,
+                UserRequestFixture.NEW_GENDER,
+                UserRequestFixture.NEW_PASSWORD,
+                "different1"
+            );
+
+            mockMvc.perform(patch("/users/me")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
+        }
+
+        @Test
+        void 인증_토큰이_없으면_예외를_응답한다() throws Exception {
+            mockMvc.perform(patch("/users/me")
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(UserRequestFixture.userUpdateRequest())))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
         }
     }
 
