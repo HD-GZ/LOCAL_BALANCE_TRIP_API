@@ -7,6 +7,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import live.lbtrip.global.response.ApiResponse;
@@ -52,6 +53,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleNoResourceFoundException() {
         return ResponseEntity.status(ErrorCode.RESOURCE_NOT_FOUND.getStatus())
             .body(ApiResponse.error(ErrorCode.RESOURCE_NOT_FOUND));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMaxUploadSizeExceededException() {
+        return ResponseEntity.status(ErrorCode.IMAGE_SIZE_EXCEEDED.getStatus())
+            .body(ApiResponse.error(ErrorCode.IMAGE_SIZE_EXCEEDED));
     }
 
     @ExceptionHandler(Exception.class)

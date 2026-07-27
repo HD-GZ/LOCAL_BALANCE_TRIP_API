@@ -39,6 +39,12 @@ public enum ErrorCode {
     SAVED_COURSE_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "저장한 코스의 장소를 찾을 수 없습니다."),
     TOUR_ALREADY_COMPLETED(HttpStatus.CONFLICT, "이미 완주한 코스입니다."),
     TOUR_NOT_IN_PROGRESS(HttpStatus.CONFLICT, "진행 중인 투어가 아닙니다."),
+    INVALID_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 형식입니다."),
+    IMAGE_SIZE_EXCEEDED(HttpStatus.CONTENT_TOO_LARGE, "허용된 이미지 크기를 초과했습니다."),
+    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다."),
+    IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "이미지를 찾을 수 없습니다."),
+    IMAGE_ALREADY_ATTACHED(HttpStatus.CONFLICT, "이미 사용 중인 이미지입니다."),
+    TOUR_RECEIPT_NOT_FOUND(HttpStatus.NOT_FOUND, "환급 증빙을 찾을 수 없습니다."),
     ;
 
     private final HttpStatus status;

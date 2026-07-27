@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -19,7 +20,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -77,6 +78,10 @@ public class SavedCourse extends BaseEntity {
     @OrderBy("visitOrder asc")
     private List<SavedCoursePlace> places = new ArrayList<>();
 
+    @OneToMany(mappedBy = "savedCourse")
+    @OrderBy("id desc")
+    private List<TourReceipt> receipts = new ArrayList<>();
+
     private SavedCourse(
         User user, Long sourceCourseId, String courseName, String regionName, String reason,
         String imageUrl, String ldongRegnCd, String ldongSignguCd
@@ -107,6 +112,23 @@ public class SavedCourse extends BaseEntity {
     public void addPlace(SavedCoursePlace place) {
         places.add(place);
         place.assignSavedCourse(this);
+    }
+
+    void addReceipt(TourReceipt receipt) {
+        receipts.add(receipt);
+    }
+
+    public int calculateTotalReceiptAmount() {
+        return receipts.stream()
+            .mapToInt(TourReceipt::getAmount)
+            .sum();
+    }
+
+    public TourReceipt findReceiptById(Long receiptId) {
+        return receipts.stream()
+            .filter(receipt -> Objects.equals(receipt.getId(), receiptId))
+            .findFirst()
+            .orElseThrow(() -> BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
     }
 
     public void startTour() {

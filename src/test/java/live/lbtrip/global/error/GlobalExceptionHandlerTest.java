@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
@@ -52,11 +53,29 @@ class GlobalExceptionHandlerTest {
         }
     }
 
+    @Nested
+    class 이미지_크기_초과 {
+
+        @Test
+        void 공통_응답_형식으로_413을_응답한다() throws Exception {
+            mockMvc.perform(get("/too-large"))
+                .andExpect(status().isContentTooLarge())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.data").doesNotExist())
+                .andExpect(jsonPath("$.error.code").value("IMAGE_SIZE_EXCEEDED"));
+        }
+    }
+
     @RestController
     static class TestController {
 
         @GetMapping("/test")
         void test() {
+        }
+
+        @GetMapping("/too-large")
+        void tooLarge() {
+            throw new MaxUploadSizeExceededException(10L * 1024 * 1024);
         }
     }
 

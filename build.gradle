@@ -31,6 +31,8 @@ ext {
 
 dependencies {
 	implementation platform("org.springframework.ai:spring-ai-bom:${springAiVersion}")
+	implementation platform('software.amazon.awssdk:bom:2.46.7')
+	implementation 'software.amazon.awssdk:s3'
 	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -57,4 +59,5 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	systemProperty 'spring.profiles.active', 'test'
 }
