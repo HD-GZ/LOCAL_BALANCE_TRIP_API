@@ -49,8 +49,14 @@ public interface SavedCourseApi {
     );
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "저장 코스 목록 조회", description = "저장한 코스를 최근 저장 순으로 페이지네이션하여 조회합니다. limit 생략 시 10개씩 조회합니다. status 지정 시 해당 여행 상태의 코스만 조회합니다.")
-    @ApiSuccessResponse(description = "조회 성공")
+    @Operation(
+        summary = "저장 코스 목록 조회",
+        description = """
+            저장한 코스를 최근 저장 순으로 페이지네이션하여 조회합니다.
+            limit을 생략하면 10개씩 조회하며, status를 지정하면 해당 여행 상태의 코스만 반환합니다.
+            """
+    )
+    @ApiSuccessResponse(description = "저장 코스 목록 조회 성공")
     @ApiErrorCodeResponses({INVALID_INPUT_VALUE, INVALID_ACCESS_TOKEN})
     ResponseEntity<SavedCourseListResponse> getSavedCourses(
         @UserId Long userId,
@@ -60,8 +66,14 @@ public interface SavedCourseApi {
     );
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "저장 코스 상세 조회", description = "저장한 코스의 타임라인과 적용 가능한 혜택을 조회합니다.")
-    @ApiSuccessResponse(description = "조회 성공")
+    @Operation(
+        summary = "저장 코스 상세 조회",
+        description = """
+            저장한 코스의 장소 타임라인을 조회합니다.
+            코스 지역에 적용 가능한 혜택 목록을 함께 반환합니다.
+            """
+    )
+    @ApiSuccessResponse(description = "저장 코스 상세 조회 성공")
     @ApiErrorCodeResponses({INVALID_ACCESS_TOKEN, SAVED_COURSE_NOT_FOUND})
     ResponseEntity<SavedCourseDetailResponse> getSavedCourseDetail(
         @UserId Long userId,
@@ -76,7 +88,7 @@ public interface SavedCourseApi {
             코스에 포함된 장소 정보도 함께 삭제되며, 본인이 저장한 코스만 삭제할 수 있습니다.
             """
     )
-    @ApiSuccessResponse(description = "코스 삭제 성공")
+    @ApiSuccessResponse(description = "저장 코스 삭제 성공")
     @ApiErrorCodeResponses({
         INVALID_ACCESS_TOKEN,
         SAVED_COURSE_NOT_FOUND
@@ -95,7 +107,7 @@ public interface SavedCourseApi {
             본인이 저장한 코스만 변경할 수 있습니다.
             """
     )
-    @ApiSuccessResponse(description = "상태 변경 성공")
+    @ApiSuccessResponse(description = "저장 코스 여행 상태 변경 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         INVALID_ACCESS_TOKEN,

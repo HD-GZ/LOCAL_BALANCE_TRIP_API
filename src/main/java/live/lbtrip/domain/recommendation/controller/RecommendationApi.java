@@ -31,10 +31,10 @@ public interface RecommendationApi {
     @Operation(
         summary = "코스 추천 생성",
         description = """
-            "코스 추천받기" 버튼용. 사용자 성향(10축) 기반으로 TourAPI를 호출해
-            추천 지역 5곳과 지역별 코스 3개, 코스별 장소 스냅샷을 생성해 저장합니다.
-            기존 추천 결과는 덮어씁니다. 외부 API를 순차 호출하므로 수십 초가 걸릴 수 있습니다.
-            응답 바디는 없으며, 완료 후 여행지 리스트 조회 API를 호출하세요.
+            사용자 성향(10축)과 TourAPI 관광 정보를 기반으로 맞춤 코스 추천을 생성합니다.
+            추천 지역 최대 5곳, 지역별 코스 최대 3개와 코스별 장소 스냅샷을 저장합니다.
+            생성이 완료되면 기존 추천 결과를 새 결과로 교체합니다.
+            외부 API를 순차 호출하므로 수십 초가 걸릴 수 있으며, 완료 후 추천 여행지 목록을 별도로 조회해야 합니다.
             """
     )
     @ApiSuccessResponse(status = CREATED, description = "추천 생성 성공")
@@ -52,7 +52,7 @@ public interface RecommendationApi {
     @Operation(
         summary = "추천 여행지 리스트 조회",
         description = """
-            생성된 추천 지역 카드 목록을 반환합니다(DB 조회 전용).
+            현재 로그인한 사용자의 추천 여행지 목록을 조회합니다.
             생성 이력이 없으면 빈 리스트를 반환합니다.
             """
     )
@@ -68,7 +68,7 @@ public interface RecommendationApi {
     @Operation(
         summary = "여행지별 코스 리스트 조회",
         description = """
-            선택한 추천 여행지에 생성된 코스 카드 목록을 반환합니다(DB 조회 전용).
+            선택한 추천 여행지에 생성된 코스 목록을 조회합니다.
             """
     )
     @ApiSuccessResponse(description = "코스 리스트 조회 성공")
@@ -86,9 +86,8 @@ public interface RecommendationApi {
     @Operation(
         summary = "코스 상세 조회",
         description = """
-            저장된 장소 스냅샷으로 코스 순서 타임라인(장소별 소개·이미지·좌표·도보 시간·오디오)을
-            반환합니다(DB 조회 전용). 코스 지역(법정동 코드)에 매칭되는 적용 가능 혜택 목록(benefits)을
-            함께 반환합니다.
+            저장된 장소 스냅샷으로 코스의 장소 타임라인을 조회합니다.
+            장소별 소개·이미지·좌표·도보 시간·오디오와 코스 지역에 적용 가능한 혜택 목록을 반환합니다.
             """
     )
     @ApiSuccessResponse(description = "코스 상세 조회 성공")

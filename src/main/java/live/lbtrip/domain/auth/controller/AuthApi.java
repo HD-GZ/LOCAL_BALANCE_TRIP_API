@@ -28,20 +28,32 @@ public interface AuthApi {
 
     @Operation(
         summary = "회원가입",
-        description = "회원가입 후 6자리 이메일 인증 코드를 발송합니다. 요청 body의 gender는 MALE, FEMALE, NOT_SPECIFIED 중 하나입니다."
+        description = """
+            회원가입 후 6자리 이메일 인증 코드를 발송합니다.
+            가입된 사용자 정보와 인증 코드 만료까지 남은 시간(초)을 반환합니다.
+            요청 body의 gender는 MALE, FEMALE, NOT_SPECIFIED 중 하나입니다.
+            """
     )
     @ApiSuccessResponse(status = CREATED, description = "회원가입 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         PASSWORD_CONFIRM_MISMATCH,
         REQUIRED_AGREEMENT_NOT_ACCEPTED,
-        DUPLICATE_EMAIL
+        DUPLICATE_EMAIL,
+        EMAIL_SEND_FAILED
     })
     ResponseEntity<SignupResponse> signup(
         @Valid @RequestBody SignupRequest request
     );
 
-    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하고 access token과 refresh token을 반환합니다.")
+    @Operation(
+        summary = "로그인",
+        description = """
+            이메일과 비밀번호로 로그인을 처리합니다.
+            access token과 refresh token을 반환합니다.
+            이메일 인증을 완료하지 않은 사용자는 로그인할 수 없습니다.
+            """
+    )
     @ApiSuccessResponse(description = "로그인 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
@@ -52,7 +64,13 @@ public interface AuthApi {
         @Valid @RequestBody LoginRequest request
     );
 
-    @Operation(summary = "토큰 갱신", description = "refresh token으로 새 access token을 발급합니다.")
+    @Operation(
+        summary = "토큰 갱신",
+        description = """
+            refresh token을 검증하고 새 access token을 발급합니다.
+            새 access token과 요청에 사용한 기존 refresh token을 함께 반환합니다.
+            """
+    )
     @ApiSuccessResponse(description = "토큰 갱신 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
@@ -64,12 +82,23 @@ public interface AuthApi {
     );
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "로그아웃", description = "로그인한 사용자를 로그아웃 처리합니다.")
+    @Operation(
+        summary = "로그아웃",
+        description = """
+            로그인한 사용자의 refresh token을 삭제해 로그아웃 처리합니다.
+            """
+    )
     @ApiSuccessResponse(description = "로그아웃 성공")
     @ApiErrorCodeResponses(INVALID_ACCESS_TOKEN)
     ResponseEntity<Void> logout(@UserId Long userId);
 
-    @Operation(summary = "이메일 인증 확인", description = "6자리 이메일 인증 코드를 확인하고 사용자를 활성화합니다.")
+    @Operation(
+        summary = "이메일 인증 확인",
+        description = """
+            6자리 이메일 인증 코드를 확인합니다.
+            인증에 성공하면 사용자 상태를 ACTIVE로 변경해 반환합니다.
+            """
+    )
     @ApiSuccessResponse(description = "이메일 인증 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
@@ -81,12 +110,19 @@ public interface AuthApi {
         @Valid @RequestBody EmailVerificationConfirmRequest request
     );
 
-    @Operation(summary = "이메일 인증 코드 재발송", description = "미인증 사용자에게 6자리 이메일 인증 코드를 다시 발송합니다.")
+    @Operation(
+        summary = "이메일 인증 코드 재발송",
+        description = """
+            이메일 인증을 완료하지 않은 사용자에게 6자리 인증 코드를 다시 발송합니다.
+            사용자 정보와 현재 인증 대기 상태를 반환합니다.
+            """
+    )
     @ApiSuccessResponse(description = "인증 코드 재발송 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         USER_NOT_FOUND,
-        EMAIL_ALREADY_VERIFIED
+        EMAIL_ALREADY_VERIFIED,
+        EMAIL_SEND_FAILED
     })
     ResponseEntity<EmailVerificationResponse> resendEmailVerification(
         @Valid @RequestBody EmailVerificationResendRequest request

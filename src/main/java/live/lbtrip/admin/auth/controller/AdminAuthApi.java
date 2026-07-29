@@ -17,7 +17,13 @@ import live.lbtrip.global.swagger.ApiSuccessResponse;
 @Tag(name = "Admin Auth", description = "어드민 로그인 API")
 public interface AdminAuthApi {
 
-    @Operation(summary = "어드민 로그인", description = "이메일과 비밀번호로 로그인하고 어드민 access token을 반환합니다.")
+    @Operation(
+        summary = "어드민 로그인",
+        description = """
+            이메일과 비밀번호로 어드민 로그인을 처리합니다.
+            API 인증에 사용할 access token을 반환합니다.
+            """
+    )
     @ApiSuccessResponse(description = "로그인 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
