@@ -30,6 +30,7 @@ public class TourReceiptService {
     private final ReceiptOcrExtractor receiptOcrExtractor;
     private final ImageService imageService;
 
+    @Transactional
     public ReceiptScanResponse scan(Long userId, Long savedCourseId, MultipartFile image) {
         savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 

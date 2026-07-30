@@ -84,6 +84,45 @@ class SavedCourseTourTest {
         }
     }
 
+    @Nested
+    class 리포트_검증 {
+
+        @Test
+        void 투어를_종료한_코스는_리포트를_조회할_수_있다() {
+            SavedCourse savedCourse = savedCourse();
+            savedCourse.addPlace(place(1L, 1));
+            savedCourse.startTour();
+            savedCourse.checkInPlace(1L);
+            savedCourse.endTour();
+
+            savedCourse.validateReportAvailable();
+        }
+
+        @Test
+        void 투어를_종료하지_않은_코스는_리포트를_조회할_수_없다() {
+            SavedCourse savedCourse = savedCourse();
+
+            assertErrorCode(
+                savedCourse::validateReportAvailable,
+                ErrorCode.TOUR_REPORT_NOT_AVAILABLE
+            );
+        }
+
+        @Test
+        void 투어를_다시_시작하면_리포트를_조회할_수_없다() {
+            SavedCourse savedCourse = savedCourse();
+            savedCourse.addPlace(place(1L, 1));
+            savedCourse.startTour();
+            savedCourse.endTour();
+            savedCourse.startTour();
+
+            assertErrorCode(
+                savedCourse::validateReportAvailable,
+                ErrorCode.TOUR_REPORT_NOT_AVAILABLE
+            );
+        }
+    }
+
     private SavedCourse savedCourse() {
         return SavedCourse.create(
             mock(User.class),

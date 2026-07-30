@@ -172,6 +172,12 @@ public class SavedCourse extends BaseEntity {
         return Duration.between(tourStartedAt, tourEndedAt).toMinutes();
     }
 
+    public void validateReportAvailable() {
+        if (tourEndedAt == null) {
+            throw BusinessException.of(ErrorCode.TOUR_REPORT_NOT_AVAILABLE);
+        }
+    }
+
     private void validateTraveling() {
         if (status != SavedCourseStatus.TRAVELING) {
             throw BusinessException.of(ErrorCode.TOUR_NOT_IN_PROGRESS);
