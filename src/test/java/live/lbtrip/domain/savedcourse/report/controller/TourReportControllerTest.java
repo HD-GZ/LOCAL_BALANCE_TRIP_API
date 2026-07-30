@@ -76,7 +76,8 @@ class TourReportControllerTest {
                 .andExpect(jsonPath("$.data.imageUrl").value("https://images.example.com/course.jpg"))
                 .andExpect(jsonPath("$.data.visitedPlaceCount").value(5))
                 .andExpect(jsonPath("$.data.durationMinutes").value(130))
-                .andExpect(jsonPath("$.data.totalSpentAmount").value(52000));
+                .andExpect(jsonPath("$.data.totalSpentAmount").value(52000))
+                .andExpect(jsonPath("$.data.tourEndedAt").value("2026-07-17T15:30:00"));
         }
 
         @Test
