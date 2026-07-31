@@ -39,6 +39,7 @@ app:
     admin-access-token-expiration: 30m
   mail:
     from: no-reply@test.local
+    from-name: 로컬밸런스 트립
   email-verification:
     code-expiration: 24h
 
