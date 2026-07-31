@@ -26,15 +26,18 @@ public class EmailService {
     private final SendGrid sendGrid;
     private final String from;
     private final String fromName;
+    private final EmailVerificationMailTemplate mailTemplate;
 
     public EmailService(
         SendGrid sendGrid,
         @Value("${app.mail.from}") String from,
-        @Value("${app.mail.from-name}") String fromName
+        @Value("${app.mail.from-name}") String fromName,
+        EmailVerificationMailTemplate mailTemplate
     ) {
         this.sendGrid = sendGrid;
         this.from = from;
         this.fromName = fromName;
+        this.mailTemplate = mailTemplate;
     }
 
     public void sendVerificationEmail(String toEmail, String code) {
@@ -42,9 +45,9 @@ public class EmailService {
             new Email(from, fromName),
             "[로컬밸런스 트립] 이메일 인증번호를 안내드립니다",
             new Email(toEmail),
-            new Content("text/plain", EmailVerificationMailTemplate.plainText(code))
+            new Content("text/plain", mailTemplate.plainText(code))
         );
-        mail.addContent(new Content("text/html", EmailVerificationMailTemplate.html(code)));
+        mail.addContent(new Content("text/html", mailTemplate.html(code)));
 
         Request request = new Request();
         try {
