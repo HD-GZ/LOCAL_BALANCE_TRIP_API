@@ -4,15 +4,16 @@ import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
 
 public final class PropensityResponseFixture {
 
-    public static final String TYPE = "실속형 로컬 감성 여행자";
-    public static final String DESCRIPTION = "럭셔리보다 실속을, 유명 명소보다 골목 상권을, 구경보다 직접 체험을 즐기는 세대 동행 여행자예요.";
+    public static final String TYPE = "%s (%s)".formatted(TravelProfileFixture.NICKNAME, TravelProfileFixture.CODE);
+    public static final String DESCRIPTION = TravelProfileFixture.DESCRIPTION;
+    public static final String IMAGE_URL = "https://stage.images.lb-trip.live/" + TravelProfileFixture.IMAGE_KEY;
 
     private PropensityResponseFixture() {
     }
 
     public static PropensityResponse propensityResponse() {
         return new PropensityResponse(
-            new PropensityResponse.InnerPropensityResultResponse(TYPE, DESCRIPTION),
+            new PropensityResponse.InnerPropensityResultResponse(TYPE, DESCRIPTION, IMAGE_URL),
             new PropensityResponse.InnerPreferenceResponse(
                 PropensityRequestFixture.LOCALITY,
                 PropensityRequestFixture.FRUGALITY,
