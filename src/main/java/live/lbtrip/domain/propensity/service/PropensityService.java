@@ -43,7 +43,7 @@ public class PropensityService {
             });
 
         TravelProfile travelProfile = travelProfileFinder.findByPreference(preference);
-        return PropensityResponse.of(propensity, travelProfile, imageUrl(travelProfile));
+        return PropensityResponse.of(propensity, travelProfile, imageStorage.publicUrl(travelProfile.getImageKey()));
     }
 
     public PropensityResponse getPropensity(Long userId) {
@@ -51,13 +51,6 @@ public class PropensityService {
             .orElseThrow(() -> BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND));
 
         TravelProfile travelProfile = travelProfileFinder.findByPreference(propensity.getPreference());
-        return PropensityResponse.of(propensity, travelProfile, imageUrl(travelProfile));
-    }
-
-    private String imageUrl(TravelProfile travelProfile) {
-        if (travelProfile.getImageKey() == null) {
-            return null;
-        }
-        return imageStorage.publicUrl(travelProfile.getImageKey());
+        return PropensityResponse.of(propensity, travelProfile, imageStorage.publicUrl(travelProfile.getImageKey()));
     }
 }
