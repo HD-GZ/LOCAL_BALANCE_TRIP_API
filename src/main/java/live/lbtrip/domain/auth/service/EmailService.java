@@ -25,28 +25,26 @@ public class EmailService {
 
     private final SendGrid sendGrid;
     private final String from;
+    private final String fromName;
 
     public EmailService(
         SendGrid sendGrid,
-        @Value("${app.mail.from}") String from
+        @Value("${app.mail.from}") String from,
+        @Value("${app.mail.from-name}") String fromName
     ) {
         this.sendGrid = sendGrid;
         this.from = from;
+        this.fromName = fromName;
     }
 
     public void sendVerificationEmail(String toEmail, String code) {
         Mail mail = new Mail(
-            new Email(from),
-            "[로컬밸런스 트립] 이메일 인증을 완료해 주세요",
+            new Email(from, fromName),
+            "[로컬밸런스 트립] 이메일 인증번호를 안내드립니다",
             new Email(toEmail),
-            new Content("text/plain", """
-                로컬밸런스 트립 회원가입을 완료하려면 아래 인증 코드를 입력해 주세요.
-                
-                인증 코드: %s
-                
-                본인이 요청하지 않았다면 이 메일을 무시해 주세요.
-                """.formatted(code))
+            new Content("text/plain", EmailVerificationMailTemplate.plainText(code))
         );
+        mail.addContent(new Content("text/html", EmailVerificationMailTemplate.html(code)));
 
         Request request = new Request();
         try {

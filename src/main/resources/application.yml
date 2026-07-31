@@ -43,6 +43,7 @@ app:
     admin-access-token-expiration: ${JWT_ADMIN_ACCESS_TOKEN_EXPIRATION}
   mail:
     from: ${MAIL_FROM}
+    from-name: ${MAIL_FROM_NAME}
   email-verification:
     code-expiration: ${EMAIL_VERIFICATION_CODE_EXPIRATION}
 
