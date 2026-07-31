@@ -13,7 +13,7 @@ import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.service.ImageStorage;
@@ -26,7 +26,7 @@ public class PropensityService {
 
     private final PropensityRepository propensityRepository;
     private final TravelProfileRepository travelProfileRepository;
-    private final UserRepository userRepository;
+    private final UserFinder userFinder;
     private final ImageStorage imageStorage;
 
     @Transactional
@@ -40,8 +40,8 @@ public class PropensityService {
                 return existing;
             })
             .orElseGet(() -> {
-                User userRef = userRepository.getReferenceById(userId);
-                return propensityRepository.save(Propensity.create(userRef, preference, valueConsumption));
+                User user = userFinder.findById(userId);
+                return propensityRepository.save(Propensity.create(user, preference, valueConsumption));
             });
 
         TravelProfile travelProfile = findTravelProfile(preference);

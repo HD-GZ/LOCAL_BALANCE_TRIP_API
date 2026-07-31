@@ -22,7 +22,7 @@ import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.service.ImageStorage;
@@ -43,7 +43,7 @@ class PropensityServiceTest {
     private TravelProfileRepository travelProfileRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private UserFinder userFinder;
 
     @Mock
     private ImageStorage imageStorage;
@@ -63,7 +63,7 @@ class PropensityServiceTest {
                 PropensityFixture.valueConsumption()
             );
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.empty());
-            when(userRepository.getReferenceById(AuthResponseFixture.USER_ID)).thenReturn(user);
+            when(userFinder.findById(AuthResponseFixture.USER_ID)).thenReturn(user);
             when(propensityRepository.save(any(Propensity.class))).thenReturn(propensity);
             when(travelProfileRepository.findByCode(TravelProfileFixture.CODE))
                 .thenReturn(Optional.of(TravelProfileFixture.travelProfile()));
