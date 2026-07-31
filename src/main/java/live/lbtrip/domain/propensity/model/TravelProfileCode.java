@@ -1,6 +1,8 @@
 package live.lbtrip.domain.propensity.model;
 
-public record TravelProfileCode(String value) {
+public record TravelProfileCode(
+    String value
+) {
 
     private static final int HIGH_POLE_MIN_SCORE = 4;
 
