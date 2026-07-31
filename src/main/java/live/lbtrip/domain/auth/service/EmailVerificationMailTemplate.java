@@ -8,14 +8,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 @Component
-final class EmailVerificationMailTemplate {
+public class EmailVerificationMailTemplate {
 
     private static final String CODE_PLACEHOLDER = "{{verificationCode}}";
 
     private final String plainTextTemplate;
     private final String htmlTemplate;
 
-    EmailVerificationMailTemplate(
+    public EmailVerificationMailTemplate(
         @Value("classpath:templates/email/email-verification.txt") Resource plainTextTemplateResource,
         @Value("classpath:templates/email/email-verification.html") Resource htmlTemplateResource
     ) {
@@ -27,11 +27,11 @@ final class EmailVerificationMailTemplate {
         }
     }
 
-    String plainText(String code) {
+    public String plainText(String code) {
         return plainTextTemplate.replace(CODE_PLACEHOLDER, code);
     }
 
-    String html(String code) {
+    public String html(String code) {
         return htmlTemplate.replace(CODE_PLACEHOLDER, code);
     }
 }
