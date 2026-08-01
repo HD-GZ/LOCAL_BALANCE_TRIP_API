@@ -24,17 +24,5 @@ class TravelProfileTest {
             assertThat(travelProfile.getDescription()).isEqualTo("로컬의 구석구석을 발로 뛰며 직접 체험하는 실속파 혼행 여행자예요.");
             assertThat(travelProfile.getImageKey()).isEqualTo("travel-profiles/lveai.png");
         }
-
-        @Test
-        void 이미지_키_없이_여행_프로필을_생성한다() {
-            TravelProfile travelProfile = TravelProfile.create(
-                "HPSRI",
-                "프라이빗 무드 컬렉터",
-                "유명한 곳일수록 특별하게, 아낌없이 누리는 나만의 시간을 사랑하는 여행자예요.",
-                null
-            );
-
-            assertThat(travelProfile.getImageKey()).isNull();
-        }
     }
 }

@@ -5,7 +5,7 @@ CREATE TABLE travel_profiles (
     code CHAR(5) NOT NULL,
     nickname VARCHAR(100) NOT NULL,
     description VARCHAR(1000) NOT NULL,
-    image_key VARCHAR(255) NULL,
+    image_key VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     PRIMARY KEY (id),

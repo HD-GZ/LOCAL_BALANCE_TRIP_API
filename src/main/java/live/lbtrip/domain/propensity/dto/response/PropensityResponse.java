@@ -24,7 +24,7 @@ public record PropensityResponse(
         @Schema(description = "진단 유형 설명", example = "로컬의 구석구석을 발로 뛰며 직접 체험하는 실속파 혼행 여행자예요.")
         String description,
 
-        @Schema(description = "유형 캐릭터 이미지 URL. 이미지 미등록 시 null.", example = "https://stage.images.lb-trip.live/travel-profiles/lveai.png", nullable = true)
+        @Schema(description = "유형 캐릭터 이미지 URL", example = "https://stage.images.lb-trip.live/travel-profiles/lveai.png")
         String imageUrl
     ) {
     }

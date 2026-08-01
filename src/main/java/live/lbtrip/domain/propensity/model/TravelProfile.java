@@ -30,7 +30,7 @@ public class TravelProfile extends BaseEntity {
     @Column(nullable = false, length = 1000)
     private String description;
 
-    @Column(length = 255)
+    @Column(nullable = false, length = 255)
     private String imageKey;
 
     private TravelProfile(String code, String nickname, String description, String imageKey) {

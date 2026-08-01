@@ -66,6 +66,7 @@ class PropensityServiceTest {
             when(propensityRepository.save(any(Propensity.class))).thenReturn(propensity);
             when(travelProfileFinder.findByPreference(any(Preference.class)))
                 .thenReturn(TravelProfileFixture.travelProfile());
+            when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -75,7 +76,7 @@ class PropensityServiceTest {
             verify(propensityRepository).save(any(Propensity.class));
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
-            assertThat(response.propensityResult().imageUrl()).isNull();
+            assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(response.preference().sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
             assertThat(response.valueConsumption().accommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
@@ -88,6 +89,7 @@ class PropensityServiceTest {
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
             when(travelProfileFinder.findByPreference(any(Preference.class)))
                 .thenReturn(TravelProfileFixture.travelProfile());
+            when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -97,6 +99,7 @@ class PropensityServiceTest {
             verify(propensityRepository, never()).save(any(Propensity.class));
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
+            assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.UPDATED_LOCALITY);
             assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.UPDATED_FRUGALITY);
             assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENTIALITY);
@@ -119,12 +122,13 @@ class PropensityServiceTest {
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
             when(travelProfileFinder.findByPreference(any(Preference.class)))
                 .thenReturn(TravelProfileFixture.travelProfile());
+            when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
 
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
-            assertThat(response.propensityResult().imageUrl()).isNull();
+            assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
             assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);
@@ -142,7 +146,7 @@ class PropensityServiceTest {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
             when(travelProfileFinder.findByPreference(any(Preference.class)))
-                .thenReturn(TravelProfileFixture.travelProfileWithImage());
+                .thenReturn(TravelProfileFixture.travelProfile());
             when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);

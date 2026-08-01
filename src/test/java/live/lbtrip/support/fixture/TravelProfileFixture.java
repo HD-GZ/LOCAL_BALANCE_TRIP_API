@@ -15,10 +15,6 @@ public final class TravelProfileFixture {
     }
 
     public static TravelProfile travelProfile() {
-        return TravelProfile.create(CODE, NICKNAME, DESCRIPTION, null);
-    }
-
-    public static TravelProfile travelProfileWithImage() {
         return TravelProfile.create(CODE, NICKNAME, DESCRIPTION, IMAGE_KEY);
     }
 }
