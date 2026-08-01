@@ -3,7 +3,6 @@ package live.lbtrip.domain.propensity.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,14 +17,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
+import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.model.PropensityBucket;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
-import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.PropensityFixture;
 import live.lbtrip.support.fixture.PropensityRequestFixture;
@@ -40,10 +39,13 @@ class PropensityServiceTest {
     private PropensityRepository propensityRepository;
 
     @Mock
-    private TravelProfileRepository travelProfileRepository;
+    private TravelProfileFinder travelProfileFinder;
 
     @Mock
-    private UserRepository userRepository;
+    private UserFinder userFinder;
+
+    @Mock
+    private ImageStorage imageStorage;
 
     @InjectMocks
     private PropensityService propensityService;
@@ -60,20 +62,11 @@ class PropensityServiceTest {
                 PropensityFixture.valueConsumption()
             );
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.empty());
-            when(userRepository.getReferenceById(AuthResponseFixture.USER_ID)).thenReturn(user);
+            when(userFinder.findById(AuthResponseFixture.USER_ID)).thenReturn(user);
             when(propensityRepository.save(any(Propensity.class))).thenReturn(propensity);
-            when(travelProfileRepository.findByBuckets(
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.HIGH)
-            )).thenReturn(Optional.of(TravelProfileFixture.travelProfile()));
+            when(travelProfileFinder.findByPreference(any(Preference.class)))
+                .thenReturn(TravelProfileFixture.travelProfile());
+            when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -83,6 +76,7 @@ class PropensityServiceTest {
             verify(propensityRepository).save(any(Propensity.class));
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
+            assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(response.preference().sociality()).isEqualTo(PropensityRequestFixture.SOCIALITY);
             assertThat(response.valueConsumption().accommodation()).isEqualTo(PropensityRequestFixture.ACCOMMODATION);
@@ -93,18 +87,9 @@ class PropensityServiceTest {
         void 기존_결과가_있으면_점수를_갱신한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(travelProfileRepository.findByBuckets(
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.NEUTRAL),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.NEUTRAL),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW)
-            )).thenReturn(Optional.of(TravelProfileFixture.travelProfile()));
+            when(travelProfileFinder.findByPreference(any(Preference.class)))
+                .thenReturn(TravelProfileFixture.travelProfile());
+            when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.setPropensity(
                 AuthResponseFixture.USER_ID,
@@ -114,6 +99,7 @@ class PropensityServiceTest {
             verify(propensityRepository, never()).save(any(Propensity.class));
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
+            assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.UPDATED_LOCALITY);
             assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.UPDATED_FRUGALITY);
             assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.UPDATED_EXPERIENTIALITY);
@@ -134,23 +120,15 @@ class PropensityServiceTest {
         void 취향_진단_결과를_조회한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(travelProfileRepository.findByBuckets(
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.HIGH),
-                eq(PropensityBucket.LOW),
-                eq(PropensityBucket.HIGH)
-            )).thenReturn(Optional.of(TravelProfileFixture.travelProfile()));
+            when(travelProfileFinder.findByPreference(any(Preference.class)))
+                .thenReturn(TravelProfileFixture.travelProfile());
+            when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
 
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
+            assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
             assertThat(response.preference().frugality()).isEqualTo(PropensityRequestFixture.FRUGALITY);
             assertThat(response.preference().experientiality()).isEqualTo(PropensityRequestFixture.EXPERIENTIALITY);
@@ -161,6 +139,19 @@ class PropensityServiceTest {
             assertThat(response.valueConsumption().experience()).isEqualTo(PropensityRequestFixture.EXPERIENCE);
             assertThat(response.valueConsumption().transportation()).isEqualTo(PropensityRequestFixture.TRANSPORTATION);
             assertThat(response.valueConsumption().cafeExhibition()).isEqualTo(PropensityRequestFixture.CAFE_EXHIBITION);
+        }
+
+        @Test
+        void 캐릭터_이미지가_등록되어_있으면_이미지_URL을_반환한다() {
+            Propensity propensity = PropensityFixture.propensity();
+            when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
+            when(travelProfileFinder.findByPreference(any(Preference.class)))
+                .thenReturn(TravelProfileFixture.travelProfile());
+            when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
+
+            PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
+
+            assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
         }
 
         @Test
@@ -177,18 +168,8 @@ class PropensityServiceTest {
         void 여행_프로필이_없으면_예외를_던진다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(travelProfileRepository.findByBuckets(
-                any(PropensityBucket.class),
-                any(PropensityBucket.class),
-                any(PropensityBucket.class),
-                any(PropensityBucket.class),
-                any(PropensityBucket.class),
-                any(PropensityBucket.class),
-                any(PropensityBucket.class),
-                any(PropensityBucket.class),
-                any(PropensityBucket.class),
-                any(PropensityBucket.class)
-            )).thenReturn(Optional.empty());
+            when(travelProfileFinder.findByPreference(any(Preference.class)))
+                .thenThrow(BusinessException.of(ErrorCode.TRAVEL_PROFILE_NOT_FOUND));
 
             assertThatThrownBy(() -> propensityService.getPropensity(AuthResponseFixture.USER_ID))
                 .isInstanceOf(BusinessException.class)

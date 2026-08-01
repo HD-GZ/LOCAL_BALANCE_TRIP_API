@@ -18,11 +18,14 @@ public record PropensityResponse(
 ) {
 
     public record InnerPropensityResultResponse(
-        @Schema(description = "진단 유형 라벨", example = "실속형 로컬 감성 여행자")
+        @Schema(description = "진단 유형 라벨. \"{별칭} ({코드})\" 형식.", example = "찐로컬 탐험가 (LVEAI)")
         String type,
 
-        @Schema(description = "진단 유형 설명", example = "럭셔리보다 실속을, 유명 명소보다 골목 상권을, 빡빡한 일정보다 감성 여백을 즐기는 1인 여행자예요.")
-        String description
+        @Schema(description = "진단 유형 설명", example = "로컬의 구석구석을 발로 뛰며 직접 체험하는 실속파 혼행 여행자예요.")
+        String description,
+
+        @Schema(description = "유형 캐릭터 이미지 URL", example = "https://stage.images.lb-trip.live/travel-profiles/lveai.png")
+        String imageUrl
     ) {
     }
 
@@ -62,12 +65,16 @@ public record PropensityResponse(
     ) {
     }
 
-    public static PropensityResponse of(Propensity propensity, TravelProfile travelProfile) {
+    public static PropensityResponse of(Propensity propensity, TravelProfile travelProfile, String imageUrl) {
         Preference preference = propensity.getPreference();
         ValueConsumption valueConsumption = propensity.getValueConsumption();
 
         return new PropensityResponse(
-            new InnerPropensityResultResponse(travelProfile.getType(), travelProfile.getDescription()),
+            new InnerPropensityResultResponse(
+                "%s (%s)".formatted(travelProfile.getNickname(), travelProfile.getCode()),
+                travelProfile.getDescription(),
+                imageUrl
+            ),
             new InnerPreferenceResponse(
                 preference.getLocality(),
                 preference.getFrugality(),
