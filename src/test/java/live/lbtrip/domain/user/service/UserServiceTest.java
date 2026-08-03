@@ -2,8 +2,10 @@ package live.lbtrip.domain.user.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
@@ -14,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import live.lbtrip.domain.auth.service.RefreshTokenService;
 import live.lbtrip.domain.user.dto.request.UserUpdateRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.dto.response.UserResponse;
@@ -33,6 +36,9 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private UserService userService;
@@ -140,6 +146,44 @@ class UserServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.USER_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    class 회원탈퇴 {
+
+        @Test
+        void 회원을_탈퇴_처리하고_리프레시_토큰을_폐기한다() {
+            User user = UserFixture.activeUser();
+            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+            userService.withdraw(1L);
+
+            assertThat(user.getStatus()).isEqualTo(live.lbtrip.domain.user.model.UserStatus.WITHDRAWN);
+            assertThat(user.getWithdrawnAt()).isNotNull();
+            verify(refreshTokenService).deleteByUserId(1L);
+        }
+
+        @Test
+        void 존재하지_않는_회원이면_예외가_발생한다() {
+            when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.withdraw(1L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_NOT_FOUND);
+        }
+
+        @Test
+        void 이미_탈퇴한_회원이면_예외가_발생한다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now());
+            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+            assertThatThrownBy(() -> userService.withdraw(1L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
         }
     }
 }

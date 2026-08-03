@@ -1,9 +1,12 @@
 package live.lbtrip.domain.user.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import live.lbtrip.domain.auth.service.RefreshTokenService;
 import live.lbtrip.domain.user.dto.request.UserUpdateRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.dto.response.UserResponse;
@@ -21,6 +24,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     public EmailAvailabilityResponse checkEmailAvailability(String email) {
         String normalizedEmail = StringNormalizer.trimToLowerCase(email);
@@ -44,5 +48,14 @@ public class UserService {
         }
 
         return UserResponse.from(user);
+    }
+
+    @Transactional
+    public void withdraw(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
+
+        user.withdraw(LocalDateTime.now());
+        refreshTokenService.deleteByUserId(userId);
     }
 }
