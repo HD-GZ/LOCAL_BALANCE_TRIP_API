@@ -49,6 +49,8 @@ public interface PasswordResetApi {
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         USER_NOT_FOUND,
+        USER_WITHDRAWN,
+        EMAIL_NOT_VERIFIED,
         PASSWORD_RESET_CODE_NOT_FOUND,
         PASSWORD_RESET_CODE_EXPIRED,
         PASSWORD_RESET_CODE_USED
@@ -69,7 +71,8 @@ public interface PasswordResetApi {
         INVALID_INPUT_VALUE,
         PASSWORD_RESET_TOKEN_NOT_FOUND,
         PASSWORD_RESET_TOKEN_EXPIRED,
-        PASSWORD_RESET_TOKEN_USED
+        PASSWORD_RESET_TOKEN_USED,
+        USER_WITHDRAWN
     })
     ResponseEntity<Void> resetPassword(
         @Valid @RequestBody PasswordResetRequest request

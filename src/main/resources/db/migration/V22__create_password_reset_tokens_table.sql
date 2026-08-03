@@ -5,7 +5,7 @@ CREATE TABLE password_reset_tokens (
     code_expires_at DATETIME(6) NOT NULL,
     reset_token VARCHAR(36) NULL,
     token_expires_at DATETIME(6) NULL,
-    used BOOLEAN NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     PRIMARY KEY (id),

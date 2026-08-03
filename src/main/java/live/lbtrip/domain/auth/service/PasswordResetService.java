@@ -89,9 +89,13 @@ public class PasswordResetService {
         PasswordResetToken token = tokenRepository.findByResetToken(StringNormalizer.trim(request.resetToken()))
             .orElseThrow(() -> BusinessException.of(ErrorCode.PASSWORD_RESET_TOKEN_NOT_FOUND));
 
+        User user = token.getUser();
+        if (user.isWithdrawn()) {
+            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
+        }
+
         token.use(LocalDateTime.now());
 
-        User user = token.getUser();
         user.changePassword(passwordEncoder.encode(request.newPassword()));
         refreshTokenService.deleteByUserId(user.getId());
     }

@@ -128,6 +128,9 @@ public class User extends BaseEntity {
     }
 
     public void verifyEmail() {
+        if (isWithdrawn()) {
+            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
+        }
         this.status = UserStatus.ACTIVE;
     }
 
@@ -171,14 +174,6 @@ public class User extends BaseEntity {
 
     public boolean isWithdrawn() {
         return status == UserStatus.WITHDRAWN;
-    }
-
-    public LocalDateTime getWithdrawnAt() {
-        return withdrawnAt;
-    }
-
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
     }
 
     private void validateRequiredAgreements(boolean termsAgreed, boolean privacyAgreed) {

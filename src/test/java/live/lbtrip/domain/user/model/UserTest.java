@@ -108,6 +108,18 @@ class UserTest {
             assertThat(user.isActive()).isTrue();
             assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
         }
+
+        @Test
+        void 탈퇴한_회원은_이메일_인증으로_활성화할_수_없다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now());
+
+            assertThatThrownBy(user::verifyEmail)
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
+            assertThat(user.getStatus()).isEqualTo(UserStatus.WITHDRAWN);
+        }
     }
 
     @Nested
@@ -170,7 +182,7 @@ class UserTest {
 
         @Test
         void 익명화하면_식별_정보가_덮어써지고_파기_시점이_기록된다() {
-            User user = UserFixture.activeUser();
+            User user = UserFixture.activeUser(UserFixture.MID_YEAR_BIRTH_DATE);
             user.withdraw(LocalDateTime.now().minusDays(40));
             LocalDateTime now = LocalDateTime.now();
 
@@ -179,7 +191,9 @@ class UserTest {
             assertThat(user.getName()).isEqualTo("탈퇴회원");
             assertThat(user.getEmail()).startsWith("withdrawn.").endsWith("@deleted.local");
             assertThat(user.getPassword()).isEqualTo("anonymized-password");
-            assertThat(user.getBirthDate()).isEqualTo(LocalDate.of(UserFixture.BIRTH_DATE.getYear(), 1, 1));
+            assertThat(user.getBirthDate())
+                .isEqualTo(LocalDate.of(UserFixture.MID_YEAR_BIRTH_DATE.getYear(), 1, 1))
+                .isNotEqualTo(UserFixture.MID_YEAR_BIRTH_DATE);
             assertThat(user.getDeletedAt()).isEqualTo(now);
             assertThat(user.getStatus()).isEqualTo(UserStatus.WITHDRAWN);
         }

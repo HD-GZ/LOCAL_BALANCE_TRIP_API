@@ -182,6 +182,23 @@ class PasswordResetServiceTest {
         }
 
         @Test
+        void 탈퇴한_회원이면_예외가_발생하고_토큰이_사용되지_않는다() {
+            User user = UserFixture.activeUser();
+            PasswordResetToken token =
+                PasswordResetToken.create(user, PasswordResetFixture.CODE, LocalDateTime.now().plusMinutes(10));
+            token.issueResetToken(PasswordResetFixture.RESET_TOKEN, LocalDateTime.now(), LocalDateTime.now().plusMinutes(10));
+            user.withdraw(LocalDateTime.now());
+            when(tokenRepository.findByResetToken(PasswordResetFixture.RESET_TOKEN)).thenReturn(Optional.of(token));
+
+            assertThatThrownBy(() -> passwordResetService.reset(
+                    new PasswordResetRequest(PasswordResetFixture.RESET_TOKEN, PasswordResetFixture.NEW_PASSWORD)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
+            assertThat(token.isUsed()).isFalse();
+        }
+
+        @Test
         void 리셋_토큰을_찾을_수_없으면_예외가_발생한다() {
             when(tokenRepository.findByResetToken(PasswordResetFixture.RESET_TOKEN)).thenReturn(Optional.empty());
 

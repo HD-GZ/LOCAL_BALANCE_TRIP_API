@@ -21,6 +21,7 @@ import live.lbtrip.domain.user.dto.request.UserUpdateRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.dto.response.UserResponse;
 import live.lbtrip.domain.user.model.User;
+import live.lbtrip.domain.user.model.UserStatus;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -159,7 +160,7 @@ class UserServiceTest {
 
             userService.withdraw(1L);
 
-            assertThat(user.getStatus()).isEqualTo(live.lbtrip.domain.user.model.UserStatus.WITHDRAWN);
+            assertThat(user.getStatus()).isEqualTo(UserStatus.WITHDRAWN);
             assertThat(user.getWithdrawnAt()).isNotNull();
             verify(refreshTokenService).deleteByUserId(1L);
         }

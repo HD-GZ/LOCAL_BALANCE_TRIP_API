@@ -73,6 +73,9 @@ public class EmailVerificationService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
 
+        if (user.isWithdrawn()) {
+            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
+        }
         if (user.isActive()) {
             throw BusinessException.of(ErrorCode.EMAIL_ALREADY_VERIFIED);
         }

@@ -144,5 +144,19 @@ class EmailVerificationServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.EMAIL_ALREADY_VERIFIED);
         }
+
+        @Test
+        void 탈퇴한_회원이면_예외를_던진다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now());
+            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+
+            assertThatThrownBy(() -> emailVerificationService.resend(
+                AuthRequestFixture.emailVerificationResendRequest()
+            ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
+        }
     }
 }

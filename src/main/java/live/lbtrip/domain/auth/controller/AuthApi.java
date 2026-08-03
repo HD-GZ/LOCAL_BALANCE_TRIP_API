@@ -106,7 +106,8 @@ public interface AuthApi {
         INVALID_INPUT_VALUE,
         EMAIL_VERIFICATION_CODE_EXPIRED,
         EMAIL_VERIFICATION_CODE_USED,
-        EMAIL_VERIFICATION_CODE_NOT_FOUND
+        EMAIL_VERIFICATION_CODE_NOT_FOUND,
+        USER_WITHDRAWN
     })
     ResponseEntity<EmailVerificationResponse> confirmEmailVerification(
         @Valid @RequestBody EmailVerificationConfirmRequest request
@@ -123,6 +124,7 @@ public interface AuthApi {
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         USER_NOT_FOUND,
+        USER_WITHDRAWN,
         EMAIL_ALREADY_VERIFIED,
         EMAIL_SEND_FAILED
     })
