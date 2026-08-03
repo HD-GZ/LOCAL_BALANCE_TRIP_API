@@ -13,7 +13,7 @@ import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthRequestFixture;
 import live.lbtrip.support.fixture.UserFixture;
 
-class EmailVerificationTokenTest {
+class SignupVerificationTokenTest {
 
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 1, 1, 12, 0);
 
@@ -22,7 +22,7 @@ class EmailVerificationTokenTest {
 
         @Test
         void 인증_토큰을_사용한다() {
-            EmailVerificationToken token = usableToken();
+            SignupVerificationToken token = usableToken();
 
             token.use(NOW);
 
@@ -31,7 +31,7 @@ class EmailVerificationTokenTest {
 
         @Test
         void 이미_사용한_인증_토큰이면_예외를_던진다() {
-            EmailVerificationToken token = usableToken();
+            SignupVerificationToken token = usableToken();
             token.use(NOW);
 
             assertThatThrownBy(() -> token.use(NOW))
@@ -42,7 +42,7 @@ class EmailVerificationTokenTest {
 
         @Test
         void 만료된_인증_토큰이면_예외를_던진다() {
-            EmailVerificationToken token = EmailVerificationToken.create(
+            SignupVerificationToken token = SignupVerificationToken.create(
                 UserFixture.user(),
                 AuthRequestFixture.VERIFICATION_CODE,
                 NOW.minusSeconds(1)
@@ -55,8 +55,8 @@ class EmailVerificationTokenTest {
         }
     }
 
-    private EmailVerificationToken usableToken() {
-        return EmailVerificationToken.create(
+    private SignupVerificationToken usableToken() {
+        return SignupVerificationToken.create(
             UserFixture.user(),
             AuthRequestFixture.VERIFICATION_CODE,
             NOW.plusMinutes(5)

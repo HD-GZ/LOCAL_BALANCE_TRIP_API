@@ -58,4 +58,17 @@ public interface UserApi {
     @ApiSuccessResponse(description = "내 정보 수정 성공")
     @ApiErrorCodeResponses({INVALID_INPUT_VALUE, INVALID_ACCESS_TOKEN, USER_NOT_FOUND})
     ResponseEntity<UserResponse> updateUser(@UserId Long userId, @Valid @RequestBody UserUpdateRequest request);
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "회원탈퇴",
+        description = """
+            현재 로그인한 사용자를 탈퇴 처리합니다.
+            탈퇴 즉시 리프레시 토큰이 폐기되며, 30일의 유예기간 내에 다시 로그인하면 탈퇴가 철회됩니다.
+            유예기간이 지나면 개인정보가 파기되어 복구할 수 없습니다.
+            """
+    )
+    @ApiSuccessResponse(description = "회원탈퇴 성공")
+    @ApiErrorCodeResponses({INVALID_ACCESS_TOKEN, USER_NOT_FOUND, USER_WITHDRAWN})
+    ResponseEntity<Void> withdrawUser(@UserId Long userId);
 }

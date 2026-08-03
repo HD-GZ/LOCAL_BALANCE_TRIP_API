@@ -42,6 +42,11 @@ app:
     from-name: 로컬밸런스 트립
   email-verification:
     code-expiration: 24h
+  password-reset:
+    code-expiration: 10m
+    token-expiration: 10m
+  withdrawal:
+    grace-period: 30d
 
 swagger:
   server-url: http://localhost

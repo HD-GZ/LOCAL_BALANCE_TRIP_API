@@ -6,12 +6,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +35,8 @@ import live.lbtrip.support.fixture.UserFixture;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
+    private static final Duration GRACE_PERIOD = Duration.ofDays(30);
+
     @Mock
     private UserRepository userRepository;
 
@@ -48,8 +52,19 @@ class AuthServiceTest {
     @Mock
     private RefreshTokenService refreshTokenService;
 
-    @InjectMocks
     private AuthService authService;
+
+    @BeforeEach
+    void setUp() {
+        authService = new AuthService(
+            userRepository,
+            passwordEncoder,
+            emailVerificationService,
+            jwtTokenProvider,
+            refreshTokenService,
+            GRACE_PERIOD
+        );
+    }
 
     @Nested
     class 회원가입 {
@@ -121,6 +136,48 @@ class AuthServiceTest {
 
             assertThat(response.accessToken()).isEqualTo(TokenFixture.ACCESS_TOKEN);
             assertThat(response.refreshToken()).isEqualTo(TokenFixture.REFRESH_TOKEN);
+        }
+
+        @Test
+        void 유예기간_내의_탈퇴_회원이_로그인하면_탈퇴가_철회된다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now().minusDays(10));
+            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(passwordEncoder.matches(UserFixture.PASSWORD, UserFixture.ENCODED_PASSWORD)).thenReturn(true);
+            when(jwtTokenProvider.createAccessToken(user)).thenReturn(TokenFixture.ACCESS_TOKEN);
+            when(refreshTokenService.issue(user)).thenReturn(TokenFixture.REFRESH_TOKEN);
+
+            LoginResponse response = authService.login(AuthRequestFixture.loginRequest());
+
+            assertThat(response.reinstated()).isTrue();
+            assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+            assertThat(user.getWithdrawnAt()).isNull();
+        }
+
+        @Test
+        void 유예기간이_지난_탈퇴_회원은_로그인할_수_없다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now().minusDays(40));
+            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(passwordEncoder.matches(UserFixture.PASSWORD, UserFixture.ENCODED_PASSWORD)).thenReturn(true);
+
+            assertThatThrownBy(() -> authService.login(AuthRequestFixture.loginRequest()))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
+        }
+
+        @Test
+        void 일반_회원이_로그인하면_reinstated는_false다() {
+            User user = UserFixture.activeUser();
+            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(passwordEncoder.matches(UserFixture.PASSWORD, UserFixture.ENCODED_PASSWORD)).thenReturn(true);
+            when(jwtTokenProvider.createAccessToken(user)).thenReturn(TokenFixture.ACCESS_TOKEN);
+            when(refreshTokenService.issue(user)).thenReturn(TokenFixture.REFRESH_TOKEN);
+
+            LoginResponse response = authService.login(AuthRequestFixture.loginRequest());
+
+            assertThat(response.reinstated()).isFalse();
         }
     }
 

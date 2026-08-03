@@ -1,6 +1,7 @@
 package live.lbtrip.domain.user.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -47,5 +48,13 @@ public class UserController implements UserApi {
     ) {
         UserResponse response = userService.updateUser(userId, request);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdrawUser(
+        @UserId Long userId
+    ) {
+        userService.withdraw(userId);
+        return ResponseEntity.ok().build();
     }
 }

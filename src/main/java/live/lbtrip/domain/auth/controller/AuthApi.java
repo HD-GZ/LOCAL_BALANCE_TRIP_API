@@ -52,13 +52,15 @@ public interface AuthApi {
             이메일과 비밀번호로 로그인을 처리합니다.
             access token과 refresh token을 반환합니다.
             이메일 인증을 완료하지 않은 사용자는 로그인할 수 없습니다.
+            탈퇴 후 30일 이내에 로그인하면 탈퇴가 철회됩니다.
             """
     )
     @ApiSuccessResponse(description = "로그인 성공")
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         INVALID_LOGIN_CREDENTIALS,
-        EMAIL_NOT_VERIFIED
+        EMAIL_NOT_VERIFIED,
+        USER_WITHDRAWN
     })
     ResponseEntity<LoginResponse> login(
         @Valid @RequestBody LoginRequest request
@@ -104,7 +106,8 @@ public interface AuthApi {
         INVALID_INPUT_VALUE,
         EMAIL_VERIFICATION_CODE_EXPIRED,
         EMAIL_VERIFICATION_CODE_USED,
-        EMAIL_VERIFICATION_CODE_NOT_FOUND
+        EMAIL_VERIFICATION_CODE_NOT_FOUND,
+        USER_WITHDRAWN
     })
     ResponseEntity<EmailVerificationResponse> confirmEmailVerification(
         @Valid @RequestBody EmailVerificationConfirmRequest request
@@ -121,6 +124,7 @@ public interface AuthApi {
     @ApiErrorCodeResponses({
         INVALID_INPUT_VALUE,
         USER_NOT_FOUND,
+        USER_WITHDRAWN,
         EMAIL_ALREADY_VERIFIED,
         EMAIL_SEND_FAILED
     })

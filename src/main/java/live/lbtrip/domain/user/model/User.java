@@ -1,6 +1,8 @@
 package live.lbtrip.domain.user.model;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -75,6 +77,12 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private boolean marketingAgreed;
 
+    @Column
+    private LocalDateTime withdrawnAt;
+
+    @Column
+    private LocalDateTime deletedAt;
+
     private User(
         String name,
         String email,
@@ -120,6 +128,7 @@ public class User extends BaseEntity {
     }
 
     public void verifyEmail() {
+        validateNotWithdrawn();
         this.status = UserStatus.ACTIVE;
     }
 
@@ -135,6 +144,52 @@ public class User extends BaseEntity {
 
     public boolean isActive() {
         return status == UserStatus.ACTIVE;
+    }
+
+    public void withdraw(LocalDateTime now) {
+        validateNotWithdrawn();
+        this.status = UserStatus.WITHDRAWN;
+        this.withdrawnAt = now;
+    }
+
+    public void reinstate(LocalDateTime now, Duration gracePeriod) {
+        if (!isWithdrawn() || deletedAt != null || withdrawnAt.plus(gracePeriod).isBefore(now)) {
+            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
+        }
+        this.status = UserStatus.ACTIVE;
+        this.withdrawnAt = null;
+    }
+
+    public void anonymize(String encodedPassword, LocalDateTime now) {
+        this.name = "탈퇴회원";
+        this.email = "withdrawn." + id + "@deleted.local";
+        this.password = encodedPassword;
+        this.birthDate = LocalDate.of(birthDate.getYear(), 1, 1);
+        this.deletedAt = now;
+    }
+
+    public boolean isWithdrawn() {
+        return status == UserStatus.WITHDRAWN;
+    }
+
+    public void validateNotWithdrawn() {
+        if (isWithdrawn()) {
+            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
+        }
+    }
+
+    public void validateActive() {
+        validateNotWithdrawn();
+        if (!isActive()) {
+            throw BusinessException.of(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+    }
+
+    public void validateEmailVerificationPending() {
+        validateNotWithdrawn();
+        if (isActive()) {
+            throw BusinessException.of(ErrorCode.EMAIL_ALREADY_VERIFIED);
+        }
     }
 
     private void validateRequiredAgreements(boolean termsAgreed, boolean privacyAgreed) {

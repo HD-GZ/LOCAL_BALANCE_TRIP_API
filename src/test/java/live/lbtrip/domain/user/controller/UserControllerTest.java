@@ -2,8 +2,11 @@ package live.lbtrip.domain.user.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -198,6 +201,34 @@ class UserControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
+        }
+    }
+
+    @Nested
+    class 회원탈퇴 {
+
+        @Test
+        void 회원탈퇴_요청을_처리한다() throws Exception {
+            인증된_사용자();
+            doNothing().when(userService).withdraw(AuthResponseFixture.USER_ID);
+
+            mockMvc.perform(delete("/users/me")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"));
+        }
+
+        @Test
+        void 이미_탈퇴한_회원이면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+            doThrow(BusinessException.of(ErrorCode.USER_WITHDRAWN))
+                .when(userService).withdraw(AuthResponseFixture.USER_ID);
+
+            mockMvc.perform(delete("/users/me")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("USER_WITHDRAWN"));
         }
     }
 

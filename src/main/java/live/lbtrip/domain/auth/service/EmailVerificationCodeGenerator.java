@@ -4,7 +4,7 @@ import java.security.SecureRandom;
 
 import org.springframework.stereotype.Component;
 
-import live.lbtrip.domain.auth.repository.EmailVerificationTokenRepository;
+import live.lbtrip.domain.auth.repository.SignupVerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -15,7 +15,7 @@ public class EmailVerificationCodeGenerator {
     private static final String VERIFICATION_CODE_FORMAT = "%06d";
     private static final int VERIFICATION_CODE_BOUND = 1_000_000;
 
-    private final EmailVerificationTokenRepository tokenRepository;
+    private final SignupVerificationTokenRepository tokenRepository;
 
     public String generate() {
         String code;
