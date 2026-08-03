@@ -17,7 +17,7 @@ import live.lbtrip.domain.auth.dto.response.PasswordResetTokenResponse;
 import live.lbtrip.domain.auth.model.PasswordResetToken;
 import live.lbtrip.domain.auth.repository.PasswordResetTokenRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.util.StringNormalizer;
@@ -26,7 +26,7 @@ import live.lbtrip.global.util.StringNormalizer;
 @Transactional(readOnly = true)
 public class PasswordResetService {
 
-    private final UserRepository userRepository;
+    private final UserFinder userFinder;
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordResetCodeGenerator codeGenerator;
     private final EmailService emailService;
@@ -36,7 +36,7 @@ public class PasswordResetService {
     private final Duration tokenExpiration;
 
     public PasswordResetService(
-        UserRepository userRepository,
+        UserFinder userFinder,
         PasswordResetTokenRepository tokenRepository,
         PasswordResetCodeGenerator codeGenerator,
         EmailService emailService,
@@ -45,7 +45,7 @@ public class PasswordResetService {
         @Value("${app.password-reset.code-expiration}") Duration codeExpiration,
         @Value("${app.password-reset.token-expiration}") Duration tokenExpiration
     ) {
-        this.userRepository = userRepository;
+        this.userFinder = userFinder;
         this.tokenRepository = tokenRepository;
         this.codeGenerator = codeGenerator;
         this.emailService = emailService;
@@ -90,9 +90,7 @@ public class PasswordResetService {
             .orElseThrow(() -> BusinessException.of(ErrorCode.PASSWORD_RESET_TOKEN_NOT_FOUND));
 
         User user = token.getUser();
-        if (user.isWithdrawn()) {
-            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
-        }
+        user.validateNotWithdrawn();
 
         token.use(LocalDateTime.now());
 
@@ -101,15 +99,8 @@ public class PasswordResetService {
     }
 
     private User findResettableUser(String email) {
-        User user = userRepository.findByEmail(StringNormalizer.trimToLowerCase(email))
-            .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
-
-        if (user.isWithdrawn()) {
-            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
-        }
-        if (!user.isActive()) {
-            throw BusinessException.of(ErrorCode.EMAIL_NOT_VERIFIED);
-        }
+        User user = userFinder.findByEmail(StringNormalizer.trimToLowerCase(email));
+        user.validateActive();
         return user;
     }
 }

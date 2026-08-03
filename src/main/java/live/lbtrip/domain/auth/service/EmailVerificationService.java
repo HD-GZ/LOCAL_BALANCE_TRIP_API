@@ -13,7 +13,7 @@ import live.lbtrip.domain.auth.dto.response.EmailVerificationResponse;
 import live.lbtrip.domain.auth.model.SignupVerificationToken;
 import live.lbtrip.domain.auth.repository.SignupVerificationTokenRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.util.StringNormalizer;
@@ -23,20 +23,20 @@ import live.lbtrip.global.util.StringNormalizer;
 public class EmailVerificationService {
 
     private final SignupVerificationTokenRepository tokenRepository;
-    private final UserRepository userRepository;
+    private final UserFinder userFinder;
     private final EmailService emailService;
     private final EmailVerificationCodeGenerator codeGenerator;
     private final Duration tokenExpiration;
 
     public EmailVerificationService(
         SignupVerificationTokenRepository tokenRepository,
-        UserRepository userRepository,
+        UserFinder userFinder,
         EmailService emailService,
         EmailVerificationCodeGenerator codeGenerator,
         @Value("${app.email-verification.code-expiration}") Duration tokenExpiration
     ) {
         this.tokenRepository = tokenRepository;
-        this.userRepository = userRepository;
+        this.userFinder = userFinder;
         this.emailService = emailService;
         this.codeGenerator = codeGenerator;
         this.tokenExpiration = tokenExpiration;
@@ -70,15 +70,8 @@ public class EmailVerificationService {
     @Transactional
     public EmailVerificationResponse resend(EmailVerificationResendRequest request) {
         String email = StringNormalizer.trimToLowerCase(request.email());
-        User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
-
-        if (user.isWithdrawn()) {
-            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
-        }
-        if (user.isActive()) {
-            throw BusinessException.of(ErrorCode.EMAIL_ALREADY_VERIFIED);
-        }
+        User user = userFinder.findByEmail(email);
+        user.validateEmailVerificationPending();
 
         issue(user);
         return EmailVerificationResponse.from(user);

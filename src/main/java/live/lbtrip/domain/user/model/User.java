@@ -128,9 +128,7 @@ public class User extends BaseEntity {
     }
 
     public void verifyEmail() {
-        if (isWithdrawn()) {
-            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
-        }
+        validateNotWithdrawn();
         this.status = UserStatus.ACTIVE;
     }
 
@@ -149,9 +147,7 @@ public class User extends BaseEntity {
     }
 
     public void withdraw(LocalDateTime now) {
-        if (isWithdrawn()) {
-            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
-        }
+        validateNotWithdrawn();
         this.status = UserStatus.WITHDRAWN;
         this.withdrawnAt = now;
     }
@@ -174,6 +170,26 @@ public class User extends BaseEntity {
 
     public boolean isWithdrawn() {
         return status == UserStatus.WITHDRAWN;
+    }
+
+    public void validateNotWithdrawn() {
+        if (isWithdrawn()) {
+            throw BusinessException.of(ErrorCode.USER_WITHDRAWN);
+        }
+    }
+
+    public void validateActive() {
+        validateNotWithdrawn();
+        if (!isActive()) {
+            throw BusinessException.of(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+    }
+
+    public void validateEmailVerificationPending() {
+        validateNotWithdrawn();
+        if (isActive()) {
+            throw BusinessException.of(ErrorCode.EMAIL_ALREADY_VERIFIED);
+        }
     }
 
     private void validateRequiredAgreements(boolean termsAgreed, boolean privacyAgreed) {

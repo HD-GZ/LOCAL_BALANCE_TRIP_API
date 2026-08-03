@@ -23,7 +23,7 @@ import live.lbtrip.domain.auth.model.SignupVerificationToken;
 import live.lbtrip.domain.auth.repository.SignupVerificationTokenRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.model.UserStatus;
-import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthRequestFixture;
@@ -38,7 +38,7 @@ class EmailVerificationServiceTest {
     private SignupVerificationTokenRepository tokenRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private UserFinder userFinder;
 
     @Mock
     private EmailService emailService;
@@ -52,7 +52,7 @@ class EmailVerificationServiceTest {
     void setUp() {
         emailVerificationService = new EmailVerificationService(
             tokenRepository,
-            userRepository,
+            userFinder,
             emailService,
             codeGenerator,
             TOKEN_EXPIRATION
@@ -119,7 +119,7 @@ class EmailVerificationServiceTest {
         @Test
         void 인증_코드를_재발송한다() {
             User user = UserFixture.user();
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
             when(codeGenerator.generate()).thenReturn(AuthRequestFixture.VERIFICATION_CODE);
 
             EmailVerificationResponse response = emailVerificationService.resend(
@@ -135,7 +135,7 @@ class EmailVerificationServiceTest {
         @Test
         void 이미_인증된_사용자면_예외를_던진다() {
             User user = UserFixture.activeUser();
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
 
             assertThatThrownBy(() -> emailVerificationService.resend(
                 AuthRequestFixture.emailVerificationResendRequest()
@@ -149,7 +149,7 @@ class EmailVerificationServiceTest {
         void 탈퇴한_회원이면_예외를_던진다() {
             User user = UserFixture.activeUser();
             user.withdraw(LocalDateTime.now());
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
 
             assertThatThrownBy(() -> emailVerificationService.resend(
                 AuthRequestFixture.emailVerificationResendRequest()

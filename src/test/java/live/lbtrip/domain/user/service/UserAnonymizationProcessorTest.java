@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,6 @@ import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.savedcourse.course.repository.SavedCourseRepository;
 import live.lbtrip.domain.savedcourse.receipt.repository.TourReceiptRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.enums.ImageDirectory;
@@ -41,7 +39,7 @@ class UserAnonymizationProcessorTest {
     private static final Long USER_ID = 1L;
 
     @Mock
-    private UserRepository userRepository;
+    private UserFinder userFinder;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -83,7 +81,7 @@ class UserAnonymizationProcessorTest {
         void 연관_데이터를_삭제하고_회원을_익명화한_뒤_이미지_키를_반환한다() {
             User user = UserFixture.withdrawnUser(USER_ID, LocalDateTime.now().minusDays(40));
             Image image = Image.create(user, ImageDirectory.RECEIPT, "receipts/key.jpg", "image/jpeg", 1024L);
-            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+            when(userFinder.findById(USER_ID)).thenReturn(user);
             when(imageRepository.findAllByUploaderId(USER_ID)).thenReturn(List.of(image));
             when(passwordEncoder.encode(anyString())).thenReturn("anonymized-password");
 
@@ -106,7 +104,7 @@ class UserAnonymizationProcessorTest {
 
         @Test
         void 존재하지_않는_회원이면_예외가_발생한다() {
-            when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
+            when(userFinder.findById(USER_ID)).thenThrow(BusinessException.of(ErrorCode.USER_NOT_FOUND));
 
             assertThatThrownBy(() -> anonymizationProcessor.anonymize(USER_ID))
                 .isInstanceOf(BusinessException.class)

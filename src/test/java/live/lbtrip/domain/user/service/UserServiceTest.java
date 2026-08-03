@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,6 +33,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserFinder userFinder;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -72,7 +74,7 @@ class UserServiceTest {
         @Test
         void 사용자_정보를_응답한다() {
             User activeUser = UserFixture.activeUser();
-            when(userRepository.findById(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(activeUser));
+            when(userFinder.findById(AuthResponseFixture.USER_ID)).thenReturn(activeUser);
 
             UserResponse response = userService.getUser(AuthResponseFixture.USER_ID);
 
@@ -86,7 +88,7 @@ class UserServiceTest {
 
         @Test
         void 사용자가_존재하지_않으면_예외를_던진다() {
-            when(userRepository.findById(AuthResponseFixture.USER_ID)).thenReturn(Optional.empty());
+            when(userFinder.findById(AuthResponseFixture.USER_ID)).thenThrow(BusinessException.of(ErrorCode.USER_NOT_FOUND));
 
             assertThatThrownBy(() -> userService.getUser(AuthResponseFixture.USER_ID))
                 .isInstanceOf(BusinessException.class)
@@ -101,7 +103,7 @@ class UserServiceTest {
         @Test
         void 비밀번호_없이_회원_정보를_수정한다() {
             User activeUser = UserFixture.activeUser();
-            when(userRepository.findById(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(activeUser));
+            when(userFinder.findById(AuthResponseFixture.USER_ID)).thenReturn(activeUser);
 
             UserResponse response = userService.updateUser(AuthResponseFixture.USER_ID, UserRequestFixture.userUpdateRequest());
 
@@ -114,7 +116,7 @@ class UserServiceTest {
         @Test
         void 비밀번호가_있으면_인코딩하여_변경한다() {
             User activeUser = UserFixture.activeUser();
-            when(userRepository.findById(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(activeUser));
+            when(userFinder.findById(AuthResponseFixture.USER_ID)).thenReturn(activeUser);
             when(passwordEncoder.encode(UserRequestFixture.NEW_PASSWORD)).thenReturn(UserRequestFixture.NEW_ENCODED_PASSWORD);
 
             userService.updateUser(AuthResponseFixture.USER_ID, UserRequestFixture.userUpdateRequestWithPassword());
@@ -125,7 +127,7 @@ class UserServiceTest {
         @Test
         void 이름의_앞뒤_공백을_제거하고_수정한다() {
             User activeUser = UserFixture.activeUser();
-            when(userRepository.findById(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(activeUser));
+            when(userFinder.findById(AuthResponseFixture.USER_ID)).thenReturn(activeUser);
             UserUpdateRequest request = new UserUpdateRequest(
                 "  " + UserRequestFixture.NEW_NAME + "  ",
                 UserRequestFixture.NEW_BIRTH_DATE,
@@ -141,7 +143,7 @@ class UserServiceTest {
 
         @Test
         void 사용자가_존재하지_않으면_예외를_던진다() {
-            when(userRepository.findById(AuthResponseFixture.USER_ID)).thenReturn(Optional.empty());
+            when(userFinder.findById(AuthResponseFixture.USER_ID)).thenThrow(BusinessException.of(ErrorCode.USER_NOT_FOUND));
 
             assertThatThrownBy(() -> userService.updateUser(AuthResponseFixture.USER_ID, UserRequestFixture.userUpdateRequest()))
                 .isInstanceOf(BusinessException.class)
@@ -156,7 +158,7 @@ class UserServiceTest {
         @Test
         void 회원을_탈퇴_처리하고_리프레시_토큰을_폐기한다() {
             User user = UserFixture.activeUser();
-            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+            when(userFinder.findById(1L)).thenReturn(user);
 
             userService.withdraw(1L);
 
@@ -167,7 +169,7 @@ class UserServiceTest {
 
         @Test
         void 존재하지_않는_회원이면_예외가_발생한다() {
-            when(userRepository.findById(1L)).thenReturn(Optional.empty());
+            when(userFinder.findById(1L)).thenThrow(BusinessException.of(ErrorCode.USER_NOT_FOUND));
 
             assertThatThrownBy(() -> userService.withdraw(1L))
                 .isInstanceOf(BusinessException.class)
@@ -179,7 +181,7 @@ class UserServiceTest {
         void 이미_탈퇴한_회원이면_예외가_발생한다() {
             User user = UserFixture.activeUser();
             user.withdraw(LocalDateTime.now());
-            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+            when(userFinder.findById(1L)).thenReturn(user);
 
             assertThatThrownBy(() -> userService.withdraw(1L))
                 .isInstanceOf(BusinessException.class)

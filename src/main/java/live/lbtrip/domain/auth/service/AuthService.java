@@ -84,9 +84,7 @@ public class AuthService {
             user.reinstate(LocalDateTime.now(), withdrawalGracePeriod);
             reinstated = true;
         }
-        if (!user.isActive()) {
-            throw BusinessException.of(ErrorCode.EMAIL_NOT_VERIFIED);
-        }
+        user.validateActive();
 
         String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = refreshTokenService.issue(user);

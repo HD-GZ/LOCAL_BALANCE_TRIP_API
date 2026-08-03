@@ -27,7 +27,7 @@ import live.lbtrip.domain.auth.model.PasswordResetToken;
 import live.lbtrip.domain.auth.repository.PasswordResetTokenRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.model.UserStatus;
-import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.PasswordResetFixture;
@@ -40,7 +40,7 @@ class PasswordResetServiceTest {
     private static final Duration TOKEN_EXPIRATION = Duration.ofMinutes(10);
 
     @Mock
-    private UserRepository userRepository;
+    private UserFinder userFinder;
 
     @Mock
     private PasswordResetTokenRepository tokenRepository;
@@ -62,7 +62,7 @@ class PasswordResetServiceTest {
     @BeforeEach
     void setUp() {
         passwordResetService = new PasswordResetService(
-            userRepository,
+            userFinder,
             tokenRepository,
             codeGenerator,
             emailService,
@@ -79,7 +79,7 @@ class PasswordResetServiceTest {
         @Test
         void 인증_코드를_발급하고_메일을_발송한다() {
             User user = UserFixture.activeUser();
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
             when(codeGenerator.generate()).thenReturn(PasswordResetFixture.CODE);
 
             PasswordResetCodeResponse response =
@@ -94,7 +94,7 @@ class PasswordResetServiceTest {
 
         @Test
         void 가입되지_않은_이메일이면_예외가_발생한다() {
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.empty());
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenThrow(BusinessException.of(ErrorCode.USER_NOT_FOUND));
 
             assertThatThrownBy(() -> passwordResetService.request(new PasswordResetCodeRequest(UserFixture.EMAIL)))
                 .isInstanceOf(BusinessException.class)
@@ -106,7 +106,7 @@ class PasswordResetServiceTest {
         void 탈퇴한_회원이면_예외가_발생한다() {
             User user = UserFixture.activeUser();
             user.withdraw(LocalDateTime.now());
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
 
             assertThatThrownBy(() -> passwordResetService.request(new PasswordResetCodeRequest(UserFixture.EMAIL)))
                 .isInstanceOf(BusinessException.class)
@@ -117,7 +117,7 @@ class PasswordResetServiceTest {
         @Test
         void 이메일_미인증_회원이면_예외가_발생한다() {
             User user = UserFixture.user();
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
 
             assertThatThrownBy(() -> passwordResetService.request(new PasswordResetCodeRequest(UserFixture.EMAIL)))
                 .isInstanceOf(BusinessException.class)
@@ -134,7 +134,7 @@ class PasswordResetServiceTest {
             User user = UserFixture.activeUser();
             PasswordResetToken token =
                 PasswordResetToken.create(user, PasswordResetFixture.CODE, LocalDateTime.now().plusMinutes(10));
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
             when(tokenRepository.findFirstByUserIdAndCodeOrderByIdDesc(user.getId(), PasswordResetFixture.CODE))
                 .thenReturn(Optional.of(token));
 
@@ -149,7 +149,7 @@ class PasswordResetServiceTest {
         @Test
         void 코드를_찾을_수_없으면_예외가_발생한다() {
             User user = UserFixture.activeUser();
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
             when(tokenRepository.findFirstByUserIdAndCodeOrderByIdDesc(user.getId(), PasswordResetFixture.CODE))
                 .thenReturn(Optional.empty());
 

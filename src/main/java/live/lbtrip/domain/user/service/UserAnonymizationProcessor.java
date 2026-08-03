@@ -19,9 +19,6 @@ import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.savedcourse.course.repository.SavedCourseRepository;
 import live.lbtrip.domain.savedcourse.receipt.repository.TourReceiptRepository;
 import live.lbtrip.domain.user.model.User;
-import live.lbtrip.domain.user.repository.UserRepository;
-import live.lbtrip.global.error.BusinessException;
-import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class UserAnonymizationProcessor {
 
-    private final UserRepository userRepository;
+    private final UserFinder userFinder;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
     private final SignupVerificationTokenRepository signupVerificationTokenRepository;
@@ -43,8 +40,7 @@ public class UserAnonymizationProcessor {
 
     @Transactional
     public List<String> anonymize(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
+        User user = userFinder.findById(userId);
 
         List<String> storageKeys = purgeUserData(userId);
         user.anonymize(passwordEncoder.encode(UUID.randomUUID().toString()), LocalDateTime.now());
