@@ -8,6 +8,5 @@ CREATE TABLE terms (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT uk_terms_type_version UNIQUE (type, version),
-    INDEX idx_terms_type_effective_date (type, effective_date)
+    CONSTRAINT uk_terms_type_version UNIQUE (type, version)
 );
