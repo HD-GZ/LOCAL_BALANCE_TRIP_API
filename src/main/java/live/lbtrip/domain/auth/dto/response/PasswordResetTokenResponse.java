@@ -7,9 +7,9 @@ public record PasswordResetTokenResponse(
     String resetToken,
 
     @Schema(description = "리셋 토큰 만료까지 남은 시간(초)", example = "600")
-    long expiresIn
+    long resetTokenExpiresIn
 ) {
-    public static PasswordResetTokenResponse of(String resetToken, long expiresIn) {
-        return new PasswordResetTokenResponse(resetToken, expiresIn);
+    public static PasswordResetTokenResponse of(String resetToken, long resetTokenExpiresIn) {
+        return new PasswordResetTokenResponse(resetToken, resetTokenExpiresIn);
     }
 }

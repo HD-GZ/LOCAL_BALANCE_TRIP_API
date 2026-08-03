@@ -89,7 +89,7 @@ class PasswordResetServiceTest {
             verify(tokenRepository).save(captor.capture());
             assertThat(captor.getValue().getCode()).isEqualTo(PasswordResetFixture.CODE);
             verify(emailService).sendPasswordResetEmail(UserFixture.EMAIL, PasswordResetFixture.CODE);
-            assertThat(response.expiresIn()).isEqualTo(CODE_EXPIRATION.toSeconds());
+            assertThat(response.verificationCodeExpiresIn()).isEqualTo(CODE_EXPIRATION.toSeconds());
         }
 
         @Test
@@ -143,7 +143,7 @@ class PasswordResetServiceTest {
 
             assertThat(response.resetToken()).isEqualTo(token.getResetToken());
             assertThat(token.getResetToken()).isNotNull();
-            assertThat(response.expiresIn()).isEqualTo(TOKEN_EXPIRATION.toSeconds());
+            assertThat(response.resetTokenExpiresIn()).isEqualTo(TOKEN_EXPIRATION.toSeconds());
         }
 
         @Test

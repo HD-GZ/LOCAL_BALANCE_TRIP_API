@@ -71,7 +71,7 @@ class PasswordResetControllerTest {
                     .content(objectMapper.writeValueAsString(new PasswordResetCodeRequest(UserFixture.EMAIL))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.expiresIn").value(600));
+                .andExpect(jsonPath("$.data.verificationCodeExpiresIn").value(600));
         }
 
         @Test
