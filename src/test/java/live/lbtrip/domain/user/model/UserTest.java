@@ -3,6 +3,10 @@ package live.lbtrip.domain.user.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -103,6 +107,93 @@ class UserTest {
 
             assertThat(user.isActive()).isTrue();
             assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        }
+    }
+
+    @Nested
+    class 회원탈퇴 {
+
+        @Test
+        void 탈퇴하면_상태가_WITHDRAWN이_되고_탈퇴_시점이_기록된다() {
+            User user = UserFixture.activeUser();
+            LocalDateTime now = LocalDateTime.now();
+
+            user.withdraw(now);
+
+            assertThat(user.getStatus()).isEqualTo(UserStatus.WITHDRAWN);
+            assertThat(user.isWithdrawn()).isTrue();
+            assertThat(user.getWithdrawnAt()).isEqualTo(now);
+        }
+
+        @Test
+        void 이미_탈퇴한_회원이_다시_탈퇴하면_예외가_발생한다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now());
+
+            assertThatThrownBy(() -> user.withdraw(LocalDateTime.now()))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
+        }
+
+        @Test
+        void 유예기간_내에_철회하면_ACTIVE로_복원되고_탈퇴_시점이_초기화된다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now().minusDays(10));
+
+            user.reinstate(LocalDateTime.now(), Duration.ofDays(30));
+
+            assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+            assertThat(user.getWithdrawnAt()).isNull();
+        }
+
+        @Test
+        void 유예기간이_지난_회원은_철회할_수_없다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now().minusDays(40));
+
+            assertThatThrownBy(() -> user.reinstate(LocalDateTime.now(), Duration.ofDays(30)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
+        }
+
+        @Test
+        void 탈퇴하지_않은_회원은_철회할_수_없다() {
+            User user = UserFixture.activeUser();
+
+            assertThatThrownBy(() -> user.reinstate(LocalDateTime.now(), Duration.ofDays(30)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
+        }
+
+        @Test
+        void 익명화하면_식별_정보가_덮어써지고_파기_시점이_기록된다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now().minusDays(40));
+            LocalDateTime now = LocalDateTime.now();
+
+            user.anonymize("anonymized-password", now);
+
+            assertThat(user.getName()).isEqualTo("탈퇴회원");
+            assertThat(user.getEmail()).startsWith("withdrawn.").endsWith("@deleted.local");
+            assertThat(user.getPassword()).isEqualTo("anonymized-password");
+            assertThat(user.getBirthDate()).isEqualTo(LocalDate.of(UserFixture.BIRTH_DATE.getYear(), 1, 1));
+            assertThat(user.getDeletedAt()).isEqualTo(now);
+            assertThat(user.getStatus()).isEqualTo(UserStatus.WITHDRAWN);
+        }
+
+        @Test
+        void 익명화된_회원은_철회할_수_없다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now().minusDays(40));
+            user.anonymize("anonymized-password", LocalDateTime.now());
+
+            assertThatThrownBy(() -> user.reinstate(LocalDateTime.now(), Duration.ofDays(365)))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
         }
     }
 }
