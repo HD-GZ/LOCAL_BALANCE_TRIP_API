@@ -1,5 +1,6 @@
 package live.lbtrip.domain.savedcourse.course.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -18,4 +19,6 @@ public interface SavedCourseRepository extends JpaRepository<SavedCourse, Long> 
     Page<SavedCourse> findAllByUserIdAndStatusOrderByIdDesc(Long userId, SavedCourseStatus status, Pageable pageable);
 
     Optional<SavedCourse> findByIdAndUserId(Long id, Long userId);
+
+    List<SavedCourse> findAllByUserId(Long userId);
 }

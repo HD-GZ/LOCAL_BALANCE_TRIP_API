@@ -11,4 +11,6 @@ public interface SignupVerificationTokenRepository extends JpaRepository<SignupV
     Optional<SignupVerificationToken> findByCode(String code);
 
     boolean existsByCode(String code);
+
+    void deleteByUserId(Long userId);
 }
