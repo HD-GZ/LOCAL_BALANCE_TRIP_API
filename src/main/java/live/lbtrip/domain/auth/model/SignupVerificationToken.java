@@ -21,9 +21,9 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "email_verification_tokens")
+@Table(name = "signup_verification_tokens")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class EmailVerificationToken extends BaseEntity {
+public class SignupVerificationToken extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,15 +42,15 @@ public class EmailVerificationToken extends BaseEntity {
     @Column(nullable = false)
     private boolean used;
 
-    private EmailVerificationToken(User user, String code, LocalDateTime expiresAt) {
+    private SignupVerificationToken(User user, String code, LocalDateTime expiresAt) {
         this.user = user;
         this.code = code;
         this.expiresAt = expiresAt;
         this.used = false;
     }
 
-    public static EmailVerificationToken create(User user, String code, LocalDateTime expiresAt) {
-        return new EmailVerificationToken(user, code, expiresAt);
+    public static SignupVerificationToken create(User user, String code, LocalDateTime expiresAt) {
+        return new SignupVerificationToken(user, code, expiresAt);
     }
 
     private boolean isExpired(LocalDateTime now) {

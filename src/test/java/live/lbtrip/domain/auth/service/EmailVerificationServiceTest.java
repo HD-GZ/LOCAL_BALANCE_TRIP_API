@@ -19,8 +19,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.auth.dto.response.EmailVerificationResponse;
-import live.lbtrip.domain.auth.model.EmailVerificationToken;
-import live.lbtrip.domain.auth.repository.EmailVerificationTokenRepository;
+import live.lbtrip.domain.auth.model.SignupVerificationToken;
+import live.lbtrip.domain.auth.repository.SignupVerificationTokenRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.model.UserStatus;
 import live.lbtrip.domain.user.repository.UserRepository;
@@ -35,7 +35,7 @@ class EmailVerificationServiceTest {
     private static final Duration TOKEN_EXPIRATION = Duration.ofDays(1);
 
     @Mock
-    private EmailVerificationTokenRepository tokenRepository;
+    private SignupVerificationTokenRepository tokenRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -69,7 +69,7 @@ class EmailVerificationServiceTest {
 
             long expiresIn = emailVerificationService.issue(user);
 
-            ArgumentCaptor<EmailVerificationToken> tokenCaptor = ArgumentCaptor.forClass(EmailVerificationToken.class);
+            ArgumentCaptor<SignupVerificationToken> tokenCaptor = ArgumentCaptor.forClass(SignupVerificationToken.class);
             verify(tokenRepository).save(tokenCaptor.capture());
             assertThat(tokenCaptor.getValue().getCode()).isEqualTo(AuthRequestFixture.VERIFICATION_CODE);
             verify(emailService).sendVerificationEmail(UserFixture.EMAIL, AuthRequestFixture.VERIFICATION_CODE);
@@ -83,7 +83,7 @@ class EmailVerificationServiceTest {
         @Test
         void 인증_코드를_확인하면_사용자를_활성화한다() {
             User user = UserFixture.user();
-            EmailVerificationToken token = EmailVerificationToken.create(
+            SignupVerificationToken token = SignupVerificationToken.create(
                 user,
                 AuthRequestFixture.VERIFICATION_CODE,
                 LocalDateTime.now().plusMinutes(10)
@@ -126,7 +126,7 @@ class EmailVerificationServiceTest {
                 AuthRequestFixture.emailVerificationResendRequest()
             );
 
-            verify(tokenRepository).save(any(EmailVerificationToken.class));
+            verify(tokenRepository).save(any(SignupVerificationToken.class));
             verify(emailService).sendVerificationEmail(UserFixture.EMAIL, AuthRequestFixture.VERIFICATION_CODE);
             assertThat(response.email()).isEqualTo(UserFixture.EMAIL);
             assertThat(response.status()).isEqualTo(UserStatus.PENDING_EMAIL_VERIFICATION);
