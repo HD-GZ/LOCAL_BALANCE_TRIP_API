@@ -24,7 +24,7 @@ public final class AuthResponseFixture {
     }
 
     public static LoginResponse loginResponse() {
-        return LoginResponse.of(TokenFixture.ACCESS_TOKEN, TokenFixture.REFRESH_TOKEN);
+        return LoginResponse.of(TokenFixture.ACCESS_TOKEN, TokenFixture.REFRESH_TOKEN, false);
     }
 
     public static TokenResponse tokenResponse() {

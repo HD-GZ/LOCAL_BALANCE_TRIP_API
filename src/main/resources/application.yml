@@ -46,6 +46,8 @@ app:
     from-name: ${MAIL_FROM_NAME}
   email-verification:
     code-expiration: ${EMAIL_VERIFICATION_CODE_EXPIRATION}
+  withdrawal:
+    grace-period: ${WITHDRAWAL_GRACE_PERIOD}
 
 swagger:
   server-url: ${SWAGGER_SERVER_URL}
