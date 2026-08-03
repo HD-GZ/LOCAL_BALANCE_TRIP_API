@@ -53,6 +53,7 @@ public enum ErrorCode {
     IMAGE_ALREADY_ATTACHED(HttpStatus.CONFLICT, "이미 사용 중인 이미지입니다."),
     TOUR_RECEIPT_NOT_FOUND(HttpStatus.NOT_FOUND, "환급 증빙을 찾을 수 없습니다."),
     TOUR_REPORT_NOT_AVAILABLE(HttpStatus.CONFLICT, "투어 종료 전에는 리포트를 조회할 수 없습니다."),
+    TERMS_NOT_FOUND(HttpStatus.NOT_FOUND, "약관을 찾을 수 없습니다."),
     ;
 
     private final HttpStatus status;
