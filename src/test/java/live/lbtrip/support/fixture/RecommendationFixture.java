@@ -43,7 +43,7 @@ public final class RecommendationFixture {
     }
 
     private static GeneratedCourse course(User user) {
-        GeneratedCourse course = GeneratedCourse.create(user, COURSE_NAME, COURSE_REASON, IMAGE_URL);
+        GeneratedCourse course = GeneratedCourse.create(user, COURSE_NAME, COURSE_REASON, IMAGE_URL, 1);
         ReflectionTestUtils.setField(course, "id", COURSE_ID);
         course.addPlace(CoursePlace.create(
             1, "죽녹원", "대나무 숲", IMAGE_URL,

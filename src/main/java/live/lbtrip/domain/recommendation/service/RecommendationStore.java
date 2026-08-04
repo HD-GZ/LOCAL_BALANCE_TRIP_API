@@ -34,9 +34,10 @@ public class RecommendationStore {
                 userRef, plan.regionName(), plan.ldongRegnCd(), plan.ldongSignguCd(),
                 plan.imageUrl(), plan.reason(), displayOrder++);
 
+            int courseDisplayOrder = 1;
             for (RegionPlan.CoursePlanData courseData : plan.courses()) {
                 GeneratedCourse course = GeneratedCourse.create(
-                    userRef, courseData.name(), courseData.reason(), courseData.imageUrl());
+                    userRef, courseData.name(), courseData.reason(), courseData.imageUrl(), courseDisplayOrder++);
                 region.addCourse(course);
 
                 for (RegionPlan.PlaceSnapshot place : courseData.places()) {
