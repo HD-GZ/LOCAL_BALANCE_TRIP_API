@@ -49,7 +49,8 @@ class CourseComposerTest {
             new ByteArrayResource("{regionName} {candidateLines} {maxCourses} {locality} {frugality} "
                 .concat("{experientiality} {vitality} {sociality} {accommodation} {food} ")
                 .concat("{experience} {transportation} {cafeExhibition}")
-                .getBytes(StandardCharsets.UTF_8))
+                .getBytes(StandardCharsets.UTF_8)),
+            new CourseCompositionValidator()
         );
     }
 
@@ -80,7 +81,10 @@ class CourseComposerTest {
                 RecommendationFixture.tourPlaces());
 
             assertThat(result.courses()).extracting(CoursePlan::name)
-                .containsExactly("코스1", "코스2", "코스3");
+                .containsExactly(
+                    RecommendationFixture.REGION_NAME + " 코스1",
+                    RecommendationFixture.REGION_NAME + " 코스2",
+                    RecommendationFixture.REGION_NAME + " 코스3");
         }
 
         @Test
