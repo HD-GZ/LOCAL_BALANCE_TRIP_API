@@ -12,13 +12,23 @@ public record CourseComposition(
     }
 
     public record CoursePlan(
+        String candidateGroupId,
         String name,
         String reason,
         List<String> placeContentIds
     ) {
 
         public static CoursePlan of(String name, String reason, List<String> placeContentIds) {
-            return new CoursePlan(name, reason, placeContentIds);
+            return new CoursePlan(null, name, reason, placeContentIds);
+        }
+
+        public static CoursePlan of(
+            String candidateGroupId,
+            String name,
+            String reason,
+            List<String> placeContentIds
+        ) {
+            return new CoursePlan(candidateGroupId, name, reason, placeContentIds);
         }
     }
 }

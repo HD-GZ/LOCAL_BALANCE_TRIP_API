@@ -11,6 +11,7 @@ import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
+import live.lbtrip.domain.recommendation.model.vo.CourseCandidateGroup;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan.CoursePlanData;
@@ -40,6 +41,8 @@ public class RecommendationGenerationService {
     private final OdiiThemeRepository odiiThemeRepository;
     private final RegionScorer regionScorer;
     private final CourseComposer courseComposer;
+    private final CourseCandidateClusterer courseCandidateClusterer;
+    private final CourseRouteOptimizer courseRouteOptimizer;
     private final RecommendationStore recommendationStore;
     private final PropensityFinder propensityFinder;
 
@@ -86,11 +89,19 @@ public class RecommendationGenerationService {
         }
 
         List<TourPlace> candidates = List.copyOf(candidatesById.values());
-        CourseComposition composition = courseComposer.compose(
-            propensity, regionStats.regionName(), candidates);
+        List<CourseCandidateGroup> candidateGroups = courseCandidateClusterer.cluster(candidates);
+        if (candidateGroups.isEmpty()) {
+            return null;
+        }
+        CourseComposition composition = courseComposer.composeGrouped(
+            propensity, regionStats.regionName(), candidateGroups);
 
-        double centerLongitude = averageLongitude(candidates);
-        double centerLatitude = averageLatitude(candidates);
+        List<TourPlace> groupedCandidates = candidateGroups.stream()
+            .flatMap(group -> group.candidates().stream())
+            .distinct()
+            .toList();
+        double centerLongitude = averageLongitude(groupedCandidates);
+        double centerLatitude = averageLatitude(groupedCandidates);
         List<OdiiTheme> themes = odiiThemeRepository.findAllByLongitudeBetweenAndLatitudeBetween(
             centerLongitude - THEME_LOOKUP_LON_DELTA, centerLongitude + THEME_LOOKUP_LON_DELTA,
             centerLatitude - THEME_LOOKUP_LAT_DELTA, centerLatitude + THEME_LOOKUP_LAT_DELTA);
@@ -113,8 +124,10 @@ public class RecommendationGenerationService {
         List<PlaceSnapshot> places = new ArrayList<>();
         TourPlace previous = null;
         int visitOrder = 1;
-        for (String contentId : coursePlan.placeContentIds()) {
-            TourPlace place = candidatesById.get(contentId);
+        List<TourPlace> selectedPlaces = coursePlan.placeContentIds().stream()
+            .map(candidatesById::get)
+            .toList();
+        for (TourPlace place : courseRouteOptimizer.optimize(selectedPlaces)) {
             Integer walkMinutes = previous == null ? null : WalkTimeCalculator.walkMinutes(
                 previous.getLongitude(), previous.getLatitude(), place.getLongitude(), place.getLatitude());
             String audioUrl = matchAudio(place, themes);
