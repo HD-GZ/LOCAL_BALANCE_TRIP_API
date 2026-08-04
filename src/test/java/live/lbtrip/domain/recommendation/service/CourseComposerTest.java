@@ -3,6 +3,7 @@ package live.lbtrip.domain.recommendation.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
@@ -12,11 +13,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.core.io.ByteArrayResource;
 
+import live.lbtrip.domain.recommendation.model.vo.CourseCandidateGroup;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
 import live.lbtrip.global.error.BusinessException;
@@ -60,61 +63,59 @@ class CourseComposerTest {
         @Test
         void 후보에_없는_ID와_중복_ID를_제거한다() {
             mockResponse(CourseComposition.of("추천 이유", List.of(
-                CoursePlan.of("코스", "코스 이유", List.of("100", "100", "999", "200", "300")))));
+                CoursePlan.of("G1", "코스", "코스 이유", List.of("100", "100", "999", "200", "300")))));
 
-            CourseComposition result = courseComposer.compose(
-                PropensityFixture.propensity(), RecommendationFixture.REGION_NAME,
-                RecommendationFixture.tourPlaces());
+            CourseComposition result = compose();
 
             assertThat(result.courses()).singleElement().satisfies(course ->
                 assertThat(course.placeContentIds()).containsExactly("100", "200", "300"));
         }
 
         @Test
-        void 코스는_최대_3개만_유지한다() {
-            List<CoursePlan> courses = List.of(
-                plan("코스1"), plan("코스2"), plan("코스3"), plan("코스4"));
-            mockResponse(CourseComposition.of("추천 이유", courses));
-
-            CourseComposition result = courseComposer.compose(
-                PropensityFixture.propensity(), RecommendationFixture.REGION_NAME,
-                RecommendationFixture.tourPlaces());
-
-            assertThat(result.courses()).extracting(CoursePlan::name)
-                .containsExactly(
-                    RecommendationFixture.REGION_NAME + " 코스1",
-                    RecommendationFixture.REGION_NAME + " 코스2",
-                    RecommendationFixture.REGION_NAME + " 코스3");
-        }
-
-        @Test
         void LLM_호출에_실패하면_추천_생성_예외를_던진다() {
             when(chatClient.prompt()).thenThrow(new RuntimeException("LLM failed"));
 
-            assertThatThrownBy(() -> courseComposer.compose(
-                PropensityFixture.propensity(), RecommendationFixture.REGION_NAME,
-                RecommendationFixture.tourPlaces()))
+            assertThatThrownBy(CourseComposerTest.this::compose)
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
 
         @Test
+        void 후보군_ID와_좌표를_LLM에_전달한다() {
+            List<CourseCandidateGroup> groups = List.of(
+                CourseCandidateGroup.of("G1", RecommendationFixture.tourPlaces()));
+            mockResponse(CourseComposition.of("추천 이유", List.of(
+                CoursePlan.of("G1", "코스", "코스 이유", List.of("100", "200", "300")))));
+            ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+
+            CourseComposition result = courseComposer.composeGrouped(
+                PropensityFixture.propensity(), RecommendationFixture.REGION_NAME, groups);
+
+            verify(requestSpec).user(promptCaptor.capture());
+            assertThat(promptCaptor.getValue())
+                .contains("G1 | 100 | 관광지 | 죽녹원 | 126.986 | 35.325");
+            assertThat(result.courses().getFirst().candidateGroupId()).isEqualTo("G1");
+        }
+
+        @Test
         void 유효한_코스가_없으면_추천_생성_예외를_던진다() {
             mockResponse(CourseComposition.of("추천 이유", List.of(
-                CoursePlan.of("코스", "코스 이유", List.of("999")))));
+                CoursePlan.of("G1", "코스", "코스 이유", List.of("999")))));
 
-            assertThatThrownBy(() -> courseComposer.compose(
-                PropensityFixture.propensity(), RecommendationFixture.REGION_NAME,
-                RecommendationFixture.tourPlaces()))
+            assertThatThrownBy(CourseComposerTest.this::compose)
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
     }
 
-    private CoursePlan plan(String name) {
-        return CoursePlan.of(name, "코스 이유", List.of("100", "200", "300"));
+    private CourseComposition compose() {
+        return courseComposer.composeGrouped(
+            PropensityFixture.propensity(),
+            RecommendationFixture.REGION_NAME,
+            List.of(CourseCandidateGroup.of("G1", RecommendationFixture.tourPlaces()))
+        );
     }
 
     private void mockResponse(CourseComposition response) {

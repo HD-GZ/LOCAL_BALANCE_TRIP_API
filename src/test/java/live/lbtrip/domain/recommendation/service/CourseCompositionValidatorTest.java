@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.vo.CourseCandidateGroup;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -76,6 +77,25 @@ class CourseCompositionValidatorTest {
             assertThat(result.regionReason()).hasSize(300);
             assertThat(result.courses().getFirst().reason()).hasSize(300);
             assertThat(result.courses().getFirst().placeContentIds()).hasSize(5);
+        }
+
+        @Test
+        void 후보군별로_유효한_코스를_하나만_유지한다() {
+            List<CourseCandidateGroup> groups = List.of(
+                CourseCandidateGroup.of("G1", RecommendationFixture.tourPlaces()));
+            CourseComposition raw = CourseComposition.of("지역 추천 이유", List.of(
+                CoursePlan.of("G9", "없는 후보군", "이유", ids("100", "200", "300")),
+                CoursePlan.of("G1", "장소 부족", "이유", ids("100", "200")),
+                CoursePlan.of("G1", "유효 코스", "이유", ids("100", "200", "300")),
+                CoursePlan.of("G1", "중복 코스", "이유", ids("100", "200", "300"))));
+
+            CourseComposition result = validator.validateGrouped(
+                raw, groups, RecommendationFixture.REGION_NAME);
+
+            assertThat(result.courses()).singleElement().satisfies(course -> {
+                assertThat(course.candidateGroupId()).isEqualTo("G1");
+                assertThat(course.name()).isEqualTo(RecommendationFixture.REGION_NAME + " 유효 코스");
+            });
         }
     }
 

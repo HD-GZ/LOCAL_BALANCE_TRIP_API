@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
+import live.lbtrip.domain.recommendation.model.vo.CourseCandidateGroup;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
-import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class CourseComposer {
 
-    private static final int MAX_COURSES = 3;
     private final ChatClient chatClient;
     private final PromptTemplate promptTemplate;
     private final CourseCompositionValidator courseCompositionValidator;
@@ -39,37 +38,40 @@ public class CourseComposer {
         this.courseCompositionValidator = courseCompositionValidator;
     }
 
-    public CourseComposition compose(
+    public CourseComposition composeGrouped(
         Propensity propensity,
         String regionName,
-        List<TourPlace> candidates
+        List<CourseCandidateGroup> candidateGroups
     ) {
         CourseComposition raw;
         try {
             raw = chatClient.prompt()
-                .user(renderPrompt(propensity, regionName, candidates))
+                .user(renderGroupedPrompt(propensity, regionName, candidateGroups))
                 .call()
                 .entity(CourseComposition.class);
         } catch (Exception e) {
             log.error("LLM 코스 구성 호출 실패: region={}", regionName, e);
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
-        return courseCompositionValidator.validate(raw, candidates, regionName);
+        return courseCompositionValidator.validateGrouped(raw, candidateGroups, regionName);
     }
 
-    private String renderPrompt(
+    private String renderGroupedPrompt(
         Propensity propensity,
         String regionName,
-        List<TourPlace> candidates
+        List<CourseCandidateGroup> candidateGroups
     ) {
         Preference preference = propensity.getPreference();
         ValueConsumption consumption = propensity.getValueConsumption();
 
-        String candidateLines = candidates.stream()
-            .map(place -> "%s | %s | %s".formatted(
+        String candidateLines = candidateGroups.stream()
+            .flatMap(group -> group.candidates().stream().map(place -> "%s | %s | %s | %s | %s | %s".formatted(
+                group.id(),
                 place.getContentId(),
                 TourContentType.koreanNameOf(place.getContentTypeId()),
-                place.getTitle()))
+                place.getTitle(),
+                place.getLongitude(),
+                place.getLatitude())))
             .collect(Collectors.joining("\n"));
 
         return promptTemplate.render(Map.ofEntries(
@@ -85,8 +87,7 @@ public class CourseComposer {
             Map.entry("transportation", consumption.getTransportation()),
             Map.entry("cafeExhibition", consumption.getCafeExhibition()),
             Map.entry("candidateLines", candidateLines),
-            Map.entry("maxCourses", MAX_COURSES)
+            Map.entry("maxCourses", candidateGroups.size())
         ));
     }
-
 }
