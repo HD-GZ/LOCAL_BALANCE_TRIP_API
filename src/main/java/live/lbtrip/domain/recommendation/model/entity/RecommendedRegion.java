@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.model.BaseEntity;
@@ -53,6 +54,7 @@ public class RecommendedRegion extends BaseEntity {
     private int displayOrder;
 
     @OneToMany(mappedBy = "recommendedRegion", cascade = CascadeType.ALL)
+    @OrderBy("displayOrder asc")
     private List<GeneratedCourse> courses = new ArrayList<>();
 
     private RecommendedRegion(
