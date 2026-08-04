@@ -2,7 +2,6 @@ package live.lbtrip.domain.recommendation.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
@@ -15,7 +14,6 @@ import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
-import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.error.BusinessException;
@@ -27,19 +25,18 @@ import lombok.extern.slf4j.Slf4j;
 public class CourseComposer {
 
     private static final int MAX_COURSES = 3;
-    private static final int MIN_PLACES_PER_COURSE = 2;
-    private static final int NAME_MAX_LENGTH = 100;
-    private static final int REASON_MAX_LENGTH = 300;
-
     private final ChatClient chatClient;
     private final PromptTemplate promptTemplate;
+    private final CourseCompositionValidator courseCompositionValidator;
 
     public CourseComposer(
         ChatClient.Builder chatClientBuilder,
-        @Value("classpath:prompts/course-composition.st") Resource promptResource
+        @Value("classpath:prompts/course-composition.st") Resource promptResource,
+        CourseCompositionValidator courseCompositionValidator
     ) {
         this.chatClient = chatClientBuilder.build();
         this.promptTemplate = new PromptTemplate(promptResource);
+        this.courseCompositionValidator = courseCompositionValidator;
     }
 
     public CourseComposition compose(
@@ -57,7 +54,7 @@ public class CourseComposer {
             log.error("LLM 코스 구성 호출 실패: region={}", regionName, e);
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
-        return validate(raw, candidates, regionName);
+        return courseCompositionValidator.validate(raw, candidates, regionName);
     }
 
     private String renderPrompt(
@@ -92,35 +89,4 @@ public class CourseComposer {
         ));
     }
 
-    private CourseComposition validate(CourseComposition raw, List<TourPlace> candidates, String regionName) {
-        if (raw == null || raw.courses() == null || raw.courses().isEmpty()) {
-            log.error("LLM 응답에 코스 없음: region={}", regionName);
-            throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
-        }
-
-        Set<String> validIds = candidates.stream().map(TourPlace::getContentId).collect(Collectors.toSet());
-
-        List<CoursePlan> courses = raw.courses().stream()
-            .map(course -> CoursePlan.of(
-                truncate(course.name(), NAME_MAX_LENGTH),
-                truncate(course.reason(), REASON_MAX_LENGTH),
-                course.placeContentIds() == null ? List.<String>of()
-                    : course.placeContentIds().stream().filter(validIds::contains).distinct().toList()))
-            .filter(course -> course.placeContentIds().size() >= MIN_PLACES_PER_COURSE)
-            .limit(MAX_COURSES)
-            .toList();
-
-        if (courses.isEmpty()) {
-            log.error("LLM 코스가 검증에서 전부 탈락: region={}", regionName);
-            throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
-        }
-        return CourseComposition.of(truncate(raw.regionReason(), REASON_MAX_LENGTH), courses);
-    }
-
-    private String truncate(String value, int maxLength) {
-        if (value == null) {
-            return "";
-        }
-        return value.length() <= maxLength ? value : value.substring(0, maxLength);
-    }
 }
