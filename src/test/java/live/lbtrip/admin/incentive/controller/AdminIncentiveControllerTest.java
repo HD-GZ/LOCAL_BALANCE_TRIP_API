@@ -46,7 +46,7 @@ class AdminIncentiveControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @MockitoBean
     private AdminIncentiveService adminIncentiveService;
@@ -77,7 +77,9 @@ class AdminIncentiveControllerTest {
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.incentiveId").value(AdminIncentiveResponseFixture.INCENTIVE_ID))
                 .andExpect(jsonPath("$.data.title").value(AdminIncentiveRequestFixture.TITLE))
-                .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.URL));
+                .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.URL))
+                .andExpect(jsonPath("$.data.startDate").value("2026-07-01"))
+                .andExpect(jsonPath("$.data.endDate").value("2026-08-31"));
         }
 
         @Test
@@ -89,6 +91,7 @@ class AdminIncentiveControllerTest {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
                         " ", AdminIncentiveRequestFixture.URL, AdminIncentiveRequestFixture.DESCRIPTION,
+                        AdminIncentiveRequestFixture.START_DATE, AdminIncentiveRequestFixture.END_DATE,
                         AdminIncentiveRequestFixture.regions()))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("ERROR"))
@@ -134,7 +137,9 @@ class AdminIncentiveControllerTest {
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data[0].incentiveId").value(AdminIncentiveResponseFixture.INCENTIVE_ID))
                 .andExpect(jsonPath("$.data[0].title").value(AdminIncentiveRequestFixture.TITLE))
-                .andExpect(jsonPath("$.data[0].url").value(AdminIncentiveRequestFixture.URL));
+                .andExpect(jsonPath("$.data[0].url").value(AdminIncentiveRequestFixture.URL))
+                .andExpect(jsonPath("$.data[0].startDate").value("2026-07-01"))
+                .andExpect(jsonPath("$.data[0].endDate").value("2026-08-31"));
         }
     }
 
@@ -157,7 +162,9 @@ class AdminIncentiveControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.title").value(AdminIncentiveRequestFixture.UPDATED_TITLE))
-                .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.UPDATED_URL));
+                .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.UPDATED_URL))
+                .andExpect(jsonPath("$.data.startDate").value("2026-09-01"))
+                .andExpect(jsonPath("$.data.endDate").doesNotExist());
         }
 
         @Test
@@ -176,6 +183,26 @@ class AdminIncentiveControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INCENTIVE_NOT_FOUND"));
+        }
+
+        @Test
+        void 시작일이_없으면_예외를_응답한다() throws Exception {
+            인증된_어드민();
+
+            mockMvc.perform(post("/admin/incentives")
+                    .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN)
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
+                        AdminIncentiveRequestFixture.TITLE,
+                        AdminIncentiveRequestFixture.URL,
+                        AdminIncentiveRequestFixture.DESCRIPTION,
+                        null,
+                        AdminIncentiveRequestFixture.END_DATE,
+                        AdminIncentiveRequestFixture.regions()
+                    ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
         }
     }
 

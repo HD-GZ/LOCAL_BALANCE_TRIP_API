@@ -17,6 +17,8 @@ public final class AdminIncentiveResponseFixture {
             AdminIncentiveRequestFixture.TITLE,
             AdminIncentiveRequestFixture.URL,
             AdminIncentiveRequestFixture.DESCRIPTION,
+            AdminIncentiveRequestFixture.START_DATE,
+            AdminIncentiveRequestFixture.END_DATE,
             regionResponses()
         );
     }
@@ -27,6 +29,8 @@ public final class AdminIncentiveResponseFixture {
             AdminIncentiveRequestFixture.UPDATED_TITLE,
             AdminIncentiveRequestFixture.UPDATED_URL,
             AdminIncentiveRequestFixture.UPDATED_DESCRIPTION,
+            AdminIncentiveRequestFixture.UPDATED_START_DATE,
+            null,
             regionResponses()
         );
     }

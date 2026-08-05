@@ -2,6 +2,7 @@ package live.lbtrip.admin.incentive.dto.request;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,6 +26,13 @@ public record AdminIncentiveRequest(
     @Schema(description = "행사 부가 설명", example = "코레일 공식 채널로 이동")
     @Size(max = 200, message = "행사 부가 설명은 200자 이하여야 합니다.")
     String description,
+
+    @Schema(description = "혜택 시작일", example = "2026-07-01", requiredMode = REQUIRED)
+    @NotNull(message = "혜택 시작일은 필수입니다.")
+    LocalDate startDate,
+
+    @Schema(description = "혜택 종료일. null이면 종료일 없이 유지됩니다.", example = "2026-08-31", nullable = true)
+    LocalDate endDate,
 
     @Schema(description = "적용 지역 목록(법정동 코드)", requiredMode = REQUIRED)
     @NotNull(message = "적용 지역 목록은 필수입니다.")
