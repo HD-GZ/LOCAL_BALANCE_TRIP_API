@@ -36,6 +36,14 @@ class IncentiveTest {
         }
 
         @Test
+        void 시작일과_종료일이_같은_혜택을_생성한다() {
+            Incentive incentive = Incentive.create("당일 혜택", "https://example.com", null, START_DATE, START_DATE);
+
+            assertThat(incentive.getStartDate()).isEqualTo(START_DATE);
+            assertThat(incentive.getEndDate()).isEqualTo(START_DATE);
+        }
+
+        @Test
         void 시작일이_없으면_예외를_던진다() {
             assertThatThrownBy(() -> Incentive.create("반값여행", "https://example.com", null, null, END_DATE))
                 .isInstanceOf(BusinessException.class)

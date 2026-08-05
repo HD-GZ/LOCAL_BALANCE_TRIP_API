@@ -35,6 +35,18 @@ public final class AdminIncentiveResponseFixture {
         );
     }
 
+    public static AdminIncentiveResponse legacyIncentiveResponse() {
+        return new AdminIncentiveResponse(
+            INCENTIVE_ID,
+            AdminIncentiveRequestFixture.TITLE,
+            AdminIncentiveRequestFixture.URL,
+            AdminIncentiveRequestFixture.DESCRIPTION,
+            null,
+            AdminIncentiveRequestFixture.END_DATE,
+            regionResponses()
+        );
+    }
+
     private static List<AdminIncentiveResponse.RegionResponse> regionResponses() {
         return List.of(new AdminIncentiveResponse.RegionResponse(
             AdminIncentiveRequestFixture.LDONG_REGN_CD, AdminIncentiveRequestFixture.LDONG_SIGNGU_CD));

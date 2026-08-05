@@ -3,6 +3,7 @@ package live.lbtrip.admin.incentive.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -99,6 +100,26 @@ class AdminIncentiveControllerTest {
         }
 
         @Test
+        void 시작일이_없으면_등록_요청을_예외로_응답한다() throws Exception {
+            인증된_어드민();
+
+            mockMvc.perform(post("/admin/incentives")
+                    .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN)
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
+                        AdminIncentiveRequestFixture.TITLE,
+                        AdminIncentiveRequestFixture.URL,
+                        AdminIncentiveRequestFixture.DESCRIPTION,
+                        null,
+                        AdminIncentiveRequestFixture.END_DATE,
+                        AdminIncentiveRequestFixture.regions()
+                    ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
+        }
+
+        @Test
         void 어드민_토큰이_없으면_예외를_응답한다() throws Exception {
             mockMvc.perform(post("/admin/incentives")
                     .contentType(APPLICATION_JSON)
@@ -141,6 +162,19 @@ class AdminIncentiveControllerTest {
                 .andExpect(jsonPath("$.data[0].startDate").value("2026-07-01"))
                 .andExpect(jsonPath("$.data[0].endDate").value("2026-08-31"));
         }
+
+        @Test
+        void 레거시_인센티브의_시작일_null을_반환한다() throws Exception {
+            인증된_어드민();
+            when(adminIncentiveService.getIncentives())
+                .thenReturn(List.of(AdminIncentiveResponseFixture.legacyIncentiveResponse()));
+
+            mockMvc.perform(get("/admin/incentives")
+                    .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"))
+                .andExpect(jsonPath("$.data[0].startDate").value(nullValue()));
+        }
     }
 
     @Nested
@@ -164,7 +198,7 @@ class AdminIncentiveControllerTest {
                 .andExpect(jsonPath("$.data.title").value(AdminIncentiveRequestFixture.UPDATED_TITLE))
                 .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.UPDATED_URL))
                 .andExpect(jsonPath("$.data.startDate").value("2026-09-01"))
-                .andExpect(jsonPath("$.data.endDate").doesNotExist());
+                .andExpect(jsonPath("$.data.endDate").value(nullValue()));
         }
 
         @Test
@@ -186,10 +220,10 @@ class AdminIncentiveControllerTest {
         }
 
         @Test
-        void 시작일이_없으면_예외를_응답한다() throws Exception {
+        void 시작일이_없으면_수정_요청을_예외로_응답한다() throws Exception {
             인증된_어드민();
 
-            mockMvc.perform(post("/admin/incentives")
+            mockMvc.perform(put("/admin/incentives/{incentiveId}", AdminIncentiveResponseFixture.INCENTIVE_ID)
                     .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN)
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
