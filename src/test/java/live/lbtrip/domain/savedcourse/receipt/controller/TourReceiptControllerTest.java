@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -31,6 +32,7 @@ import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
+import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptResponse;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
@@ -39,6 +41,7 @@ import live.lbtrip.domain.savedcourse.receipt.service.TourReceiptService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.vo.PresignedUrl;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
@@ -235,6 +238,55 @@ class TourReceiptControllerTest {
                 SAVED_COURSE_ID,
                 RECEIPT_ID
             );
+        }
+    }
+
+    @Nested
+    class 다운로드_URL_발급 {
+
+        @Test
+        void 만료_시각과_함께_다운로드_URL을_응답한다() throws Exception {
+            인증된_사용자();
+            when(tourReceiptService.getDownloadUrl(
+                AuthResponseFixture.USER_ID,
+                SAVED_COURSE_ID,
+                RECEIPT_ID
+            )).thenReturn(TourReceiptDownloadUrlResponse.from(PresignedUrl.of(
+                "https://s3.example.com/receipts/receipt.jpg?X-Amz-Signature=abc",
+                LocalDateTime.of(2026, 8, 6, 19, 10, 30)
+            )));
+
+            mockMvc.perform(get(
+                    "/saved-courses/{savedCourseId}/receipts/{receiptId}/download-url",
+                    SAVED_COURSE_ID,
+                    RECEIPT_ID
+                )
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.downloadUrl")
+                    .value("https://s3.example.com/receipts/receipt.jpg?X-Amz-Signature=abc"))
+                .andExpect(jsonPath("$.data.expiresAt").value("2026-08-06T19:10:30"));
+        }
+
+        @Test
+        void 저장_코스에_없는_증빙이면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+            when(tourReceiptService.getDownloadUrl(
+                AuthResponseFixture.USER_ID,
+                SAVED_COURSE_ID,
+                RECEIPT_ID
+            )).thenThrow(BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
+
+            mockMvc.perform(get(
+                    "/saved-courses/{savedCourseId}/receipts/{receiptId}/download-url",
+                    SAVED_COURSE_ID,
+                    RECEIPT_ID
+                )
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("TOUR_RECEIPT_NOT_FOUND"));
         }
     }
 

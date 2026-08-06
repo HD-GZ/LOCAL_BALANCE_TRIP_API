@@ -1,5 +1,7 @@
 package live.lbtrip.global.config;
 
+import java.time.Duration;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
 
@@ -7,7 +9,8 @@ import org.springframework.util.unit.DataSize;
 public record StorageProperties(
     S3 s3,
     String cdnBaseUrl,
-    DataSize maxImageSize
+    DataSize maxImageSize,
+    Duration presignedUrlTtl
 ) {
 
     public record S3(

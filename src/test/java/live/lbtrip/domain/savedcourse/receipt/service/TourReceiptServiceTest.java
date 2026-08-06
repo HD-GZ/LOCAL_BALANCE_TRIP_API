@@ -4,11 +4,13 @@ import static live.lbtrip.global.storage.enums.ImageDirectory.RECEIPT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -25,6 +27,7 @@ import live.lbtrip.domain.image.model.vo.ImageRegistration;
 import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptCreateRequest;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
+import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptResponse;
 import live.lbtrip.domain.savedcourse.receipt.model.vo.ReceiptOcrResult;
@@ -33,6 +36,7 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseFinder;
 import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.storage.vo.PresignedUrl;
 import live.lbtrip.global.storage.vo.ValidatedImage;
 
 @ExtendWith(MockitoExtension.class)
@@ -86,7 +90,7 @@ class TourReceiptServiceTest {
                 .thenReturn(ImageRegistration.of(image, validatedImage));
             when(image.getId()).thenReturn(IMAGE_ID);
             when(receiptOcrExtractor.extract(validatedImage)).thenReturn(ReceiptOcrResult.empty());
-            when(imageService.getPublicUrl(image)).thenReturn(IMAGE_URL);
+            when(imageService.getViewUrl(image)).thenReturn(IMAGE_URL);
 
             ReceiptScanResponse result = tourReceiptService.scan(USER_ID, SAVED_COURSE_ID, multipartFile);
 
@@ -140,7 +144,7 @@ class TourReceiptServiceTest {
                 PAID_DATE,
                 image
             )).thenReturn(receipt);
-            when(imageService.getPublicUrl(image)).thenReturn(IMAGE_URL);
+            when(imageService.getViewUrl(image)).thenReturn(IMAGE_URL);
 
             TourReceiptResponse result = tourReceiptService.create(USER_ID, SAVED_COURSE_ID, request);
 
@@ -153,6 +157,46 @@ class TourReceiptServiceTest {
             );
             assertThat(result.amount()).isEqualTo(18000);
             assertThat(result.imageUrl()).isEqualTo(IMAGE_URL);
+        }
+    }
+
+    @Nested
+    class 다운로드_URL {
+
+        @Test
+        void 만료_시각과_함께_다운로드_URL을_발급한다() {
+            String downloadUrl = IMAGE_URL + "?X-Amz-Signature=abc";
+            LocalDateTime expiresAt = LocalDateTime.of(2026, 8, 6, 19, 10, 30);
+            TourReceipt receipt = mock(TourReceipt.class);
+            when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
+                .thenReturn(savedCourse);
+            when(savedCourse.findReceiptById(RECEIPT_ID)).thenReturn(receipt);
+            when(receipt.getId()).thenReturn(RECEIPT_ID);
+            when(receipt.getImage()).thenReturn(image);
+            when(image.getStorageKey()).thenReturn(IMAGE_KEY);
+            when(imageService.getDownloadUrl(image, "receipt_4.jpg"))
+                .thenReturn(PresignedUrl.of(downloadUrl, expiresAt));
+
+            TourReceiptDownloadUrlResponse result =
+                tourReceiptService.getDownloadUrl(USER_ID, SAVED_COURSE_ID, RECEIPT_ID);
+
+            assertThat(result.downloadUrl()).isEqualTo(downloadUrl);
+            assertThat(result.expiresAt()).isEqualTo(expiresAt);
+        }
+
+        @Test
+        void 저장_코스에_없는_증빙이면_URL을_발급하지_않는다() {
+            when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
+                .thenReturn(savedCourse);
+            when(savedCourse.findReceiptById(RECEIPT_ID))
+                .thenThrow(BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
+
+            assertErrorCode(
+                () -> tourReceiptService.getDownloadUrl(USER_ID, SAVED_COURSE_ID, RECEIPT_ID),
+                ErrorCode.TOUR_RECEIPT_NOT_FOUND
+            );
+
+            verify(imageService, never()).getDownloadUrl(any(), any());
         }
     }
 

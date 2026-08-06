@@ -19,7 +19,7 @@ class ImageFileValidatorTest {
     private static final long MAX_IMAGE_SIZE = 1024;
 
     private final ImageFileValidator imageFileValidator = new ImageFileValidator(
-        new StorageProperties(null, null, DataSize.ofBytes(MAX_IMAGE_SIZE))
+        new StorageProperties(null, null, DataSize.ofBytes(MAX_IMAGE_SIZE), null)
     );
 
     @Nested

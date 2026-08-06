@@ -1,6 +1,8 @@
 package live.lbtrip.global.storage.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
@@ -10,13 +12,18 @@ import live.lbtrip.global.config.StorageProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.enums.ImageDirectory;
+import live.lbtrip.global.storage.vo.PresignedUrl;
 import live.lbtrip.global.storage.vo.ValidatedImage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 @Slf4j
 @Component
@@ -26,6 +33,7 @@ public class S3ImageStorage implements ImageStorage {
     private static final DateTimeFormatter KEY_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy/MM");
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final StorageProperties properties;
 
     @Override
@@ -68,6 +76,37 @@ public class S3ImageStorage implements ImageStorage {
     @Override
     public String publicUrl(String key) {
         return "%s/%s".formatted(properties.cdnBaseUrl(), key);
+    }
+
+    @Override
+    public String presignedViewUrl(String key) {
+        GetObjectRequest request = GetObjectRequest.builder()
+            .bucket(properties.s3().bucket())
+            .key(key)
+            .build();
+        return presign(request).url().toString();
+    }
+
+    @Override
+    public PresignedUrl presignedDownloadUrl(String key, String downloadFilename) {
+        GetObjectRequest request = GetObjectRequest.builder()
+            .bucket(properties.s3().bucket())
+            .key(key)
+            .responseContentDisposition("attachment; filename=\"%s\"".formatted(downloadFilename))
+            .build();
+        PresignedGetObjectRequest presigned = presign(request);
+        return PresignedUrl.of(
+            presigned.url().toString(),
+            LocalDateTime.ofInstant(presigned.expiration(), ZoneId.systemDefault())
+        );
+    }
+
+    private PresignedGetObjectRequest presign(GetObjectRequest request) {
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+            .signatureDuration(properties.presignedUrlTtl())
+            .getObjectRequest(request)
+            .build();
+        return s3Presigner.presignGetObject(presignRequest);
     }
 
 }
