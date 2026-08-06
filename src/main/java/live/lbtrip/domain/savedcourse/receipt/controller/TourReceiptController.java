@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
 import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptCreateRequest;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
+import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptResponse;
 import live.lbtrip.domain.savedcourse.receipt.service.TourReceiptService;
@@ -66,6 +67,16 @@ public class TourReceiptController implements TourReceiptApi {
         @PathVariable Long receiptId
     ) {
         TourReceiptResponse response = tourReceiptService.getReceipt(userId, savedCourseId, receiptId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{receiptId}/download-url")
+    public ResponseEntity<TourReceiptDownloadUrlResponse> getReceiptDownloadUrl(
+        @UserId Long userId,
+        @PathVariable Long savedCourseId,
+        @PathVariable Long receiptId
+    ) {
+        TourReceiptDownloadUrlResponse response = tourReceiptService.getDownloadUrl(userId, savedCourseId, receiptId);
         return ResponseEntity.ok(response);
     }
 

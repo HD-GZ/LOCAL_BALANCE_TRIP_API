@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptCreateRequest;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
+import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
@@ -104,6 +105,27 @@ public interface TourReceiptApi {
         TOUR_RECEIPT_NOT_FOUND
     })
     ResponseEntity<TourReceiptResponse> getReceipt(
+        @UserId Long userId,
+        @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId,
+        @Parameter(description = "환급 증빙 식별자", example = "1") @PathVariable Long receiptId
+    );
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "환급 증빙 영수증 다운로드 URL 발급",
+        description = """
+            영수증 원본 이미지를 파일로 내려받을 수 있는 만료 시간이 있는 presigned URL을 발급합니다.
+            발급된 URL로 GET 요청 시 브라우저가 화면 표시 대신 파일 다운로드로 동작합니다.
+            URL은 expiresAt 이후 만료되므로 다운로드 시점마다 새로 발급받아야 합니다.
+            """
+    )
+    @ApiSuccessResponse(description = "다운로드 URL 발급 성공")
+    @ApiErrorCodeResponses({
+        INVALID_ACCESS_TOKEN,
+        SAVED_COURSE_NOT_FOUND,
+        TOUR_RECEIPT_NOT_FOUND
+    })
+    ResponseEntity<TourReceiptDownloadUrlResponse> getReceiptDownloadUrl(
         @UserId Long userId,
         @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId,
         @Parameter(description = "환급 증빙 식별자", example = "1") @PathVariable Long receiptId

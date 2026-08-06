@@ -14,6 +14,7 @@ import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.enums.ImageDirectory;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.global.storage.validator.ImageFileValidator;
+import live.lbtrip.global.storage.vo.PresignedUrl;
 import live.lbtrip.global.storage.vo.ValidatedImage;
 import lombok.RequiredArgsConstructor;
 
@@ -60,6 +61,14 @@ public class ImageService {
 
     public String getPublicUrl(Image image) {
         return imageStorage.publicUrl(image.getStorageKey());
+    }
+
+    public String getViewUrl(Image image) {
+        return imageStorage.presignedViewUrl(image.getStorageKey());
+    }
+
+    public PresignedUrl getDownloadUrl(Image image, String downloadFilename) {
+        return imageStorage.presignedDownloadUrl(image.getStorageKey(), downloadFilename);
     }
 
     public void delete(Image image) {
