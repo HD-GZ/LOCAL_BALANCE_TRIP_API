@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -175,6 +176,94 @@ class TourReceiptControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("IMAGE_NOT_FOUND"));
+        }
+    }
+
+    @Nested
+    class 증빙_수정 {
+
+        @Test
+        void 사용자가_수정한_필드로_증빙을_수정한다() throws Exception {
+            인증된_사용자();
+            TourReceiptResponse response = receiptResponse();
+            when(tourReceiptService.update(
+                org.mockito.ArgumentMatchers.eq(AuthResponseFixture.USER_ID),
+                org.mockito.ArgumentMatchers.eq(SAVED_COURSE_ID),
+                org.mockito.ArgumentMatchers.eq(RECEIPT_ID),
+                any()
+            )).thenReturn(response);
+
+            mockMvc.perform(patch(
+                    "/saved-courses/{savedCourseId}/receipts/{receiptId}",
+                    SAVED_COURSE_ID,
+                    RECEIPT_ID
+                )
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                        {
+                          "merchantName": "국수거리 노포",
+                          "amount": 18000,
+                          "paidDate": "2026-07-17"
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.receiptId").value(RECEIPT_ID))
+                .andExpect(jsonPath("$.data.merchantName").value("국수거리 노포"))
+                .andExpect(jsonPath("$.data.amount").value(18000))
+                .andExpect(jsonPath("$.data.paidDate").value("2026-07-17"));
+        }
+
+        @Test
+        void 가맹점명이_없으면_유효성_예외를_응답한다() throws Exception {
+            인증된_사용자();
+
+            mockMvc.perform(patch(
+                    "/saved-courses/{savedCourseId}/receipts/{receiptId}",
+                    SAVED_COURSE_ID,
+                    RECEIPT_ID
+                )
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                        {
+                          "amount": 18000,
+                          "paidDate": "2026-07-17"
+                        }
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
+        }
+
+        @Test
+        void 저장_코스에_없는_증빙이면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+            when(tourReceiptService.update(
+                org.mockito.ArgumentMatchers.eq(AuthResponseFixture.USER_ID),
+                org.mockito.ArgumentMatchers.eq(SAVED_COURSE_ID),
+                org.mockito.ArgumentMatchers.eq(RECEIPT_ID),
+                any()
+            )).thenThrow(BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
+
+            mockMvc.perform(patch(
+                    "/saved-courses/{savedCourseId}/receipts/{receiptId}",
+                    SAVED_COURSE_ID,
+                    RECEIPT_ID
+                )
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                        {
+                          "merchantName": "국수거리 노포",
+                          "amount": 18000,
+                          "paidDate": "2026-07-17"
+                        }
+                        """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("TOUR_RECEIPT_NOT_FOUND"));
         }
     }
 

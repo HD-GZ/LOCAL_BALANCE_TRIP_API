@@ -26,6 +26,7 @@ import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.domain.image.model.vo.ImageRegistration;
 import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptCreateRequest;
+import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptUpdateRequest;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
@@ -157,6 +158,62 @@ class TourReceiptServiceTest {
             );
             assertThat(result.amount()).isEqualTo(18000);
             assertThat(result.imageUrl()).isEqualTo(IMAGE_URL);
+        }
+    }
+
+    @Nested
+    class 수정 {
+
+        @Test
+        void 가맹점명을_정규화해_증빙을_수정한다() {
+            TourReceipt receipt = TourReceipt.create(
+                savedCourse,
+                "이전 가맹점",
+                10000,
+                LocalDate.of(2026, 7, 1),
+                image
+            );
+            TourReceiptUpdateRequest request = TourReceiptUpdateRequest.of(
+                "  국수거리 노포  ",
+                18000,
+                PAID_DATE
+            );
+            when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
+                .thenReturn(savedCourse);
+            when(savedCourse.findReceiptById(RECEIPT_ID)).thenReturn(receipt);
+            when(imageService.getViewUrl(image)).thenReturn(IMAGE_URL);
+
+            TourReceiptResponse result = tourReceiptService.update(
+                USER_ID, SAVED_COURSE_ID, RECEIPT_ID, request
+            );
+
+            assertThat(receipt.getMerchantName()).isEqualTo("국수거리 노포");
+            assertThat(receipt.getAmount()).isEqualTo(18000);
+            assertThat(receipt.getPaidDate()).isEqualTo(PAID_DATE);
+            assertThat(result.merchantName()).isEqualTo("국수거리 노포");
+            assertThat(result.amount()).isEqualTo(18000);
+            assertThat(result.paidDate()).isEqualTo(PAID_DATE);
+            assertThat(result.imageUrl()).isEqualTo(IMAGE_URL);
+        }
+
+        @Test
+        void 저장_코스에_없는_증빙이면_수정하지_않는다() {
+            TourReceiptUpdateRequest request = TourReceiptUpdateRequest.of(
+                "국수거리 노포",
+                18000,
+                PAID_DATE
+            );
+            when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
+                .thenReturn(savedCourse);
+            when(savedCourse.findReceiptById(RECEIPT_ID))
+                .thenThrow(BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
+
+            assertErrorCode(
+                () -> tourReceiptService.update(USER_ID, SAVED_COURSE_ID, RECEIPT_ID, request),
+                ErrorCode.TOUR_RECEIPT_NOT_FOUND
+            );
+
+            verify(imageService, never()).getViewUrl(any());
         }
     }
 
