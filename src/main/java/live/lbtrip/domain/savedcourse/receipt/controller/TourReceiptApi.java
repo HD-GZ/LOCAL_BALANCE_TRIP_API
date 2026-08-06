@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptCreateRequest;
+import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptUpdateRequest;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
@@ -70,6 +71,29 @@ public interface TourReceiptApi {
         @UserId Long userId,
         @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId,
         @Valid TourReceiptCreateRequest request
+    );
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "환급 증빙 수정",
+        description = """
+            환급 증빙의 가맹점명, 결제 금액, 결제 일자를 수정합니다.
+            세 필드를 모두 전달해야 하며, 수정된 환급 증빙 정보와 영수증 이미지 URL을 반환합니다.
+            영수증 이미지는 수정할 수 없습니다.
+            """
+    )
+    @ApiSuccessResponse(description = "환급 증빙 수정 성공")
+    @ApiErrorCodeResponses({
+        INVALID_ACCESS_TOKEN,
+        SAVED_COURSE_NOT_FOUND,
+        TOUR_RECEIPT_NOT_FOUND,
+        INVALID_INPUT_VALUE
+    })
+    ResponseEntity<TourReceiptResponse> updateReceipt(
+        @UserId Long userId,
+        @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId,
+        @Parameter(description = "환급 증빙 식별자", example = "1") @PathVariable Long receiptId,
+        @Valid TourReceiptUpdateRequest request
     );
 
     @SecurityRequirement(name = "bearerAuth")

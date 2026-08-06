@@ -10,6 +10,7 @@ import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.domain.image.model.vo.ImageRegistration;
 import live.lbtrip.domain.image.service.ImageService;
 import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptCreateRequest;
+import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptUpdateRequest;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
@@ -60,6 +61,20 @@ public class TourReceiptService {
         );
 
         return TourReceiptResponse.from(receipt, imageService.getViewUrl(image));
+    }
+
+    @Transactional
+    public TourReceiptResponse update(Long userId, Long savedCourseId, Long receiptId, TourReceiptUpdateRequest request) {
+        SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
+        TourReceipt receipt = savedCourse.findReceiptById(receiptId);
+
+        receipt.update(
+            StringNormalizer.trim(request.merchantName()),
+            request.amount(),
+            request.paidDate()
+        );
+
+        return TourReceiptResponse.from(receipt, imageService.getViewUrl(receipt.getImage()));
     }
 
     public TourReceiptListResponse getReceipts(Long userId, Long savedCourseId) {

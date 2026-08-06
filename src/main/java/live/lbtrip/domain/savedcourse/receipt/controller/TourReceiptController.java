@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptCreateRequest;
+import live.lbtrip.domain.savedcourse.receipt.dto.request.TourReceiptUpdateRequest;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
@@ -49,6 +51,17 @@ public class TourReceiptController implements TourReceiptApi {
     ) {
         TourReceiptResponse response = tourReceiptService.create(userId, savedCourseId, request);
         return ResponseEntity.status(CREATED).body(response);
+    }
+
+    @PatchMapping("/{receiptId}")
+    public ResponseEntity<TourReceiptResponse> updateReceipt(
+        @UserId Long userId,
+        @PathVariable Long savedCourseId,
+        @PathVariable Long receiptId,
+        @Valid @RequestBody TourReceiptUpdateRequest request
+    ) {
+        TourReceiptResponse response = tourReceiptService.update(userId, savedCourseId, receiptId, request);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

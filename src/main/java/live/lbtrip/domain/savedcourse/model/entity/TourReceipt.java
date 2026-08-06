@@ -59,4 +59,10 @@ public class TourReceipt extends BaseEntity {
     ) {
         return new TourReceipt(savedCourse, merchantName, amount, paidDate, image);
     }
+
+    public void update(String merchantName, int amount, LocalDate paidDate) {
+        this.merchantName = merchantName;
+        this.amount = amount;
+        this.paidDate = paidDate;
+    }
 }
