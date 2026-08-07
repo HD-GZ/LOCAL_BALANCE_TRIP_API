@@ -1,14 +1,20 @@
 package live.lbtrip.domain.home.controller;
 
 import static live.lbtrip.global.error.ErrorCode.INTERNAL_SERVER_ERROR;
+import static live.lbtrip.global.error.ErrorCode.INVALID_ACCESS_TOKEN;
+import static live.lbtrip.global.error.ErrorCode.PROPENSITY_NOT_FOUND;
+import static live.lbtrip.global.error.ErrorCode.TRAVEL_PROFILE_NOT_FOUND;
 
 import org.springframework.http.ResponseEntity;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
+import live.lbtrip.global.web.UserId;
 
 @Tag(name = "Home", description = "홈 화면 섹션 API")
 public interface HomeApi {
@@ -22,4 +28,17 @@ public interface HomeApi {
         INTERNAL_SERVER_ERROR
     })
     ResponseEntity<ProfileTypeListResponse> getProfileTypes();
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "내 진단 요약",
+        description = "로그인 사용자의 진단 유형과 랜덤 3개 취향 슬라이더를 조회합니다."
+    )
+    @ApiSuccessResponse(description = "진단 요약 조회 성공")
+    @ApiErrorCodeResponses({
+        INVALID_ACCESS_TOKEN,
+        PROPENSITY_NOT_FOUND,
+        TRAVEL_PROFILE_NOT_FOUND
+    })
+    ResponseEntity<ProfileSummaryResponse> getProfileSummary(@UserId Long userId);
 }

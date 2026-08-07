@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -18,10 +19,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
+import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
+import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.service.HomeService;
 import live.lbtrip.global.config.CorsProperties;
+import live.lbtrip.support.fixture.AuthResponseFixture;
+import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(HomeController.class)
 @Import(HomeControllerTest.TestCorsConfig.class)
@@ -52,6 +57,36 @@ class HomeControllerTest {
             .andExpect(jsonPath("$.result").value("SUCCESS"))
             .andExpect(jsonPath("$.data.types[0].code").value("LVEAI"))
             .andExpect(jsonPath("$.data.types[0].nickname").value("찐로컬 탐험가"));
+    }
+
+    @Test
+    void 진단_요약을_조회한다() throws Exception {
+        인증된_사용자();
+        when(homeService.getProfileSummary(AuthResponseFixture.USER_ID)).thenReturn(
+            new ProfileSummaryResponse("찐로컬 탐험가 (LVEAI)", "설명", "https://img/lveai.png",
+                LocalDate.of(2026, 7, 20),
+                List.of(new ProfileSummaryResponse.InnerSlider("LOCALITY", "핫플·유명 명소", "로컬·골목 상권", 4))));
+
+        mockMvc.perform(get("/home/profile-summary")
+                .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.type").value("찐로컬 탐험가 (LVEAI)"))
+            .andExpect(jsonPath("$.data.sliders[0].score").value(4));
+    }
+
+    @Test
+    void 진단_요약은_토큰이_없으면_예외를_응답한다() throws Exception {
+        mockMvc.perform(get("/home/profile-summary"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.result").value("ERROR"))
+            .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
+    }
+
+    private void 인증된_사용자() {
+        when(jwtTokenProvider.isValid(TokenFixture.ACCESS_TOKEN)).thenReturn(true);
+        when(jwtTokenProvider.parseSubject(TokenFixture.ACCESS_TOKEN))
+            .thenReturn(JwtTokenSubject.of(AuthResponseFixture.USER_ID));
     }
 
     @TestConfiguration
