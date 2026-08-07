@@ -1,6 +1,9 @@
 package live.lbtrip.domain.home.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -15,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -26,11 +30,16 @@ import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
+import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
 import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.recommendation.repository.dto.PopularRegionCode;
+import live.lbtrip.domain.recommendation.service.RecommendationService;
+import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseListResponse;
+import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.storage.service.ImageStorage;
@@ -47,6 +56,8 @@ class HomeServiceTest {
     @Mock private TourPlaceRepository tourPlaceRepository;
     @Mock private RecommendedRegionRepository recommendedRegionRepository;
     @Mock private GeneratedCourseRepository generatedCourseRepository;
+    @Mock private SavedCourseService savedCourseService;
+    @Mock private RecommendationService recommendationService;
     @InjectMocks private HomeService homeService;
 
     @Test
@@ -145,5 +156,26 @@ class HomeServiceTest {
         assertThat(response.courses()).hasSize(1);
         assertThat(response.courses().get(0).courseId()).isEqualTo(10L);
         assertThat(response.courses().get(0).regionName()).isEqualTo("전라남도 담양군");
+    }
+
+    @Test
+    void 저장_코스_두개마다_추천여행지를_끼워_넣는다() {
+        Long userId = 1L;
+        SavedCourseListResponse saved = new SavedCourseListResponse(3, 1, 10, 1, List.of(
+            new SavedCourseListResponse.InnerSavedCourseResponse(1L, "코스A", "https://img/a.jpg", SavedCourseStatus.COMPLETED),
+            new SavedCourseListResponse.InnerSavedCourseResponse(2L, "코스B", "https://img/b.jpg", SavedCourseStatus.BEFORE_TRIP),
+            new SavedCourseListResponse.InnerSavedCourseResponse(3L, "코스C", "https://img/c.jpg", SavedCourseStatus.BEFORE_TRIP)));
+        when(savedCourseService.getSavedCourses(eq(userId), isNull(), any())).thenReturn(saved);
+        when(recommendationService.getRecommendedRegions(userId)).thenReturn(List.of(
+            new RegionRecommendationResponse(7L, "전라남도 담양군", "https://img/r.jpg", "추천 이유")));
+
+        HomeFeedResponse response = homeService.getSavedCourseFeed(userId);
+
+        // 코스A, 코스B, 추천(담양), 코스C
+        assertThat(response.items()).hasSize(4);
+        assertThat(response.items().get(0).itemType()).isEqualTo("SAVED_COURSE");
+        assertThat(response.items().get(2).itemType()).isEqualTo("RECOMMENDED_REGION");
+        assertThat(response.items().get(2).title()).isEqualTo("전라남도 담양군");
+        assertThat(response.items().get(3).itemType()).isEqualTo("SAVED_COURSE");
     }
 }

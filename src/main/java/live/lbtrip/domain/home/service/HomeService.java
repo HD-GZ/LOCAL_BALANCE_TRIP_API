@@ -1,5 +1,6 @@
 package live.lbtrip.domain.home.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -18,11 +20,16 @@ import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
+import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
+import live.lbtrip.domain.recommendation.service.RecommendationService;
+import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseListResponse;
+import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.storage.service.ImageStorage;
+import live.lbtrip.global.web.PageQueryRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -32,6 +39,8 @@ public class HomeService {
 
     public static final int HERO_SIZE = 5;
     public static final int POPULAR_REGION_SIZE = 6;
+    private static final int SAVED_FEED_PAGE_SIZE = 20;
+    private static final int SAVED_PER_RECOMMENDATION = 2;
 
     private final TravelProfileRepository travelProfileRepository;
     private final ImageStorage imageStorage;
@@ -41,6 +50,8 @@ public class HomeService {
     private final TourPlaceRepository tourPlaceRepository;
     private final RecommendedRegionRepository recommendedRegionRepository;
     private final GeneratedCourseRepository generatedCourseRepository;
+    private final SavedCourseService savedCourseService;
+    private final RecommendationService recommendationService;
 
     public HeroResponse getHero(Long userId) {
         List<HeroResponse.InnerHeroItem> items = (userId == null)
@@ -83,5 +94,34 @@ public class HomeService {
             .flatMap(Optional::stream)
             .toList();
         return PopularCourseListResponse.of(courses);
+    }
+
+    public HomeFeedResponse getSavedCourseFeed(Long userId) {
+        List<SavedCourseListResponse.InnerSavedCourseResponse> saved =
+            savedCourseService.getSavedCourses(userId, null, new PageQueryRequest(1, SAVED_FEED_PAGE_SIZE)).courses();
+        List<RegionRecommendationResponse> regions = recommendationService.getRecommendedRegions(userId);
+
+        List<HomeFeedResponse.InnerFeedItem> items = new ArrayList<>();
+        int regionIndex = 0;
+        for (int i = 0; i < saved.size(); i++) {
+            SavedCourseListResponse.InnerSavedCourseResponse course = saved.get(i);
+            items.add(new HomeFeedResponse.InnerFeedItem(
+                "SAVED_COURSE", course.savedCourseId(), course.courseName(),
+                course.imageUrl(), course.status().name()));
+            boolean boundary = (i + 1) % SAVED_PER_RECOMMENDATION == 0;
+            if (boundary && regionIndex < regions.size()) {
+                RegionRecommendationResponse region = regions.get(regionIndex++);
+                items.add(new HomeFeedResponse.InnerFeedItem(
+                    "RECOMMENDED_REGION", region.regionId(), region.regionName(),
+                    region.imageUrl(), region.reason()));
+            }
+        }
+        while (regionIndex < regions.size()) {
+            RegionRecommendationResponse region = regions.get(regionIndex++);
+            items.add(new HomeFeedResponse.InnerFeedItem(
+                "RECOMMENDED_REGION", region.regionId(), region.regionName(),
+                region.imageUrl(), region.reason()));
+        }
+        return HomeFeedResponse.of(items);
     }
 }

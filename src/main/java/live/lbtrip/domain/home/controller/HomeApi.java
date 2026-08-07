@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -63,4 +64,15 @@ public interface HomeApi {
         INTERNAL_SERVER_ERROR
     })
     ResponseEntity<PopularCourseListResponse> getPopularCourses();
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "내 저장 코스 피드",
+        description = "저장 코스에 추천 여행지를 인터리빙해 조회합니다."
+    )
+    @ApiSuccessResponse(description = "저장 코스 피드 조회 성공")
+    @ApiErrorCodeResponses({
+        INVALID_ACCESS_TOKEN
+    })
+    ResponseEntity<HomeFeedResponse> getSavedCourseFeed(@UserId Long userId);
 }

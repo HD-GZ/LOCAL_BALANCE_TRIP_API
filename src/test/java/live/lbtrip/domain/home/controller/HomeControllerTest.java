@@ -22,6 +22,7 @@ import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -117,6 +118,28 @@ class HomeControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.courses[0].courseId").value(10))
             .andExpect(jsonPath("$.data.courses[0].regionName").value("전라남도 담양군"));
+    }
+
+    @Test
+    void 저장_코스_피드를_조회한다() throws Exception {
+        인증된_사용자();
+        when(homeService.getSavedCourseFeed(AuthResponseFixture.USER_ID)).thenReturn(
+            HomeFeedResponse.of(List.of(
+                new HomeFeedResponse.InnerFeedItem("SAVED_COURSE", 1L, "코스A", "https://img/a.jpg", "COMPLETED"),
+                new HomeFeedResponse.InnerFeedItem("RECOMMENDED_REGION", 7L, "전라남도 담양군", "https://img/r.jpg", "추천 이유"))));
+
+        mockMvc.perform(get("/home/saved-courses")
+                .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.items[0].itemType").value("SAVED_COURSE"))
+            .andExpect(jsonPath("$.data.items[1].itemType").value("RECOMMENDED_REGION"));
+    }
+
+    @Test
+    void 저장_코스_피드는_토큰이_없으면_예외를_응답한다() throws Exception {
+        mockMvc.perform(get("/home/saved-courses"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
     }
 
     private void 인증된_사용자() {
