@@ -34,14 +34,23 @@ public class UserIdArgumentResolver implements HandlerMethodArgumentResolver {
         NativeWebRequest webRequest,
         WebDataBinderFactory binderFactory
     ) {
+        UserId annotation = parameter.getParameterAnnotation(UserId.class);
+        boolean required = annotation == null || annotation.required();
+
         String authorization = webRequest.getHeader(AUTHORIZATION_HEADER);
         if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
-            throw BusinessException.of(ErrorCode.INVALID_ACCESS_TOKEN);
+            if (required) {
+                throw BusinessException.of(ErrorCode.INVALID_ACCESS_TOKEN);
+            }
+            return null;
         }
 
         String token = authorization.substring(BEARER_PREFIX.length());
         if (!jwtTokenProvider.isValid(token)) {
-            throw BusinessException.of(ErrorCode.INVALID_ACCESS_TOKEN);
+            if (required) {
+                throw BusinessException.of(ErrorCode.INVALID_ACCESS_TOKEN);
+            }
+            return null;
         }
 
         return jwtTokenProvider.parseSubject(token).userId();

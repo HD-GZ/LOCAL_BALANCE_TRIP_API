@@ -11,4 +11,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UserId {
+
+    boolean required() default true;
 }
