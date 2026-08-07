@@ -1,11 +1,14 @@
 package live.lbtrip.domain.home.service;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.propensity.model.Preference;
@@ -15,6 +18,8 @@ import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
+import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
+import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.storage.service.ImageStorage;
@@ -26,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class HomeService {
 
     public static final int HERO_SIZE = 5;
+    public static final int POPULAR_REGION_SIZE = 6;
 
     private final TravelProfileRepository travelProfileRepository;
     private final ImageStorage imageStorage;
@@ -34,6 +40,7 @@ public class HomeService {
     private final PropensityFactorSelector propensityFactorSelector;
     private final TourPlaceRepository tourPlaceRepository;
     private final RecommendedRegionRepository recommendedRegionRepository;
+    private final GeneratedCourseRepository generatedCourseRepository;
 
     public HeroResponse getHero(Long userId) {
         List<HeroResponse.InnerHeroItem> items = (userId == null)
@@ -65,5 +72,16 @@ public class HomeService {
             preference,
             valueConsumption,
             propensityFactorSelector.selectThree());
+    }
+
+    public PopularCourseListResponse getPopularCourses() {
+        List<GeneratedCourse> courses = recommendedRegionRepository
+            .findPopularRegionCodes(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+            .map(code -> generatedCourseRepository
+                .findFirstByRecommendedRegion_LdongRegnCdAndRecommendedRegion_LdongSignguCdOrderByIdAsc(
+                    code.getLdongRegnCd(), code.getLdongSignguCd()))
+            .flatMap(Optional::stream)
+            .toList();
+        return PopularCourseListResponse.of(courses);
     }
 }

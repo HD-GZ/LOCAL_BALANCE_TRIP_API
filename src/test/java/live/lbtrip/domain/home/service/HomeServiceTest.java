@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.model.PropensityFactor;
@@ -25,8 +26,11 @@ import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
+import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
+import live.lbtrip.domain.recommendation.repository.dto.PopularRegionCode;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.storage.service.ImageStorage;
@@ -42,6 +46,7 @@ class HomeServiceTest {
     @Mock private PropensityFactorSelector propensityFactorSelector;
     @Mock private TourPlaceRepository tourPlaceRepository;
     @Mock private RecommendedRegionRepository recommendedRegionRepository;
+    @Mock private GeneratedCourseRepository generatedCourseRepository;
     @InjectMocks private HomeService homeService;
 
     @Test
@@ -111,5 +116,34 @@ class HomeServiceTest {
         assertThat(response.items()).hasSize(1);
         assertThat(response.items().get(0).title()).isEqualTo("전라남도 담양군");
         assertThat(response.items().get(0).imageUrl()).isEqualTo("https://img/region.jpg");
+    }
+
+    @Test
+    void 인기_지역의_대표_코스를_반환한다() {
+        PopularRegionCode code = new PopularRegionCode() {
+            @Override public String getLdongRegnCd() { return "46"; }
+            @Override public String getLdongSignguCd() { return "710"; }
+        };
+        when(recommendedRegionRepository.findPopularRegionCodes(
+            org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
+            .thenReturn(List.of(code));
+
+        GeneratedCourse course = org.mockito.Mockito.mock(GeneratedCourse.class);
+        RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(course.getId()).thenReturn(10L);
+        when(course.getName()).thenReturn("담양 골목 미식 코스");
+        when(course.getReason()).thenReturn("로컬 미식 동선");
+        when(course.getImageUrl()).thenReturn("https://img/course.jpg");
+        when(course.getRecommendedRegion()).thenReturn(region);
+        when(region.getRegionName()).thenReturn("전라남도 담양군");
+        when(generatedCourseRepository
+            .findFirstByRecommendedRegion_LdongRegnCdAndRecommendedRegion_LdongSignguCdOrderByIdAsc("46", "710"))
+            .thenReturn(java.util.Optional.of(course));
+
+        PopularCourseListResponse response = homeService.getPopularCourses();
+
+        assertThat(response.courses()).hasSize(1);
+        assertThat(response.courses().get(0).courseId()).isEqualTo(10L);
+        assertThat(response.courses().get(0).regionName()).isEqualTo("전라남도 담양군");
     }
 }

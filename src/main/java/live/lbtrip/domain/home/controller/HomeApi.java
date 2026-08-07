@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
@@ -52,4 +53,14 @@ public interface HomeApi {
         TRAVEL_PROFILE_NOT_FOUND
     })
     ResponseEntity<ProfileSummaryResponse> getProfileSummary(@UserId Long userId);
+
+    @Operation(
+        summary = "인기 지역 대표 코스",
+        description = "추천 수가 많은 지역의 대표 코스를 조회합니다."
+    )
+    @ApiSuccessResponse(description = "인기 코스 조회 성공")
+    @ApiErrorCodeResponses({
+        INTERNAL_SERVER_ERROR
+    })
+    ResponseEntity<PopularCourseListResponse> getPopularCourses();
 }

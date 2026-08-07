@@ -22,6 +22,7 @@ import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.service.HomeService;
@@ -105,6 +106,17 @@ class HomeControllerTest {
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.result").value("ERROR"))
             .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
+    }
+
+    @Test
+    void 인기_코스_목록을_조회한다() throws Exception {
+        when(homeService.getPopularCourses()).thenReturn(new PopularCourseListResponse(List.of(
+            new PopularCourseListResponse.InnerPopularCourse(10L, "담양 골목 미식 코스", "로컬 미식", "https://img/c.jpg", "전라남도 담양군"))));
+
+        mockMvc.perform(get("/home/popular-courses"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.courses[0].courseId").value(10))
+            .andExpect(jsonPath("$.data.courses[0].regionName").value("전라남도 담양군"));
     }
 
     private void 인증된_사용자() {

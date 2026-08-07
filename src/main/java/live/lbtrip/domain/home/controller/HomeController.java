@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
+import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.service.HomeService;
@@ -32,5 +33,10 @@ public class HomeController implements HomeApi {
     @GetMapping("/profile-summary")
     public ResponseEntity<ProfileSummaryResponse> getProfileSummary(@UserId Long userId) {
         return ResponseEntity.ok(homeService.getProfileSummary(userId));
+    }
+
+    @GetMapping("/popular-courses")
+    public ResponseEntity<PopularCourseListResponse> getPopularCourses() {
+        return ResponseEntity.ok(homeService.getPopularCourses());
     }
 }
