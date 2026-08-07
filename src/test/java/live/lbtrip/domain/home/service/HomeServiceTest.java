@@ -130,6 +130,23 @@ class HomeServiceTest {
     }
 
     @Test
+    void 로그인_히어로는_이미지가_없는_추천지역을_제외한다() {
+        RecommendedRegion withImage = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(withImage.getRegionName()).thenReturn("전라남도 담양군");
+        when(withImage.getImageUrl()).thenReturn("https://img/region.jpg");
+        RecommendedRegion withoutImage = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(withoutImage.getImageUrl()).thenReturn(null);
+        when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(1L))
+            .thenReturn(List.of(withImage, withoutImage));
+
+        HeroResponse response = homeService.getHero(1L);
+
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.items().get(0).title()).isEqualTo("전라남도 담양군");
+        assertThat(response.items().get(0).imageUrl()).isEqualTo("https://img/region.jpg");
+    }
+
+    @Test
     void 인기_지역의_대표_코스를_반환한다() {
         PopularRegionCode code = new PopularRegionCode() {
             @Override public String getLdongRegnCd() { return "46"; }

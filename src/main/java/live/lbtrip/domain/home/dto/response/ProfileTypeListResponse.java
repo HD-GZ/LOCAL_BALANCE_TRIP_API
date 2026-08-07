@@ -4,9 +4,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.propensity.model.TravelProfile;
-import live.lbtrip.global.storage.service.ImageStorage;
-
 public record ProfileTypeListResponse(
     @Schema(description = "대표 취향 진단 유형 목록")
     List<InnerProfileType> types
@@ -27,14 +24,7 @@ public record ProfileTypeListResponse(
     ) {
     }
 
-    public static ProfileTypeListResponse of(List<TravelProfile> profiles, ImageStorage imageStorage) {
-        List<InnerProfileType> types = profiles.stream()
-            .map(p -> new InnerProfileType(
-                p.getCode(),
-                p.getNickname(),
-                p.getDescription(),
-                imageStorage.publicUrl(p.getImageKey())))
-            .toList();
+    public static ProfileTypeListResponse of(List<InnerProfileType> types) {
         return new ProfileTypeListResponse(types);
     }
 }

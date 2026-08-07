@@ -59,15 +59,22 @@ public class HomeService {
                 .map(p -> new HeroResponse.InnerHeroItem(p.getImageUrl(), p.getTitle()))
                 .toList()
             : recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
+                .filter(r -> r.getImageUrl() != null)
                 .map(r -> new HeroResponse.InnerHeroItem(r.getImageUrl(), r.getRegionName()))
                 .toList();
         return HeroResponse.of(items);
     }
 
     public ProfileTypeListResponse getProfileTypes() {
-        return ProfileTypeListResponse.of(
-            travelProfileRepository.findByFeaturedOrderIsNotNullOrderByFeaturedOrderAsc(),
-            imageStorage);
+        List<ProfileTypeListResponse.InnerProfileType> types = travelProfileRepository
+            .findByFeaturedOrderIsNotNullOrderByFeaturedOrderAsc().stream()
+            .map(p -> new ProfileTypeListResponse.InnerProfileType(
+                p.getCode(),
+                p.getNickname(),
+                p.getDescription(),
+                imageStorage.publicUrl(p.getImageKey())))
+            .toList();
+        return ProfileTypeListResponse.of(types);
     }
 
     public ProfileSummaryResponse getProfileSummary(Long userId) {
