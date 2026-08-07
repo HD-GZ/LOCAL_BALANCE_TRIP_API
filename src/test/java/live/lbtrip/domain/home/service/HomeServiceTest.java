@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.model.PropensityFactor;
@@ -24,6 +25,10 @@ import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
+import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
+import live.lbtrip.domain.tourism.model.entity.TourPlace;
+import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.support.fixture.TravelProfileFixture;
 
@@ -35,6 +40,8 @@ class HomeServiceTest {
     @Mock private PropensityFinder propensityFinder;
     @Mock private TravelProfileFinder travelProfileFinder;
     @Mock private PropensityFactorSelector propensityFactorSelector;
+    @Mock private TourPlaceRepository tourPlaceRepository;
+    @Mock private RecommendedRegionRepository recommendedRegionRepository;
     @InjectMocks private HomeService homeService;
 
     @Test
@@ -78,5 +85,31 @@ class HomeServiceTest {
         assertThat(response.sliders()).hasSize(3);
         assertThat(response.sliders().get(0).minLabel()).isEqualTo("핫플·유명 명소");
         assertThat(response.sliders().get(0).score()).isEqualTo(4);
+    }
+
+    @Test
+    void 비로그인_히어로는_랜덤_투어플레이스_사진을_반환한다() {
+        TourPlace place = live.lbtrip.support.fixture.TourPlaceFixture.withImage("담양 메타세쿼이아길", "https://img/damyang.jpg");
+        when(tourPlaceRepository.findRandomWithImage(HomeService.HERO_SIZE)).thenReturn(List.of(place));
+
+        HeroResponse response = homeService.getHero(null);
+
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.items().get(0).imageUrl()).isEqualTo("https://img/damyang.jpg");
+        assertThat(response.items().get(0).title()).isEqualTo("담양 메타세쿼이아길");
+    }
+
+    @Test
+    void 로그인_히어로는_내_추천지역_사진을_반환한다() {
+        RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(region.getRegionName()).thenReturn("전라남도 담양군");
+        when(region.getImageUrl()).thenReturn("https://img/region.jpg");
+        when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(1L)).thenReturn(List.of(region));
+
+        HeroResponse response = homeService.getHero(1L);
+
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.items().get(0).title()).isEqualTo("전라남도 담양군");
+        assertThat(response.items().get(0).imageUrl()).isEqualTo("https://img/region.jpg");
     }
 }

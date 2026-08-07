@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.service.HomeService;
@@ -17,6 +18,11 @@ import lombok.RequiredArgsConstructor;
 public class HomeController implements HomeApi {
 
     private final HomeService homeService;
+
+    @GetMapping("/hero")
+    public ResponseEntity<HeroResponse> getHero(@UserId(required = false) Long userId) {
+        return ResponseEntity.ok(homeService.getHero(userId));
+    }
 
     @GetMapping("/profile-types")
     public ResponseEntity<ProfileTypeListResponse> getProfileTypes() {

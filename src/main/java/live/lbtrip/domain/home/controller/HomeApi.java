@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
@@ -18,6 +19,16 @@ import live.lbtrip.global.web.UserId;
 
 @Tag(name = "Home", description = "홈 화면 섹션 API")
 public interface HomeApi {
+
+    @Operation(
+        summary = "홈 히어로 사진",
+        description = "비로그인: 랜덤 여행지 사진, 로그인: 내 추천지역 사진."
+    )
+    @ApiSuccessResponse(description = "히어로 조회 성공")
+    @ApiErrorCodeResponses({
+        INTERNAL_SERVER_ERROR
+    })
+    ResponseEntity<HeroResponse> getHero(@UserId(required = false) Long userId);
 
     @Operation(
         summary = "취향 진단 대표 유형 목록",

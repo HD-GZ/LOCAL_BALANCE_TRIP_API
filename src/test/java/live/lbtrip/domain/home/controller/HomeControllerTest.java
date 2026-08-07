@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
+import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.service.HomeService;
@@ -46,6 +47,29 @@ class HomeControllerTest {
 
     @MockitoBean
     private AdminJwtTokenProvider adminJwtTokenProvider;
+
+    @Test
+    void 비로그인_히어로를_조회한다() throws Exception {
+        when(homeService.getHero(null)).thenReturn(
+            HeroResponse.of(List.of(new HeroResponse.InnerHeroItem("https://img/a.jpg", "담양"))));
+
+        mockMvc.perform(get("/home/hero"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.items[0].title").value("담양"));
+    }
+
+    @Test
+    void 로그인_히어로를_조회한다() throws Exception {
+        인증된_사용자();
+        when(homeService.getHero(AuthResponseFixture.USER_ID)).thenReturn(
+            HeroResponse.of(List.of(new HeroResponse.InnerHeroItem("https://img/r.jpg", "전라남도 담양군"))));
+
+        mockMvc.perform(get("/home/hero")
+                .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.items[0].title").value("전라남도 담양군"));
+    }
 
     @Test
     void 대표_유형_목록을_조회한다() throws Exception {
