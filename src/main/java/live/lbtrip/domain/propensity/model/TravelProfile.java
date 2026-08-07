@@ -33,6 +33,9 @@ public class TravelProfile extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String imageKey;
 
+    @Column(name = "featured_order")
+    private Integer featuredOrder;
+
     private TravelProfile(String code, String nickname, String description, String imageKey) {
         this.code = code;
         this.nickname = nickname;
@@ -42,5 +45,9 @@ public class TravelProfile extends BaseEntity {
 
     public static TravelProfile create(String code, String nickname, String description, String imageKey) {
         return new TravelProfile(code, nickname, description, imageKey);
+    }
+
+    public void assignFeaturedOrder(Integer featuredOrder) {
+        this.featuredOrder = featuredOrder;
     }
 }
