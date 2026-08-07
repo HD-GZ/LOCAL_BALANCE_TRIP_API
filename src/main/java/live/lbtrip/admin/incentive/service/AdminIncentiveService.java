@@ -31,7 +31,9 @@ public class AdminIncentiveService {
         Incentive incentive = Incentive.create(
             StringNormalizer.trim(request.title()),
             StringNormalizer.trim(request.url()),
-            normalizeDescription(request.description())
+            normalizeDescription(request.description()),
+            request.startDate(),
+            request.endDate()
         );
         incentive.replaceRegions(toIncentiveRegions(regions));
         return AdminIncentiveResponse.from(adminIncentiveRepository.save(incentive));
@@ -51,7 +53,9 @@ public class AdminIncentiveService {
         incentive.update(
             StringNormalizer.trim(request.title()),
             StringNormalizer.trim(request.url()),
-            normalizeDescription(request.description())
+            normalizeDescription(request.description()),
+            request.startDate(),
+            request.endDate()
         );
         incentive.replaceRegions(toIncentiveRegions(regions));
         return AdminIncentiveResponse.from(incentive);

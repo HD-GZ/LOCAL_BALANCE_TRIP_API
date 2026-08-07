@@ -3,6 +3,7 @@ package live.lbtrip.admin.incentive.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -46,7 +47,7 @@ class AdminIncentiveControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @MockitoBean
     private AdminIncentiveService adminIncentiveService;
@@ -77,7 +78,9 @@ class AdminIncentiveControllerTest {
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.incentiveId").value(AdminIncentiveResponseFixture.INCENTIVE_ID))
                 .andExpect(jsonPath("$.data.title").value(AdminIncentiveRequestFixture.TITLE))
-                .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.URL));
+                .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.URL))
+                .andExpect(jsonPath("$.data.startDate").value("2026-07-01"))
+                .andExpect(jsonPath("$.data.endDate").value("2026-08-31"));
         }
 
         @Test
@@ -89,7 +92,28 @@ class AdminIncentiveControllerTest {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
                         " ", AdminIncentiveRequestFixture.URL, AdminIncentiveRequestFixture.DESCRIPTION,
+                        AdminIncentiveRequestFixture.START_DATE, AdminIncentiveRequestFixture.END_DATE,
                         AdminIncentiveRequestFixture.regions()))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
+        }
+
+        @Test
+        void 시작일이_없으면_등록_요청을_예외로_응답한다() throws Exception {
+            인증된_어드민();
+
+            mockMvc.perform(post("/admin/incentives")
+                    .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN)
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
+                        AdminIncentiveRequestFixture.TITLE,
+                        AdminIncentiveRequestFixture.URL,
+                        AdminIncentiveRequestFixture.DESCRIPTION,
+                        null,
+                        AdminIncentiveRequestFixture.END_DATE,
+                        AdminIncentiveRequestFixture.regions()
+                    ))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
@@ -134,7 +158,22 @@ class AdminIncentiveControllerTest {
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data[0].incentiveId").value(AdminIncentiveResponseFixture.INCENTIVE_ID))
                 .andExpect(jsonPath("$.data[0].title").value(AdminIncentiveRequestFixture.TITLE))
-                .andExpect(jsonPath("$.data[0].url").value(AdminIncentiveRequestFixture.URL));
+                .andExpect(jsonPath("$.data[0].url").value(AdminIncentiveRequestFixture.URL))
+                .andExpect(jsonPath("$.data[0].startDate").value("2026-07-01"))
+                .andExpect(jsonPath("$.data[0].endDate").value("2026-08-31"));
+        }
+
+        @Test
+        void 레거시_인센티브의_시작일_null을_반환한다() throws Exception {
+            인증된_어드민();
+            when(adminIncentiveService.getIncentives())
+                .thenReturn(List.of(AdminIncentiveResponseFixture.legacyIncentiveResponse()));
+
+            mockMvc.perform(get("/admin/incentives")
+                    .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"))
+                .andExpect(jsonPath("$.data[0].startDate").value(nullValue()));
         }
     }
 
@@ -157,7 +196,9 @@ class AdminIncentiveControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.title").value(AdminIncentiveRequestFixture.UPDATED_TITLE))
-                .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.UPDATED_URL));
+                .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.UPDATED_URL))
+                .andExpect(jsonPath("$.data.startDate").value("2026-09-01"))
+                .andExpect(jsonPath("$.data.endDate").value(nullValue()));
         }
 
         @Test
@@ -176,6 +217,26 @@ class AdminIncentiveControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INCENTIVE_NOT_FOUND"));
+        }
+
+        @Test
+        void 시작일이_없으면_수정_요청을_예외로_응답한다() throws Exception {
+            인증된_어드민();
+
+            mockMvc.perform(put("/admin/incentives/{incentiveId}", AdminIncentiveResponseFixture.INCENTIVE_ID)
+                    .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN)
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
+                        AdminIncentiveRequestFixture.TITLE,
+                        AdminIncentiveRequestFixture.URL,
+                        AdminIncentiveRequestFixture.DESCRIPTION,
+                        null,
+                        AdminIncentiveRequestFixture.END_DATE,
+                        AdminIncentiveRequestFixture.regions()
+                    ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
         }
     }
 
