@@ -23,6 +23,7 @@ import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -140,6 +141,36 @@ class HomeControllerTest {
         mockMvc.perform(get("/home/saved-courses"))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
+    }
+
+    @Test
+    void 비로그인_진행중_인센티브를_조회한다() throws Exception {
+        when(homeService.getIncentives(null)).thenReturn(HomeIncentiveResponse.of(List.of(
+            new HomeIncentiveResponse.InnerRegionTab("전라남도 담양군", "46", "710", List.of(
+                new HomeIncentiveResponse.InnerIncentive(
+                    "담양 로컬 여행 지원", "설명", "https://event.example.com/damyang",
+                    LocalDate.now().plusDays(12), 12L))))));
+
+        mockMvc.perform(get("/home/incentives"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.regions[0].regionName").value("전라남도 담양군"))
+            .andExpect(jsonPath("$.data.regions[0].incentives[0].dday").value(12));
+    }
+
+    @Test
+    void 로그인_진행중_인센티브를_조회한다() throws Exception {
+        인증된_사용자();
+        when(homeService.getIncentives(AuthResponseFixture.USER_ID)).thenReturn(HomeIncentiveResponse.of(List.of(
+            new HomeIncentiveResponse.InnerRegionTab("전라남도 담양군", "46", "710", List.of(
+                new HomeIncentiveResponse.InnerIncentive(
+                    "담양 로컬 여행 지원", "설명", "https://event.example.com/damyang",
+                    LocalDate.now().plusDays(12), 12L))))));
+
+        mockMvc.perform(get("/home/incentives")
+                .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.regions[0].regionName").value("전라남도 담양군"));
     }
 
     private void 인증된_사용자() {

@@ -16,6 +16,8 @@ public interface RecommendedRegionRepository extends JpaRepository<RecommendedRe
 
     Optional<RecommendedRegion> findByIdAndUserId(Long id, Long userId);
 
+    Optional<RecommendedRegion> findFirstByLdongRegnCdAndLdongSignguCd(String ldongRegnCd, String ldongSignguCd);
+
     @Query(
         "SELECT r.ldongRegnCd AS ldongRegnCd, r.ldongSignguCd AS ldongSignguCd, COUNT(r) AS cnt "
             + "FROM RecommendedRegion r "

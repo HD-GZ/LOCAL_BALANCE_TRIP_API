@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -44,5 +45,10 @@ public class HomeController implements HomeApi {
     @GetMapping("/saved-courses")
     public ResponseEntity<HomeFeedResponse> getSavedCourseFeed(@UserId Long userId) {
         return ResponseEntity.ok(homeService.getSavedCourseFeed(userId));
+    }
+
+    @GetMapping("/incentives")
+    public ResponseEntity<HomeIncentiveResponse> getIncentives(@UserId(required = false) Long userId) {
+        return ResponseEntity.ok(homeService.getIncentives(userId));
     }
 }

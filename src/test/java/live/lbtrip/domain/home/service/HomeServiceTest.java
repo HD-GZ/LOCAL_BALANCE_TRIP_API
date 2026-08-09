@@ -19,10 +19,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.model.PropensityFactor;
+import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.TravelProfile;
@@ -58,6 +61,7 @@ class HomeServiceTest {
     @Mock private GeneratedCourseRepository generatedCourseRepository;
     @Mock private SavedCourseService savedCourseService;
     @Mock private RecommendationService recommendationService;
+    @Mock private IncentiveFinder incentiveFinder;
     @InjectMocks private HomeService homeService;
 
     @Test
@@ -194,5 +198,80 @@ class HomeServiceTest {
         assertThat(response.items().get(2).itemType()).isEqualTo("RECOMMENDED_REGION");
         assertThat(response.items().get(2).title()).isEqualTo("전라남도 담양군");
         assertThat(response.items().get(3).itemType()).isEqualTo("SAVED_COURSE");
+    }
+
+    @Test
+    void 로그인_진행중_인센티브는_내_추천지역_탭별로_dday와_함께_반환한다() {
+        Long userId = 1L;
+        RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(region.getRegionName()).thenReturn("전라남도 담양군");
+        when(region.getLdongRegnCd()).thenReturn("46");
+        when(region.getLdongSignguCd()).thenReturn("710");
+        when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId)).thenReturn(List.of(region));
+
+        Incentive incentive = Incentive.create(
+            "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
+            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
+        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
+
+        HomeIncentiveResponse response = homeService.getIncentives(userId);
+
+        assertThat(response.regions()).hasSize(1);
+        assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
+        assertThat(response.regions().get(0).incentives().get(0).dday()).isEqualTo(12L);
+    }
+
+    @Test
+    void 진행중_인센티브가_없는_추천지역_탭은_제외한다() {
+        Long userId = 1L;
+        RecommendedRegion withIncentive = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(withIncentive.getRegionName()).thenReturn("전라남도 담양군");
+        when(withIncentive.getLdongRegnCd()).thenReturn("46");
+        when(withIncentive.getLdongSignguCd()).thenReturn("710");
+        RecommendedRegion withoutIncentive = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(withoutIncentive.getLdongRegnCd()).thenReturn("44");
+        when(withoutIncentive.getLdongSignguCd()).thenReturn("150");
+        when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId))
+            .thenReturn(List.of(withIncentive, withoutIncentive));
+
+        Incentive incentive = Incentive.create(
+            "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
+            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
+        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
+        when(incentiveFinder.findActiveByRegion(eq("44"), eq("150"), any())).thenReturn(List.of());
+
+        HomeIncentiveResponse response = homeService.getIncentives(userId);
+
+        assertThat(response.regions()).hasSize(1);
+        assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
+    }
+
+    @Test
+    void 비로그인_진행중_인센티브는_인기_지역_탭별로_반환한다() {
+        PopularRegionCode code = new PopularRegionCode() {
+            @Override public String getLdongRegnCd() { return "46"; }
+            @Override public String getLdongSignguCd() { return "710"; }
+        };
+        when(recommendedRegionRepository.findPopularRegionCodes(
+            org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
+            .thenReturn(List.of(code));
+
+        RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(region.getRegionName()).thenReturn("전라남도 담양군");
+        when(region.getLdongRegnCd()).thenReturn("46");
+        when(region.getLdongSignguCd()).thenReturn("710");
+        when(recommendedRegionRepository.findFirstByLdongRegnCdAndLdongSignguCd("46", "710"))
+            .thenReturn(java.util.Optional.of(region));
+
+        Incentive incentive = Incentive.create(
+            "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
+            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
+        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
+
+        HomeIncentiveResponse response = homeService.getIncentives(null);
+
+        assertThat(response.regions()).hasSize(1);
+        assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
+        assertThat(response.regions().get(0).incentives()).hasSize(1);
     }
 }

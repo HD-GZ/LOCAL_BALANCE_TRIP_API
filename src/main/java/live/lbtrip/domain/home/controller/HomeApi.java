@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -75,4 +76,14 @@ public interface HomeApi {
         INVALID_ACCESS_TOKEN
     })
     ResponseEntity<HomeFeedResponse> getSavedCourseFeed(@UserId Long userId);
+
+    @Operation(
+        summary = "진행중 인센티브(지역 탭별)",
+        description = "비로그인: 인기 지역, 로그인: 내 추천 지역의 현재 진행중 인센티브를 지역 탭별로 조회합니다."
+    )
+    @ApiSuccessResponse(description = "진행중 인센티브 조회 성공")
+    @ApiErrorCodeResponses({
+        INTERNAL_SERVER_ERROR
+    })
+    ResponseEntity<HomeIncentiveResponse> getIncentives(@UserId(required = false) Long userId);
 }

@@ -1,7 +1,9 @@
 package live.lbtrip.domain.home.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
@@ -10,9 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
+import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.TravelProfile;
@@ -52,6 +56,7 @@ public class HomeService {
     private final GeneratedCourseRepository generatedCourseRepository;
     private final SavedCourseService savedCourseService;
     private final RecommendationService recommendationService;
+    private final IncentiveFinder incentiveFinder;
 
     public HeroResponse getHero(Long userId) {
         List<HeroResponse.InnerHeroItem> items = (userId == null)
@@ -130,5 +135,35 @@ public class HomeService {
                 region.imageUrl(), region.reason()));
         }
         return HomeFeedResponse.of(items);
+    }
+
+    public HomeIncentiveResponse getIncentives(Long userId) {
+        LocalDate today = LocalDate.now();
+        List<HomeIncentiveResponse.InnerRegionTab> tabs = (userId == null)
+            ? popularRegionTabs(today)
+            : myRegionTabs(userId, today);
+        return HomeIncentiveResponse.of(tabs);
+    }
+
+    private List<HomeIncentiveResponse.InnerRegionTab> myRegionTabs(Long userId, LocalDate today) {
+        return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
+            .map(r -> HomeIncentiveResponse.tab(
+                r.getRegionName(), r.getLdongRegnCd(), r.getLdongSignguCd(),
+                incentiveFinder.findActiveByRegion(r.getLdongRegnCd(), r.getLdongSignguCd(), today), today))
+            .filter(tab -> !tab.incentives().isEmpty())
+            .toList();
+    }
+
+    private List<HomeIncentiveResponse.InnerRegionTab> popularRegionTabs(LocalDate today) {
+        return recommendedRegionRepository.findPopularRegionCodes(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+            .map(code -> recommendedRegionRepository
+                .findFirstByLdongRegnCdAndLdongSignguCd(code.getLdongRegnCd(), code.getLdongSignguCd())
+                .map(region -> HomeIncentiveResponse.tab(
+                    region.getRegionName(), region.getLdongRegnCd(), region.getLdongSignguCd(),
+                    incentiveFinder.findActiveByRegion(region.getLdongRegnCd(), region.getLdongSignguCd(), today), today))
+                .orElse(null))
+            .filter(Objects::nonNull)
+            .filter(tab -> !tab.incentives().isEmpty())
+            .toList();
     }
 }

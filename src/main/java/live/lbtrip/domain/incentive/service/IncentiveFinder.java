@@ -1,5 +1,6 @@
 package live.lbtrip.domain.incentive.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -19,5 +20,12 @@ public class IncentiveFinder {
             return List.of();
         }
         return incentiveRepository.findAllByRegion(ldongRegnCd, ldongSignguCd);
+    }
+
+    public List<Incentive> findActiveByRegion(String ldongRegnCd, String ldongSignguCd, LocalDate today) {
+        if (ldongRegnCd == null || ldongSignguCd == null) {
+            return List.of();
+        }
+        return incentiveRepository.findActiveByRegion(ldongRegnCd, ldongSignguCd, today);
     }
 }
