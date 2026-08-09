@@ -12,4 +12,7 @@ public interface GeneratedCourseRepository extends JpaRepository<GeneratedCourse
     Optional<GeneratedCourse> findByIdAndUserId(Long id, Long userId);
 
     List<GeneratedCourse> findAllByUserId(Long userId);
+
+    Optional<GeneratedCourse> findFirstByRecommendedRegion_LdongRegnCdAndRecommendedRegion_LdongSignguCdOrderByIdAsc(
+        String ldongRegnCd, String ldongSignguCd);
 }

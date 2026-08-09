@@ -17,4 +17,11 @@ public final class TravelProfileFixture {
     public static TravelProfile travelProfile() {
         return TravelProfile.create(CODE, NICKNAME, DESCRIPTION, IMAGE_KEY);
     }
+
+    public static TravelProfile featured(String code, String nickname, int featuredOrder) {
+        TravelProfile profile = TravelProfile.create(
+            code, nickname, nickname + " 설명", "travel-profiles/" + code.toLowerCase() + ".png");
+        profile.assignFeaturedOrder(featuredOrder);
+        return profile;
+    }
 }
