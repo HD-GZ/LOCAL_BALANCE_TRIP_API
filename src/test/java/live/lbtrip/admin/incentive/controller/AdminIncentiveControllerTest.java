@@ -164,7 +164,7 @@ class AdminIncentiveControllerTest {
         }
 
         @Test
-        void 레거시_인센티브의_시작일_null을_반환한다() throws Exception {
+        void 레거시_인센티브의_기간_null을_반환한다() throws Exception {
             인증된_어드민();
             when(adminIncentiveService.getIncentives())
                 .thenReturn(List.of(AdminIncentiveResponseFixture.legacyIncentiveResponse()));
@@ -173,7 +173,8 @@ class AdminIncentiveControllerTest {
                     .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
-                .andExpect(jsonPath("$.data[0].startDate").value(nullValue()));
+                .andExpect(jsonPath("$.data[0].startDate").value(nullValue()))
+                .andExpect(jsonPath("$.data[0].endDate").value(nullValue()));
         }
     }
 

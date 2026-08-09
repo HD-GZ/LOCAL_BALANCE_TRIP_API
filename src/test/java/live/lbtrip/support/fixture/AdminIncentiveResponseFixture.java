@@ -42,7 +42,7 @@ public final class AdminIncentiveResponseFixture {
             AdminIncentiveRequestFixture.URL,
             AdminIncentiveRequestFixture.DESCRIPTION,
             null,
-            AdminIncentiveRequestFixture.END_DATE,
+            null,
             regionResponses()
         );
     }
