@@ -3,6 +3,7 @@ package live.lbtrip.admin.incentive.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import live.lbtrip.admin.incentive.dto.request.AdminIncentiveRequest;
 import live.lbtrip.admin.incentive.dto.response.AdminIncentiveResponse;
 import live.lbtrip.admin.incentive.repository.AdminIncentiveRepository;
 import live.lbtrip.domain.incentive.model.Incentive;
@@ -56,6 +58,30 @@ class AdminIncentiveServiceTest {
 
             assertThat(response.title()).isEqualTo(AdminIncentiveRequestFixture.TITLE);
             assertThat(response.url()).isEqualTo(AdminIncentiveRequestFixture.URL);
+            assertThat(response.startDate()).isEqualTo(AdminIncentiveRequestFixture.START_DATE);
+            assertThat(response.endDate()).isEqualTo(AdminIncentiveRequestFixture.END_DATE);
+        }
+
+        @Test
+        void 종료일이_시작일보다_빠르면_예외를_던지고_인센티브를_저장하지_않는다() {
+            when(regionCandidateRepository.existsByLdongRegnCdAndLdongSignguCd(
+                AdminIncentiveRequestFixture.LDONG_REGN_CD,
+                AdminIncentiveRequestFixture.LDONG_SIGNGU_CD))
+                .thenReturn(true);
+
+            assertThatThrownBy(() -> adminIncentiveService.createIncentive(new AdminIncentiveRequest(
+                AdminIncentiveRequestFixture.TITLE,
+                AdminIncentiveRequestFixture.URL,
+                AdminIncentiveRequestFixture.DESCRIPTION,
+                AdminIncentiveRequestFixture.START_DATE,
+                AdminIncentiveRequestFixture.START_DATE.minusDays(1),
+                AdminIncentiveRequestFixture.regions()
+            )))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_INCENTIVE_PERIOD);
+
+            verify(adminIncentiveRepository, never()).save(any(Incentive.class));
         }
     }
 
@@ -94,6 +120,8 @@ class AdminIncentiveServiceTest {
 
             assertThat(response.title()).isEqualTo(AdminIncentiveRequestFixture.UPDATED_TITLE);
             assertThat(response.url()).isEqualTo(AdminIncentiveRequestFixture.UPDATED_URL);
+            assertThat(response.startDate()).isEqualTo(AdminIncentiveRequestFixture.UPDATED_START_DATE);
+            assertThat(response.endDate()).isNull();
         }
 
         @Test

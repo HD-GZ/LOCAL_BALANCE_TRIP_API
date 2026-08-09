@@ -40,6 +40,7 @@ public enum ErrorCode {
     INVALID_ADMIN_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 어드민 액세스 토큰입니다."),
     INCENTIVE_NOT_FOUND(HttpStatus.NOT_FOUND, "인센티브를 찾을 수 없습니다."),
     INCENTIVE_REGION_INVALID(HttpStatus.BAD_REQUEST, "존재하지 않는 지역 코드입니다."),
+    INVALID_INCENTIVE_PERIOD(HttpStatus.BAD_REQUEST, "혜택 기간이 올바르지 않습니다."),
     RECOMMENDATION_GENERATION_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "코스 추천 생성에 실패했습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."),
     DUPLICATE_SAVE_COURSE(HttpStatus.CONFLICT, "이미 저장된 코스입니다."),
