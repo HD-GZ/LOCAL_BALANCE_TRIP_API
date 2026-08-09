@@ -32,7 +32,7 @@ public interface IncentiveRepository extends JpaRepository<Incentive, Long> {
           AND r.ldongSignguCd = :ldongSignguCd
           AND i.startDate <= :today
           AND (i.endDate IS NULL OR i.endDate >= :today)
-        ORDER BY i.endDate ASC NULLS LAST, i.id ASC
+        ORDER BY CASE WHEN i.endDate IS NULL THEN 1 ELSE 0 END ASC, i.endDate ASC, i.id ASC
         """)
     List<Incentive> findActiveByRegion(
         @Param("ldongRegnCd") String ldongRegnCd,

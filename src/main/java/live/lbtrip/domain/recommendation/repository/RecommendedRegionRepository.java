@@ -19,10 +19,10 @@ public interface RecommendedRegionRepository extends JpaRepository<RecommendedRe
     Optional<RecommendedRegion> findFirstByLdongRegnCdAndLdongSignguCd(String ldongRegnCd, String ldongSignguCd);
 
     @Query(
-        "SELECT r.ldongRegnCd AS ldongRegnCd, r.ldongSignguCd AS ldongSignguCd, COUNT(r) AS cnt "
+        "SELECT r.ldongRegnCd AS ldongRegnCd, r.ldongSignguCd AS ldongSignguCd "
             + "FROM RecommendedRegion r "
             + "WHERE r.ldongRegnCd IS NOT NULL AND r.ldongSignguCd IS NOT NULL "
             + "GROUP BY r.ldongRegnCd, r.ldongSignguCd "
-            + "ORDER BY cnt DESC")
+            + "ORDER BY COUNT(r) DESC, r.ldongRegnCd ASC, r.ldongSignguCd ASC")
     List<PopularRegionCode> findPopularRegionCodes(Pageable pageable);
 }
