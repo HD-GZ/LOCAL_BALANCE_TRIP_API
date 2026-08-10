@@ -17,12 +17,14 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
+import live.lbtrip.domain.savedcourse.tour.dto.request.TourEndRequest;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourSummaryResponse;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
@@ -118,16 +120,49 @@ class TourControllerTest {
         @Test
         void 투어를_종료하고_요약을_응답한다() throws Exception {
             인증된_사용자();
-            when(tourService.endTour(AuthResponseFixture.USER_ID, SAVED_COURSE_ID))
+            when(tourService.endTour(
+                AuthResponseFixture.USER_ID, SAVED_COURSE_ID, TourEndRequest.of(8400)))
                 .thenReturn(TourSummaryResponse.of(true, 2, 2, 60));
 
             mockMvc.perform(post("/saved-courses/{savedCourseId}/tour/end", SAVED_COURSE_ID)
-                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                        {"walkedDistanceMeters": 8400}
+                        """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.completed").value(true))
                 .andExpect(jsonPath("$.data.visitedPlaceCount").value(2))
                 .andExpect(jsonPath("$.data.durationMinutes").value(60));
+        }
+
+        @Test
+        void 걸은_거리가_없으면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+
+            mockMvc.perform(post("/saved-courses/{savedCourseId}/tour/end", SAVED_COURSE_ID)
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
+        }
+
+        @Test
+        void 걸은_거리가_음수면_예외를_응답한다() throws Exception {
+            인증된_사용자();
+
+            mockMvc.perform(post("/saved-courses/{savedCourseId}/tour/end", SAVED_COURSE_ID)
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""
+                        {"walkedDistanceMeters": -1}
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
         }
     }
 

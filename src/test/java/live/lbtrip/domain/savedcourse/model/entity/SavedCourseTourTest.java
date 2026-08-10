@@ -29,7 +29,7 @@ class SavedCourseTourTest {
             savedCourse.startTour();
             savedCourse.checkInPlace(1L);
             savedCourse.checkInPlace(2L);
-            boolean completed = savedCourse.endTour();
+            boolean completed = savedCourse.endTour(8400);
 
             assertThat(completed).isTrue();
             assertThat(savedCourse.getStatus()).isEqualTo(SavedCourseStatus.COMPLETED);
@@ -85,6 +85,43 @@ class SavedCourseTourTest {
     }
 
     @Nested
+    class 걸은_거리와_탄소_절감량 {
+
+        @Test
+        void 투어를_종료하면_걸은_거리와_탄소_절감량을_계산할_수_있다() {
+            SavedCourse savedCourse = savedCourse();
+            savedCourse.addPlace(place(1L, 1));
+            savedCourse.startTour();
+            savedCourse.checkInPlace(1L);
+
+            savedCourse.endTour(8400);
+
+            assertThat(savedCourse.getWalkedDistanceMeters()).isEqualTo(8400);
+            assertThat(savedCourse.walkedDistanceKm()).isEqualTo(8.4);
+            assertThat(savedCourse.carbonReductionKg()).isEqualTo(1.8);
+        }
+
+        @Test
+        void 탄소_절감량은_소수점_첫째_자리로_반올림한다() {
+            SavedCourse savedCourse = savedCourse();
+            savedCourse.addPlace(place(1L, 1));
+            savedCourse.startTour();
+
+            savedCourse.endTour(5000);
+
+            assertThat(savedCourse.carbonReductionKg()).isEqualTo(1.1);
+        }
+
+        @Test
+        void 걸은_거리가_기록되지_않았으면_null을_반환한다() {
+            SavedCourse savedCourse = savedCourse();
+
+            assertThat(savedCourse.walkedDistanceKm()).isNull();
+            assertThat(savedCourse.carbonReductionKg()).isNull();
+        }
+    }
+
+    @Nested
     class 리포트_검증 {
 
         @Test
@@ -93,7 +130,7 @@ class SavedCourseTourTest {
             savedCourse.addPlace(place(1L, 1));
             savedCourse.startTour();
             savedCourse.checkInPlace(1L);
-            savedCourse.endTour();
+            savedCourse.endTour(8400);
 
             savedCourse.validateReportAvailable();
         }
@@ -113,7 +150,7 @@ class SavedCourseTourTest {
             SavedCourse savedCourse = savedCourse();
             savedCourse.addPlace(place(1L, 1));
             savedCourse.startTour();
-            savedCourse.endTour();
+            savedCourse.endTour(8400);
             savedCourse.startTour();
 
             assertErrorCode(

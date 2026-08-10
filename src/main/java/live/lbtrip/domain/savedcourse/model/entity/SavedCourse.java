@@ -35,6 +35,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SavedCourse extends BaseEntity {
 
+    private static final double CAR_EMISSION_KG_PER_KM = 0.21;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -73,6 +75,9 @@ public class SavedCourse extends BaseEntity {
 
     @Column(name = "tour_ended_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime tourEndedAt;
+
+    @Column(name = "walked_distance_meters")
+    private Integer walkedDistanceMeters;
 
     @OneToMany(mappedBy = "savedCourse", cascade = CascadeType.ALL)
     @OrderBy("visitOrder asc")
@@ -151,9 +156,10 @@ public class SavedCourse extends BaseEntity {
             .checkIn();
     }
 
-    public boolean endTour() {
+    public boolean endTour(int walkedDistanceMeters) {
         validateTraveling();
         this.tourEndedAt = LocalDateTime.now();
+        this.walkedDistanceMeters = walkedDistanceMeters;
         boolean completed = places.stream().allMatch(SavedCoursePlace::isVisited);
         if (completed) {
             this.status = SavedCourseStatus.COMPLETED;
@@ -170,6 +176,24 @@ public class SavedCourse extends BaseEntity {
             return 0;
         }
         return Duration.between(tourStartedAt, tourEndedAt).toMinutes();
+    }
+
+    public Double walkedDistanceKm() {
+        if (walkedDistanceMeters == null) {
+            return null;
+        }
+        return roundToOneDecimal(walkedDistanceMeters / 1000.0);
+    }
+
+    public Double carbonReductionKg() {
+        if (walkedDistanceMeters == null) {
+            return null;
+        }
+        return roundToOneDecimal(walkedDistanceMeters / 1000.0 * CAR_EMISSION_KG_PER_KM);
+    }
+
+    private double roundToOneDecimal(double value) {
+        return Math.round(value * 10) / 10.0;
     }
 
     public void validateReportAvailable() {

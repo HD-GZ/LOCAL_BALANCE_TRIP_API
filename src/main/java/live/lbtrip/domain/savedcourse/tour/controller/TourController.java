@@ -3,8 +3,11 @@ package live.lbtrip.domain.savedcourse.tour.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+import live.lbtrip.domain.savedcourse.tour.dto.request.TourEndRequest;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourSummaryResponse;
 import live.lbtrip.domain.savedcourse.tour.service.TourService;
@@ -39,9 +42,10 @@ public class TourController implements TourApi {
     @PostMapping("/saved-courses/{savedCourseId}/tour/end")
     public ResponseEntity<TourSummaryResponse> endTour(
         @UserId Long userId,
-        @PathVariable Long savedCourseId
+        @PathVariable Long savedCourseId,
+        @Valid @RequestBody TourEndRequest request
     ) {
-        TourSummaryResponse response = tourService.endTour(userId, savedCourseId);
+        TourSummaryResponse response = tourService.endTour(userId, savedCourseId, request);
         return ResponseEntity.ok(response);
     }
 }
