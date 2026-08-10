@@ -7,7 +7,7 @@ import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 
 public record PropensityResponse(
-    @Schema(description = "취향 결과(라벨 + 설명)")
+    @Schema(description = "취향 결과(별칭 + 코드 + 설명)")
     InnerPropensityResultResponse propensityResult,
 
     @Schema(description = "5축 취향 진단 점수")
@@ -18,8 +18,11 @@ public record PropensityResponse(
 ) {
 
     public record InnerPropensityResultResponse(
-        @Schema(description = "진단 유형 라벨. \"{별칭} ({코드})\" 형식.", example = "찐로컬 탐험가 (LVEAI)")
+        @Schema(description = "진단 유형 별칭", example = "찐로컬 탐험가")
         String type,
+
+        @Schema(description = "진단 유형 코드", example = "LVEAI")
+        String code,
 
         @Schema(description = "진단 유형 설명", example = "로컬의 구석구석을 발로 뛰며 직접 체험하는 실속파 혼행 여행자예요.")
         String description,
@@ -71,7 +74,8 @@ public record PropensityResponse(
 
         return new PropensityResponse(
             new InnerPropensityResultResponse(
-                "%s (%s)".formatted(travelProfile.getNickname(), travelProfile.getCode()),
+                travelProfile.getNickname(),
+                travelProfile.getCode(),
                 travelProfile.getDescription(),
                 imageUrl
             ),

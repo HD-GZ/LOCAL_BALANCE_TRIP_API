@@ -4,7 +4,8 @@ import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
 
 public final class PropensityResponseFixture {
 
-    public static final String TYPE = "%s (%s)".formatted(TravelProfileFixture.NICKNAME, TravelProfileFixture.CODE);
+    public static final String TYPE = TravelProfileFixture.NICKNAME;
+    public static final String CODE = TravelProfileFixture.CODE;
     public static final String DESCRIPTION = TravelProfileFixture.DESCRIPTION;
     public static final String IMAGE_URL = "https://stage.images.lb-trip.live/" + TravelProfileFixture.IMAGE_KEY;
 
@@ -13,7 +14,7 @@ public final class PropensityResponseFixture {
 
     public static PropensityResponse propensityResponse() {
         return new PropensityResponse(
-            new PropensityResponse.InnerPropensityResultResponse(TYPE, DESCRIPTION, IMAGE_URL),
+            new PropensityResponse.InnerPropensityResultResponse(TYPE, CODE, DESCRIPTION, IMAGE_URL),
             new PropensityResponse.InnerPreferenceResponse(
                 PropensityRequestFixture.LOCALITY,
                 PropensityRequestFixture.FRUGALITY,

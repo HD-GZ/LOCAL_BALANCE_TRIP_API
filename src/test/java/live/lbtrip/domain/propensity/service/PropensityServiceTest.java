@@ -75,6 +75,7 @@ class PropensityServiceTest {
 
             verify(propensityRepository).save(any(Propensity.class));
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().code()).isEqualTo(PropensityResponseFixture.CODE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
             assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
@@ -98,6 +99,7 @@ class PropensityServiceTest {
 
             verify(propensityRepository, never()).save(any(Propensity.class));
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().code()).isEqualTo(PropensityResponseFixture.CODE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
             assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.UPDATED_LOCALITY);
@@ -127,6 +129,7 @@ class PropensityServiceTest {
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
 
             assertThat(response.propensityResult().type()).isEqualTo(PropensityResponseFixture.TYPE);
+            assertThat(response.propensityResult().code()).isEqualTo(PropensityResponseFixture.CODE);
             assertThat(response.propensityResult().description()).isEqualTo(PropensityResponseFixture.DESCRIPTION);
             assertThat(response.propensityResult().imageUrl()).isEqualTo(PropensityResponseFixture.IMAGE_URL);
             assertThat(response.preference().locality()).isEqualTo(PropensityRequestFixture.LOCALITY);
