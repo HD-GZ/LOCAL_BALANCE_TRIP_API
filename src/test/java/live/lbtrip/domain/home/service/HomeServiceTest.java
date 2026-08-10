@@ -1,6 +1,7 @@
 package live.lbtrip.domain.home.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +35,7 @@ import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
+import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
@@ -45,6 +48,8 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.support.fixture.TravelProfileFixture;
 
@@ -273,5 +278,38 @@ class HomeServiceTest {
         assertThat(response.regions()).hasSize(1);
         assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
         assertThat(response.regions().get(0).incentives()).hasSize(1);
+    }
+
+    @Test
+    void 공개_인기_코스_상세를_조회한다() {
+        GeneratedCourse course = org.mockito.Mockito.mock(GeneratedCourse.class);
+        RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(course.getId()).thenReturn(10L);
+        when(course.getName()).thenReturn("담양 골목 미식 코스");
+        when(course.getPlaces()).thenReturn(List.of());
+        when(course.getRecommendedRegion()).thenReturn(region);
+        when(region.getRegionName()).thenReturn("전라남도 담양군");
+        when(region.getLdongRegnCd()).thenReturn("46");
+        when(region.getLdongSignguCd()).thenReturn("710");
+        when(generatedCourseRepository.findById(10L)).thenReturn(Optional.of(course));
+        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any(LocalDate.class)))
+            .thenReturn(List.of());
+
+        CourseDetailResponse response = homeService.getPopularCourseDetail(10L);
+
+        assertThat(response.courseId()).isEqualTo(10L);
+        assertThat(response.title()).isEqualTo("담양 골목 미식 코스");
+        assertThat(response.regionName()).isEqualTo("전라남도 담양군");
+        assertThat(response.benefits()).isEmpty();
+    }
+
+    @Test
+    void 공개_인기_코스_상세는_없는_코스면_예외를_던진다() {
+        when(generatedCourseRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> homeService.getPopularCourseDetail(999L))
+            .isInstanceOf(BusinessException.class)
+            .extracting(ex -> ((BusinessException) ex).getErrorCode())
+            .isEqualTo(ErrorCode.COURSE_NOT_FOUND);
     }
 }

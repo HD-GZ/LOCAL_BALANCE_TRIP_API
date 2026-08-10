@@ -1,13 +1,16 @@
 package live.lbtrip.domain.home.controller;
 
+import static live.lbtrip.global.error.ErrorCode.COURSE_NOT_FOUND;
 import static live.lbtrip.global.error.ErrorCode.INTERNAL_SERVER_ERROR;
 import static live.lbtrip.global.error.ErrorCode.INVALID_ACCESS_TOKEN;
 import static live.lbtrip.global.error.ErrorCode.PROPENSITY_NOT_FOUND;
 import static live.lbtrip.global.error.ErrorCode.TRAVEL_PROFILE_NOT_FOUND;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
@@ -16,6 +19,7 @@ import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
+import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
 import live.lbtrip.global.web.UserId;
@@ -65,6 +69,18 @@ public interface HomeApi {
         INTERNAL_SERVER_ERROR
     })
     ResponseEntity<PopularCourseListResponse> getPopularCourses();
+
+    @Operation(
+        summary = "공개 인기 코스 상세",
+        description = "비로그인도 조회 가능한 코스 상세입니다. 장소 타임라인과 현재 진행중 혜택을 반환합니다."
+    )
+    @ApiSuccessResponse(description = "코스 상세 조회 성공")
+    @ApiErrorCodeResponses({
+        COURSE_NOT_FOUND,
+        INTERNAL_SERVER_ERROR
+    })
+    ResponseEntity<CourseDetailResponse> getPopularCourseDetail(
+        @Parameter(description = "코스 식별자", example = "10") @PathVariable Long courseId);
 
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
