@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.savedcourse.course.service.SavedCourseFinder;
+import live.lbtrip.domain.savedcourse.tour.dto.request.TourEndRequest;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourSummaryResponse;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
@@ -75,7 +76,7 @@ class TourServiceTest {
         void 투어를_종료하고_요약을_반환한다() {
             when(savedCourseFinder.findByIdAndUserId(SAVED_COURSE_ID, USER_ID))
                 .thenReturn(savedCourse);
-            when(savedCourse.endTour()).thenReturn(true);
+            when(savedCourse.endTour(8400)).thenReturn(true);
             when(savedCourse.countVisitedPlaces()).thenReturn(2);
             when(savedCourse.getPlaces()).thenReturn(List.of(
                 org.mockito.Mockito.mock(live.lbtrip.domain.savedcourse.model.entity.SavedCoursePlace.class),
@@ -83,7 +84,8 @@ class TourServiceTest {
             ));
             when(savedCourse.tourDurationMinutes()).thenReturn(60L);
 
-            TourSummaryResponse result = tourService.endTour(USER_ID, SAVED_COURSE_ID);
+            TourSummaryResponse result = tourService.endTour(
+                USER_ID, SAVED_COURSE_ID, TourEndRequest.of(8400));
 
             assertThat(result.completed()).isTrue();
             assertThat(result.visitedPlaceCount()).isEqualTo(2);

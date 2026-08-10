@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.savedcourse.course.service.SavedCourseFinder;
+import live.lbtrip.domain.savedcourse.tour.dto.request.TourEndRequest;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourSummaryResponse;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
@@ -31,9 +32,9 @@ public class TourService {
     }
 
     @Transactional
-    public TourSummaryResponse endTour(Long userId, Long savedCourseId) {
+    public TourSummaryResponse endTour(Long userId, Long savedCourseId, TourEndRequest request) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
-        boolean completed = savedCourse.endTour();
+        boolean completed = savedCourse.endTour(request.walkedDistanceMeters());
 
         return TourSummaryResponse.of(
             completed,

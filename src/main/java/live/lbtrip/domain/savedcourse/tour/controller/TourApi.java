@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import live.lbtrip.domain.savedcourse.tour.dto.request.TourEndRequest;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourSummaryResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
@@ -66,6 +68,7 @@ public interface TourApi {
         summary = "투어 종료",
         description = """
             진행 중인 투어를 종료하고 요약(완주 여부, 방문 장소 수, 소요 시간)을 반환합니다.
+            앱이 GPS로 측정한 걸은 거리(미터)를 전달하면 저장 후 투어 리포트의 탄소 절감량 계산에 사용됩니다.
             모든 장소를 방문한 경우 여행 상태가 COMPLETED(완주)로 전환됩니다.
             일부만 방문한 중도 종료는 TRAVELING 상태를 유지해 나중에 이어서 진행할 수 있습니다.
             투어 진행 중(TRAVELING)이 아니면 409 Conflict 응답을 반환합니다.
@@ -73,12 +76,14 @@ public interface TourApi {
     )
     @ApiSuccessResponse(description = "투어 종료 성공")
     @ApiErrorCodeResponses({
+        INVALID_INPUT_VALUE,
         INVALID_ACCESS_TOKEN,
         SAVED_COURSE_NOT_FOUND,
         TOUR_NOT_IN_PROGRESS
     })
     ResponseEntity<TourSummaryResponse> endTour(
         @UserId Long userId,
-        @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId
+        @Parameter(description = "저장 코스 식별자", example = "1") @PathVariable Long savedCourseId,
+        @Valid TourEndRequest request
     );
 }
