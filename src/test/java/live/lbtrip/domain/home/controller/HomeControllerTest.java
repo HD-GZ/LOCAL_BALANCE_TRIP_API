@@ -28,7 +28,10 @@ import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.service.HomeService;
+import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.global.config.CorsProperties;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
@@ -171,6 +174,29 @@ class HomeControllerTest {
                 .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.regions[0].regionName").value("전라남도 담양군"));
+    }
+
+    @Test
+    void 공개_인기_코스_상세를_조회한다() throws Exception {
+        when(homeService.getPopularCourseDetail(10L)).thenReturn(new CourseDetailResponse(
+            10L, "전라남도 담양군", "담양 골목 미식 코스", List.of(), List.of()));
+
+        mockMvc.perform(get("/home/popular-courses/{courseId}", 10))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.courseId").value(10))
+            .andExpect(jsonPath("$.data.title").value("담양 골목 미식 코스"));
+    }
+
+    @Test
+    void 없는_코스는_404를_응답한다() throws Exception {
+        when(homeService.getPopularCourseDetail(999L))
+            .thenThrow(BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
+
+        mockMvc.perform(get("/home/popular-courses/{courseId}", 999))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.result").value("ERROR"))
+            .andExpect(jsonPath("$.error.code").value("COURSE_NOT_FOUND"));
     }
 
     private void 인증된_사용자() {

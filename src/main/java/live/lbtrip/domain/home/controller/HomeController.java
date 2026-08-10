@@ -2,6 +2,7 @@ package live.lbtrip.domain.home.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,6 +13,7 @@ import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.service.HomeService;
+import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 
@@ -40,6 +42,11 @@ public class HomeController implements HomeApi {
     @GetMapping("/popular-courses")
     public ResponseEntity<PopularCourseListResponse> getPopularCourses() {
         return ResponseEntity.ok(homeService.getPopularCourses());
+    }
+
+    @GetMapping("/popular-courses/{courseId}")
+    public ResponseEntity<CourseDetailResponse> getPopularCourseDetail(@PathVariable Long courseId) {
+        return ResponseEntity.ok(homeService.getPopularCourseDetail(courseId));
     }
 
     @GetMapping("/saved-courses")

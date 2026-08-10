@@ -16,6 +16,7 @@ import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
+import live.lbtrip.domain.incentive.model.Incentive;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
@@ -24,14 +25,18 @@ import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
+import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
+import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
 import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseListResponse;
 import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.global.web.PageQueryRequest;
 import lombok.RequiredArgsConstructor;
@@ -106,6 +111,15 @@ public class HomeService {
             .flatMap(Optional::stream)
             .toList();
         return PopularCourseListResponse.of(courses);
+    }
+
+    public CourseDetailResponse getPopularCourseDetail(Long courseId) {
+        GeneratedCourse course = generatedCourseRepository.findById(courseId)
+            .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
+        RecommendedRegion region = course.getRecommendedRegion();
+        List<Incentive> incentives = incentiveFinder.findActiveByRegion(
+            region.getLdongRegnCd(), region.getLdongSignguCd(), LocalDate.now());
+        return CourseDetailResponse.of(course, incentives);
     }
 
     public HomeFeedResponse getSavedCourseFeed(Long userId) {
