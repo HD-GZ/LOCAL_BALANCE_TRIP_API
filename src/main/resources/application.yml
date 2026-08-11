@@ -70,9 +70,6 @@ app:
 swagger:
   server-url: ${SWAGGER_SERVER_URL}
 
-sendgrid:
-  api-key: ${SENDGRID_API_KEY}
-
 slack:
   logging:
     error: ${SLACK_LOGGING_ERROR_URL}

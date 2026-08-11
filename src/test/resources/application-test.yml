@@ -57,9 +57,6 @@ app:
 swagger:
   server-url: http://localhost
 
-sendgrid:
-  api-key: test-sendgrid-api-key
-
 slack:
   logging:
     error: http://localhost
