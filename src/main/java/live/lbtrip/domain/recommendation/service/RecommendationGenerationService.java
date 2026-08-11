@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
-import live.lbtrip.domain.region.model.RegionCandidate;
-import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.domain.recommendation.model.vo.CourseCandidateGroup;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
@@ -21,7 +19,7 @@ import live.lbtrip.domain.tourism.model.entity.OdiiTheme;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
-import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
+import live.lbtrip.domain.tourism.service.RegionStatsFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +33,6 @@ public class RecommendationGenerationService {
     private static final double THEME_LOOKUP_LON_DELTA = 0.23;
     private static final double THEME_LOOKUP_LAT_DELTA = 0.18;
 
-    private final RegionCandidateRepository regionCandidateRepository;
-    private final TourRegionStatsRepository tourRegionStatsRepository;
     private final TourPlaceRepository tourPlaceRepository;
     private final OdiiThemeRepository odiiThemeRepository;
     private final RegionScorer regionScorer;
@@ -45,17 +41,11 @@ public class RecommendationGenerationService {
     private final CourseRouteOptimizer courseRouteOptimizer;
     private final RecommendationStore recommendationStore;
     private final PropensityFinder propensityFinder;
+    private final RegionStatsFinder regionStatsFinder;
 
     public void createRecommendations(Long userId) {
         Propensity propensity = propensityFinder.findByUserId(userId);
-        List<RegionCandidate> regionCandidates = regionCandidateRepository.findAll();
-        List<RegionStats> statsList = new ArrayList<>();
-        for (RegionCandidate candidate : regionCandidates) {
-            tourRegionStatsRepository
-                .findByLdongRegnCdAndLdongSignguCd(candidate.getLdongRegnCd(), candidate.getLdongSignguCd())
-                .map(stats -> RegionStats.of(stats, candidate.getName()))
-                .ifPresent(statsList::add);
-        }
+        List<RegionStats> statsList = regionStatsFinder.findAll();
         if (statsList.isEmpty()) {
             throw BusinessException.of(ErrorCode.TOUR_DATA_NOT_READY);
         }
