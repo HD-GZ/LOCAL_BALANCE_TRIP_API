@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record TourApiProperties(
     String baseUrl,
     String odiiBaseUrl,
+    String dataLabBaseUrl,
     String serviceKey,
     String mobileOs,
     String mobileApp,

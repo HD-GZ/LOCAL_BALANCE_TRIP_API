@@ -77,6 +77,7 @@ slack:
 tour-api:
   base-url: https://apis.data.go.kr/B551011/KorService2
   odii-base-url: https://apis.data.go.kr/B551011/Odii
+  data-lab-base-url: https://apis.data.go.kr/B551011/DataLabService
   service-key: ${TOUR_API_SERVICE_KEY}
   mobile-os: ${TOUR_API_MOBILE_OS}
   mobile-app: ${TOUR_API_MOBILE_APP}
