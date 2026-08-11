@@ -77,12 +77,14 @@ public class TourDataSyncService {
             .findByLdongRegnCdAndLdongSignguCd(stats.ldongRegnCd(), stats.ldongSignguCd())
             .ifPresentOrElse(
                 existing -> {
-                    existing.update(stats.totalCount(), stats.sampleSize(), stats.typeCounts());
+                    existing.update(stats.totalCount(), stats.sampleSize(),
+                        stats.typeCounts(), stats.groupCounts());
                     tourRegionStatsRepository.save(existing);
                 },
                 () -> tourRegionStatsRepository.save(TourRegionStats.create(
                     stats.ldongRegnCd(), stats.ldongSignguCd(),
-                    stats.totalCount(), stats.sampleSize(), stats.typeCounts())));
+                    stats.totalCount(), stats.sampleSize(),
+                    stats.typeCounts(), stats.groupCounts())));
     }
 
     private void upsertPlace(TourPlaceItem item, RegionCandidate candidate, int sortOrder) {

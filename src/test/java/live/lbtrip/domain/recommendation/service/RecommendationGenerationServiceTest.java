@@ -141,6 +141,7 @@ class RecommendationGenerationServiceTest {
             RecommendationFixture.LDONG_SIGNGU_CD,
             3,
             3,
+            Map.of(),
             Map.of()
         );
         when(regionStatsFinder.findAll()).thenReturn(List.of(stats));

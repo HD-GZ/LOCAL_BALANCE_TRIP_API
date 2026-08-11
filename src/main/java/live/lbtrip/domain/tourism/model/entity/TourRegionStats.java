@@ -1,5 +1,6 @@
 package live.lbtrip.domain.tourism.model.entity;
 
+import java.util.EnumMap;
 import java.util.Map;
 
 import jakarta.persistence.Column;
@@ -9,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
@@ -57,24 +59,50 @@ public class TourRegionStats extends BaseEntity {
     @Column(name = "restaurant_count", nullable = false)
     private int restaurantCount;
 
+    @Column(name = "luxury_shopping_count", nullable = false)
+    private int luxuryShoppingCount;
+
+    @Column(name = "traditional_market_count", nullable = false)
+    private int traditionalMarketCount;
+
+    @Column(name = "viewing_place_count", nullable = false)
+    private int viewingPlaceCount;
+
+    @Column(name = "experience_place_count", nullable = false)
+    private int experiencePlaceCount;
+
+    @Column(name = "nature_rest_count", nullable = false)
+    private int natureRestCount;
+
+    @Column(name = "cafe_count", nullable = false)
+    private int cafeCount;
+
+    @Column(name = "exhibition_count", nullable = false)
+    private int exhibitionCount;
+
     private TourRegionStats(
         String ldongRegnCd, String ldongSignguCd,
-        int totalCount, int sampleSize, Map<Integer, Integer> typeCounts
+        int totalCount, int sampleSize,
+        Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts
     ) {
         this.ldongRegnCd = ldongRegnCd;
         this.ldongSignguCd = ldongSignguCd;
-        apply(totalCount, sampleSize, typeCounts);
+        apply(totalCount, sampleSize, typeCounts, groupCounts);
     }
 
     public static TourRegionStats create(
         String ldongRegnCd, String ldongSignguCd,
-        int totalCount, int sampleSize, Map<Integer, Integer> typeCounts
+        int totalCount, int sampleSize,
+        Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts
     ) {
-        return new TourRegionStats(ldongRegnCd, ldongSignguCd, totalCount, sampleSize, typeCounts);
+        return new TourRegionStats(ldongRegnCd, ldongSignguCd, totalCount, sampleSize, typeCounts, groupCounts);
     }
 
-    public void update(int totalCount, int sampleSize, Map<Integer, Integer> typeCounts) {
-        apply(totalCount, sampleSize, typeCounts);
+    public void update(
+        int totalCount, int sampleSize,
+        Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts
+    ) {
+        apply(totalCount, sampleSize, typeCounts, groupCounts);
     }
 
     public Map<Integer, Integer> toTypeCounts() {
@@ -87,7 +115,22 @@ public class TourRegionStats extends BaseEntity {
             TourContentType.RESTAURANT.getCode(), restaurantCount);
     }
 
-    private void apply(int totalCount, int sampleSize, Map<Integer, Integer> typeCounts) {
+    public Map<CategoryGroup, Integer> toGroupCounts() {
+        Map<CategoryGroup, Integer> counts = new EnumMap<>(CategoryGroup.class);
+        counts.put(CategoryGroup.LUXURY_SHOPPING, luxuryShoppingCount);
+        counts.put(CategoryGroup.TRADITIONAL_MARKET, traditionalMarketCount);
+        counts.put(CategoryGroup.VIEWING_PLACE, viewingPlaceCount);
+        counts.put(CategoryGroup.EXPERIENCE_PLACE, experiencePlaceCount);
+        counts.put(CategoryGroup.NATURE_REST, natureRestCount);
+        counts.put(CategoryGroup.CAFE, cafeCount);
+        counts.put(CategoryGroup.EXHIBITION, exhibitionCount);
+        return counts;
+    }
+
+    private void apply(
+        int totalCount, int sampleSize,
+        Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts
+    ) {
         this.totalCount = totalCount;
         this.sampleSize = sampleSize;
         this.touristSpotCount = countOf(typeCounts, TourContentType.TOURIST_SPOT);
@@ -96,6 +139,13 @@ public class TourRegionStats extends BaseEntity {
         this.accommodationCount = countOf(typeCounts, TourContentType.ACCOMMODATION);
         this.shoppingCount = countOf(typeCounts, TourContentType.SHOPPING);
         this.restaurantCount = countOf(typeCounts, TourContentType.RESTAURANT);
+        this.luxuryShoppingCount = groupCounts.getOrDefault(CategoryGroup.LUXURY_SHOPPING, 0);
+        this.traditionalMarketCount = groupCounts.getOrDefault(CategoryGroup.TRADITIONAL_MARKET, 0);
+        this.viewingPlaceCount = groupCounts.getOrDefault(CategoryGroup.VIEWING_PLACE, 0);
+        this.experiencePlaceCount = groupCounts.getOrDefault(CategoryGroup.EXPERIENCE_PLACE, 0);
+        this.natureRestCount = groupCounts.getOrDefault(CategoryGroup.NATURE_REST, 0);
+        this.cafeCount = groupCounts.getOrDefault(CategoryGroup.CAFE, 0);
+        this.exhibitionCount = groupCounts.getOrDefault(CategoryGroup.EXHIBITION, 0);
     }
 
     private int countOf(Map<Integer, Integer> typeCounts, TourContentType type) {

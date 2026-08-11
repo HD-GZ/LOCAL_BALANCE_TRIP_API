@@ -46,6 +46,6 @@ class RegionScorerTest {
     }
 
     private RegionStats stats(String name, int totalCount) {
-        return new RegionStats(name, "46", "710", totalCount, 10, Map.of());
+        return new RegionStats(name, "46", "710", totalCount, 10, Map.of(), Map.of());
     }
 }
