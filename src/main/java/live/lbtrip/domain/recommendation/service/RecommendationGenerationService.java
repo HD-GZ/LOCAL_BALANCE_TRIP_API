@@ -21,6 +21,7 @@ import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.domain.tourism.service.RegionStatsFinder;
+import live.lbtrip.domain.tourism.service.RegionVisitorFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class RecommendationGenerationService {
     private final RecommendationStore recommendationStore;
     private final PropensityFinder propensityFinder;
     private final RegionStatsFinder regionStatsFinder;
+    private final RegionVisitorFinder regionVisitorFinder;
 
     public void createRecommendations(Long userId) {
         Propensity propensity = propensityFinder.findByUserId(userId);
@@ -52,7 +54,9 @@ public class RecommendationGenerationService {
         }
 
         List<RegionScoringInput> inputs = statsList.stream()
-            .map(stats -> RegionScoringInput.of(stats, 0.0))
+            .map(stats -> RegionScoringInput.of(
+                stats,
+                regionVisitorFinder.sumRecentOutsiderVisitors(stats.ldongRegnCd(), stats.ldongSignguCd())))
             .toList();
         List<RegionStats> selected = regionScorer.selectTop(propensity, inputs, MAX_REGIONS);
 

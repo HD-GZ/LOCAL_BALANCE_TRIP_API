@@ -30,6 +30,7 @@ import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.domain.tourism.service.RegionStatsFinder;
+import live.lbtrip.domain.tourism.service.RegionVisitorFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthResponseFixture;
@@ -65,6 +66,9 @@ class RecommendationGenerationServiceTest {
 
     @Mock
     private PropensityFinder propensityFinder;
+
+    @Mock
+    private RegionVisitorFinder regionVisitorFinder;
 
     @InjectMocks
     private RecommendationGenerationService recommendationGenerationService;
@@ -116,6 +120,21 @@ class RecommendationGenerationServiceTest {
     }
 
     @Test
+    void 지역별_방문자_집계를_점수_입력으로_전달한다() {
+        RegionStats stats = prepareRegion();
+        when(tourPlaceRepository.findAllByLdongRegnCdAndLdongSignguCdOrderByContentTypeIdAscSortOrderAsc(
+            RecommendationFixture.LDONG_REGN_CD, RecommendationFixture.LDONG_SIGNGU_CD))
+            .thenReturn(List.of());
+        when(regionScorer.selectTop(any(), anyList(), eq(5))).thenReturn(List.of(stats));
+
+        assertThatThrownBy(() -> recommendationGenerationService.createRecommendations(AuthResponseFixture.USER_ID))
+            .isInstanceOf(BusinessException.class);
+
+        verify(regionVisitorFinder).sumRecentOutsiderVisitors(
+            RecommendationFixture.LDONG_REGN_CD, RecommendationFixture.LDONG_SIGNGU_CD);
+    }
+
+    @Test
     void 유효한_좌표_장소가_3개_미만이면_지역을_건너뛴다() {
         RegionStats stats = prepareRegion();
         List<TourPlace> candidates = RecommendationFixture.tourPlaces().subList(0, 2);
@@ -145,6 +164,9 @@ class RecommendationGenerationServiceTest {
             Map.of()
         );
         when(regionStatsFinder.findAll()).thenReturn(List.of(stats));
+        when(regionVisitorFinder.sumRecentOutsiderVisitors(
+            RecommendationFixture.LDONG_REGN_CD, RecommendationFixture.LDONG_SIGNGU_CD))
+            .thenReturn(0.0);
         return stats;
     }
 }
