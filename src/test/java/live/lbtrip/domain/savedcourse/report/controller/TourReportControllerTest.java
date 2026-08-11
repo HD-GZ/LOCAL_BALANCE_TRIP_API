@@ -63,7 +63,7 @@ class TourReportControllerTest {
                 5,
                 130L,
                 52000,
-                8.4,
+                8400,
                 1.8,
                 LocalDateTime.of(2026, 7, 17, 15, 30)
             );
@@ -79,7 +79,8 @@ class TourReportControllerTest {
                 .andExpect(jsonPath("$.data.visitedPlaceCount").value(5))
                 .andExpect(jsonPath("$.data.durationMinutes").value(130))
                 .andExpect(jsonPath("$.data.totalSpentAmount").value(52000))
-                .andExpect(jsonPath("$.data.walkedDistanceKm").value(8.4))
+                .andExpect(jsonPath("$.data.walkedDistanceMeters").value(8400))
+                .andExpect(jsonPath("$.data.walkedDistanceKm").doesNotExist())
                 .andExpect(jsonPath("$.data.carbonReductionKg").value(1.8))
                 .andExpect(jsonPath("$.data.tourEndedAt").value("2026-07-17T15:30:00"));
         }

@@ -97,7 +97,6 @@ class SavedCourseTourTest {
             savedCourse.endTour(8400);
 
             assertThat(savedCourse.getWalkedDistanceMeters()).isEqualTo(8400);
-            assertThat(savedCourse.walkedDistanceKm()).isEqualTo(8.4);
             assertThat(savedCourse.carbonReductionKg()).isEqualTo(1.8);
         }
 
@@ -116,7 +115,7 @@ class SavedCourseTourTest {
         void 걸은_거리가_기록되지_않았으면_null을_반환한다() {
             SavedCourse savedCourse = savedCourse();
 
-            assertThat(savedCourse.walkedDistanceKm()).isNull();
+            assertThat(savedCourse.getWalkedDistanceMeters()).isNull();
             assertThat(savedCourse.carbonReductionKg()).isNull();
         }
     }
