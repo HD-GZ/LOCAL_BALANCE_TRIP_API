@@ -1,23 +1,30 @@
 package live.lbtrip.domain.tourism.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
+import live.lbtrip.domain.tourism.client.DataLabClient;
 import live.lbtrip.domain.tourism.client.OdiiClient;
 import live.lbtrip.domain.tourism.client.TourApiClient;
 import live.lbtrip.domain.tourism.client.dto.OdiiThemeItem;
 import live.lbtrip.domain.tourism.client.dto.RegionStats;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
+import live.lbtrip.domain.tourism.client.dto.VisitorStatItem;
 import live.lbtrip.domain.tourism.model.entity.OdiiTheme;
+import live.lbtrip.domain.tourism.model.entity.RegionVisitorStats;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
+import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +35,16 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TourDataSyncService {
 
+    private static final int VISITOR_LOOKBACK_DAYS = 45;
+
     private final RegionCandidateRepository regionCandidateRepository;
     private final TourApiClient tourApiClient;
     private final OdiiClient odiiClient;
+    private final DataLabClient dataLabClient;
     private final TourRegionStatsRepository tourRegionStatsRepository;
     private final TourPlaceRepository tourPlaceRepository;
     private final OdiiThemeRepository odiiThemeRepository;
+    private final RegionVisitorStatsRepository regionVisitorStatsRepository;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -49,6 +60,7 @@ public class TourDataSyncService {
         }
         syncOverviews();
         syncAudioUrls();
+        syncVisitorStats();
         log.info("관광 데이터 적재 완료: successRegions={}/{}, elapsedMs={}",
             successCount, candidates.size(), elapsedMillis(startedAt));
     }
@@ -143,6 +155,48 @@ public class TourDataSyncService {
             odiiThemeRepository.save(theme);
         }
         log.info("Odii 오디오 적재 완료: count={}", pending.size());
+    }
+
+    private void syncVisitorStats() {
+        Map<String, RegionCandidate> candidatesByCode = new HashMap<>();
+        for (RegionCandidate candidate : regionCandidateRepository.findAll()) {
+            candidatesByCode.put(candidate.getLdongRegnCd() + candidate.getLdongSignguCd(), candidate);
+        }
+        int syncedDays = 0;
+        for (int daysAgo = VISITOR_LOOKBACK_DAYS; daysAgo >= 1; daysAgo--) {
+            LocalDate baseDate = LocalDate.now().minusDays(daysAgo);
+            if (regionVisitorStatsRepository.existsByBaseDate(baseDate)) {
+                continue;
+            }
+            List<VisitorStatItem> items = dataLabClient.fetchDailyVisitors(baseDate);
+            if (items.isEmpty()) {
+                continue;
+            }
+            for (VisitorStatItem item : items) {
+                RegionCandidate candidate = candidatesByCode.get(item.signguCode());
+                if (candidate == null) {
+                    continue;
+                }
+                upsertVisitorStat(candidate, item);
+            }
+            syncedDays++;
+        }
+        log.info("방문자수 적재 완료: syncedDays={}", syncedDays);
+    }
+
+    private void upsertVisitorStat(RegionCandidate candidate, VisitorStatItem item) {
+        regionVisitorStatsRepository
+            .findByLdongRegnCdAndLdongSignguCdAndBaseDateAndVisitorType(
+                candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
+                item.baseDate(), item.visitorType())
+            .ifPresentOrElse(
+                existing -> {
+                    existing.updateCount(item.visitorCount());
+                    regionVisitorStatsRepository.save(existing);
+                },
+                () -> regionVisitorStatsRepository.save(RegionVisitorStats.create(
+                    candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
+                    item.baseDate(), item.visitorType(), item.visitorCount())));
     }
 
     private double averageLongitude(List<TourPlaceItem> places) {
