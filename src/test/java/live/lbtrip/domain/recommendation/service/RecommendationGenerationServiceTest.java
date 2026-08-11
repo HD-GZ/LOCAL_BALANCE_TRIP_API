@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,18 +21,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.propensity.service.PropensityFinder;
-import live.lbtrip.domain.region.model.RegionCandidate;
-import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.domain.recommendation.model.vo.CourseCandidateGroup;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.tourism.client.dto.RegionStats;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
-import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
-import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
+import live.lbtrip.domain.tourism.service.RegionStatsFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthResponseFixture;
@@ -44,16 +40,7 @@ import live.lbtrip.support.fixture.RecommendationFixture;
 class RecommendationGenerationServiceTest {
 
     @Mock
-    private RegionCandidateRepository regionCandidateRepository;
-
-    @Mock
-    private RegionCandidate regionCandidate;
-
-    @Mock
-    private TourRegionStatsRepository tourRegionStatsRepository;
-
-    @Mock
-    private TourRegionStats tourRegionStats;
+    private RegionStatsFinder regionStatsFinder;
 
     @Mock
     private TourPlaceRepository tourPlaceRepository;
@@ -86,7 +73,7 @@ class RecommendationGenerationServiceTest {
     void 관광_통계가_없으면_데이터_준비_예외를_던진다() {
         when(propensityFinder.findByUserId(AuthResponseFixture.USER_ID))
             .thenReturn(PropensityFixture.propensity());
-        when(regionCandidateRepository.findAll()).thenReturn(List.of());
+        when(regionStatsFinder.findAll()).thenReturn(List.of());
 
         assertThatThrownBy(() -> recommendationGenerationService.createRecommendations(AuthResponseFixture.USER_ID))
             .isInstanceOf(BusinessException.class)
@@ -148,17 +135,7 @@ class RecommendationGenerationServiceTest {
     private RegionStats prepareRegion() {
         when(propensityFinder.findByUserId(AuthResponseFixture.USER_ID))
             .thenReturn(PropensityFixture.propensity());
-        when(regionCandidateRepository.findAll()).thenReturn(List.of(regionCandidate));
-        when(regionCandidate.getLdongRegnCd()).thenReturn(RecommendationFixture.LDONG_REGN_CD);
-        when(regionCandidate.getLdongSignguCd()).thenReturn(RecommendationFixture.LDONG_SIGNGU_CD);
-        when(regionCandidate.getName()).thenReturn(RecommendationFixture.REGION_NAME);
-        when(tourRegionStatsRepository.findByLdongRegnCdAndLdongSignguCd(
-            RecommendationFixture.LDONG_REGN_CD, RecommendationFixture.LDONG_SIGNGU_CD))
-            .thenReturn(Optional.of(tourRegionStats));
-        when(tourRegionStats.getLdongRegnCd()).thenReturn(RecommendationFixture.LDONG_REGN_CD);
-        when(tourRegionStats.getLdongSignguCd()).thenReturn(RecommendationFixture.LDONG_SIGNGU_CD);
-        when(tourRegionStats.toTypeCounts()).thenReturn(Map.of());
-        return new RegionStats(
+        RegionStats stats = new RegionStats(
             RecommendationFixture.REGION_NAME,
             RecommendationFixture.LDONG_REGN_CD,
             RecommendationFixture.LDONG_SIGNGU_CD,
@@ -166,5 +143,7 @@ class RecommendationGenerationServiceTest {
             3,
             Map.of()
         );
+        when(regionStatsFinder.findAll()).thenReturn(List.of(stats));
+        return stats;
     }
 }
