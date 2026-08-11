@@ -15,6 +15,7 @@ import live.lbtrip.domain.recommendation.model.vo.RegionScoringInput;
 import live.lbtrip.domain.tourism.client.dto.RegionStats;
 import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
+import live.lbtrip.support.fixture.RegionScoringFixture;
 import live.lbtrip.support.fixture.UserFixture;
 
 class RegionScorerTest {
@@ -66,6 +67,19 @@ class RegionScorerTest {
 
             assertThat(top(preference(3, 3, 3, 5), List.of(rest, active))).isEqualTo("액티브");
             assertThat(top(preference(3, 3, 3, 1), List.of(rest, active))).isEqualTo("휴양");
+        }
+
+        @Test
+        void 방문자_집중도만_다르면_로컬_선호는_한적한_지역을_우선한다() {
+            RegionScoringInput crowded = input(stats("몰림", 500,
+                Map.of(TourContentType.TOURIST_SPOT.getCode(), 10), Map.of()), 300_000);
+            RegionScoringInput middle = input(stats("중간", 500,
+                Map.of(TourContentType.TOURIST_SPOT.getCode(), 10), Map.of()), 100_000);
+            RegionScoringInput quiet = input(stats("한적", 500,
+                Map.of(TourContentType.TOURIST_SPOT.getCode(), 10), Map.of()), 1_000);
+
+            assertThat(top(preference(5, 3, 3, 3), List.of(crowded, middle, quiet))).isEqualTo("한적");
+            assertThat(top(preference(1, 3, 3, 3), List.of(crowded, middle, quiet))).isEqualTo("몰림");
         }
     }
 
@@ -155,6 +169,52 @@ class RegionScorerTest {
                 Map.of(CategoryGroup.TRADITIONAL_MARKET, 10)), 0);
 
             assertThat(top(preference(3, 5, 3, 3), List.of(empty, normal))).isEqualTo("정상");
+        }
+    }
+
+    @Nested
+    class 페르소나_시나리오 {
+
+        private final List<RegionScoringInput> 전체_지역 = List.of(
+            RegionScoringFixture.핫플럭셔리_지역(),
+            RegionScoringFixture.로컬실속_지역(),
+            RegionScoringFixture.체험활동_지역(),
+            RegionScoringFixture.관람휴식_지역());
+
+        @Test
+        void 로컬_실속_여행자는_로컬실속_지역을_가장_선호한다() {
+            Propensity propensity = Propensity.create(UserFixture.user(),
+                Preference.of(5, 5, 3, 3, 3), ValueConsumption.of(3, 3, 3, 3, 3));
+
+            assertThat(regionScorer.selectTop(propensity, 전체_지역, 1))
+                .singleElement().extracting(RegionStats::regionName).isEqualTo("로컬실속");
+        }
+
+        @Test
+        void 핫플_럭셔리_여행자는_핫플럭셔리_지역을_가장_선호한다() {
+            Propensity propensity = Propensity.create(UserFixture.user(),
+                Preference.of(1, 1, 3, 3, 3), ValueConsumption.of(5, 3, 3, 3, 3));
+
+            assertThat(regionScorer.selectTop(propensity, 전체_지역, 1))
+                .singleElement().extracting(RegionStats::regionName).isEqualTo("핫플럭셔리");
+        }
+
+        @Test
+        void 체험_활동_여행자는_체험활동_지역을_가장_선호한다() {
+            Propensity propensity = Propensity.create(UserFixture.user(),
+                Preference.of(3, 3, 5, 5, 3), ValueConsumption.of(3, 3, 5, 3, 3));
+
+            assertThat(regionScorer.selectTop(propensity, 전체_지역, 1))
+                .singleElement().extracting(RegionStats::regionName).isEqualTo("체험활동");
+        }
+
+        @Test
+        void 관람_휴식_여행자는_관람휴식_지역을_가장_선호한다() {
+            Propensity propensity = Propensity.create(UserFixture.user(),
+                Preference.of(3, 3, 1, 1, 3), ValueConsumption.of(3, 3, 3, 3, 5));
+
+            assertThat(regionScorer.selectTop(propensity, 전체_지역, 1))
+                .singleElement().extracting(RegionStats::regionName).isEqualTo("관람휴식");
         }
     }
 
