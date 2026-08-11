@@ -21,8 +21,8 @@ public record TourReportResponse(
     @Schema(description = "지역 소비 금액(등록된 환급 증빙 금액 합계, 원)", example = "52000")
     int totalSpentAmount,
 
-    @Schema(description = "걸은 거리(km, 소수점 첫째 자리 반올림, 미기록 시 null)", example = "8.4")
-    Double walkedDistanceKm,
+    @Schema(description = "걸은 거리(m, 미기록 시 null)", example = "8400")
+    Integer walkedDistanceMeters,
 
     @Schema(description = "탄소 절감량(kg, 걸은 거리 × 승용차 배출계수 0.21kg/km, 미기록 시 null)", example = "1.8")
     Double carbonReductionKg,
@@ -38,7 +38,7 @@ public record TourReportResponse(
             savedCourse.countVisitedPlaces(),
             savedCourse.tourDurationMinutes(),
             savedCourse.calculateTotalReceiptAmount(),
-            savedCourse.walkedDistanceKm(),
+            savedCourse.getWalkedDistanceMeters(),
             savedCourse.carbonReductionKg(),
             savedCourse.getTourEndedAt()
         );

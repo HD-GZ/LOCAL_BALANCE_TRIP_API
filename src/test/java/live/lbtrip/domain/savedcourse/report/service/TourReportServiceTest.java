@@ -48,7 +48,7 @@ class TourReportServiceTest {
             when(savedCourse.countVisitedPlaces()).thenReturn(5);
             when(savedCourse.tourDurationMinutes()).thenReturn(130L);
             when(savedCourse.calculateTotalReceiptAmount()).thenReturn(52000);
-            when(savedCourse.walkedDistanceKm()).thenReturn(8.4);
+            when(savedCourse.getWalkedDistanceMeters()).thenReturn(8400);
             when(savedCourse.carbonReductionKg()).thenReturn(1.8);
             when(savedCourse.getTourEndedAt()).thenReturn(endedAt);
 
@@ -59,7 +59,7 @@ class TourReportServiceTest {
             assertThat(result.visitedPlaceCount()).isEqualTo(5);
             assertThat(result.durationMinutes()).isEqualTo(130L);
             assertThat(result.totalSpentAmount()).isEqualTo(52000);
-            assertThat(result.walkedDistanceKm()).isEqualTo(8.4);
+            assertThat(result.walkedDistanceMeters()).isEqualTo(8400);
             assertThat(result.carbonReductionKg()).isEqualTo(1.8);
             assertThat(result.tourEndedAt()).isEqualTo(endedAt);
         }
