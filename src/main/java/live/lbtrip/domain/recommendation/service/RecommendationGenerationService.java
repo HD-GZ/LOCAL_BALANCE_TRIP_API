@@ -14,6 +14,7 @@ import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan.CoursePlanData;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan.PlaceSnapshot;
+import live.lbtrip.domain.recommendation.model.vo.RegionScoringInput;
 import live.lbtrip.domain.tourism.client.dto.RegionStats;
 import live.lbtrip.domain.tourism.model.entity.OdiiTheme;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
@@ -50,7 +51,10 @@ public class RecommendationGenerationService {
             throw BusinessException.of(ErrorCode.TOUR_DATA_NOT_READY);
         }
 
-        List<RegionStats> selected = regionScorer.selectTop(propensity, statsList, MAX_REGIONS);
+        List<RegionScoringInput> inputs = statsList.stream()
+            .map(stats -> RegionScoringInput.of(stats, 0.0))
+            .toList();
+        List<RegionStats> selected = regionScorer.selectTop(propensity, inputs, MAX_REGIONS);
 
         List<RegionPlan> plans = new ArrayList<>();
         for (RegionStats regionStats : selected) {

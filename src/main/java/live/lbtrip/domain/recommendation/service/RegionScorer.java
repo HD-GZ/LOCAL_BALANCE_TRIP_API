@@ -3,59 +3,64 @@ package live.lbtrip.domain.recommendation.service;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
 
-import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.model.ValueConsumption;
+import live.lbtrip.domain.recommendation.model.vo.RegionScoringInput;
 import live.lbtrip.domain.tourism.client.dto.RegionStats;
-import live.lbtrip.domain.tourism.model.enums.TourContentType;
 
 @Component
 public class RegionScorer {
 
-    private static final int NEUTRAL_SCORE = 3;
-
-    public List<RegionStats> selectTop(Propensity propensity, List<RegionStats> statsList, int limit) {
-        double[] rarity = normalize(statsList.stream()
-            .mapToDouble(stats -> -stats.totalCount()).toArray());
-        double[] culture = normalize(ratios(statsList, TourContentType.CULTURAL_FACILITY));
-        double[] leports = normalize(ratios(statsList, TourContentType.LEPORTS));
-        double[] stay = normalize(ratios(statsList, TourContentType.ACCOMMODATION));
-        double[] shopping = normalize(ratios(statsList, TourContentType.SHOPPING));
-        double[] food = normalize(ratios(statsList, TourContentType.RESTAURANT));
-
-        Preference preference = propensity.getPreference();
-        ValueConsumption consumption = propensity.getValueConsumption();
-
-        double[] scores = new double[statsList.size()];
-        for (int i = 0; i < statsList.size(); i++) {
-            scores[i] = weight(preference.getLocality()) * rarity[i]
-                + weight(preference.getFrugality()) * shopping[i]
-                + weight(preference.getExperientiality()) * culture[i]
-                + weight(preference.getVitality()) * leports[i]
-                + weight(consumption.getFood()) * food[i]
-                + weight(consumption.getCafeExhibition()) * culture[i]
-                + weight(consumption.getExperience()) * leports[i]
-                + weight(consumption.getAccommodation()) * stay[i];
+    public List<RegionStats> selectTop(Propensity propensity, List<RegionScoringInput> inputs, int limit) {
+        double[] scores = new double[inputs.size()];
+        for (ScoringAxis axis : ScoringAxis.values()) {
+            double weight = axis.weight(propensity);
+            if (weight == 0) {
+                continue;
+            }
+            double[] indicator = indicator(axis, inputs);
+            for (int i = 0; i < scores.length; i++) {
+                scores[i] += weight * indicator[i];
+            }
         }
 
-        return IntStream.range(0, statsList.size())
+        return IntStream.range(0, inputs.size())
             .boxed()
             .sorted(Comparator.comparingDouble((Integer i) -> scores[i]).reversed())
             .limit(limit)
-            .map(statsList::get)
+            .map(i -> inputs.get(i).stats())
             .toList();
     }
 
-    private double weight(int score) {
-        return score - NEUTRAL_SCORE;
+    private double[] indicator(ScoringAxis axis, List<RegionScoringInput> inputs) {
+        double[] right = averageOfNormalized(axis.rightComponents(), inputs);
+        if (!axis.isBipolar()) {
+            return right;
+        }
+        double[] left = averageOfNormalized(axis.leftComponents(), inputs);
+        double[] contrast = new double[inputs.size()];
+        for (int i = 0; i < contrast.length; i++) {
+            contrast[i] = right[i] - left[i];
+        }
+        return normalize(contrast);
     }
 
-    private double[] ratios(List<RegionStats> statsList, TourContentType contentType) {
-        return statsList.stream().mapToDouble(stats -> stats.typeRatio(contentType.getCode())).toArray();
+    private double[] averageOfNormalized(
+        List<ToDoubleFunction<RegionScoringInput>> components,
+        List<RegionScoringInput> inputs
+    ) {
+        double[] average = new double[inputs.size()];
+        for (ToDoubleFunction<RegionScoringInput> component : components) {
+            double[] normalized = normalize(inputs.stream().mapToDouble(component).toArray());
+            for (int i = 0; i < average.length; i++) {
+                average[i] += normalized[i] / components.size();
+            }
+        }
+        return average;
     }
 
     private double[] normalize(double[] values) {
