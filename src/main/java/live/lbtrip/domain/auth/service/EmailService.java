@@ -1,42 +1,37 @@
 package live.lbtrip.domain.auth.service;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
-
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 
 @Service
 public class EmailService {
 
-    private static final String MAIL_SEND_ENDPOINT = "mail/send";
-    private static final int SUCCESS_STATUS_MIN = 200;
-    private static final int SUCCESS_STATUS_MAX = 299;
+    private static final String ENCODING = "UTF-8";
 
-    private final SendGrid sendGrid;
+    private final JavaMailSender mailSender;
     private final String from;
     private final String fromName;
     private final EmailVerificationMailTemplate mailTemplate;
     private final PasswordResetMailTemplate passwordResetMailTemplate;
 
     public EmailService(
-        SendGrid sendGrid,
+        JavaMailSender mailSender,
         @Value("${app.mail.from}") String from,
         @Value("${app.mail.from-name}") String fromName,
         EmailVerificationMailTemplate mailTemplate,
         PasswordResetMailTemplate passwordResetMailTemplate
     ) {
-        this.sendGrid = sendGrid;
+        this.mailSender = mailSender;
         this.from = from;
         this.fromName = fromName;
         this.mailTemplate = mailTemplate;
@@ -54,25 +49,15 @@ public class EmailService {
     }
 
     private void send(String toEmail, String subject, String plainText, String html) {
-        Mail mail = new Mail(
-            new Email(from, fromName),
-            subject,
-            new Email(toEmail),
-            new Content("text/plain", plainText)
-        );
-        mail.addContent(new Content("text/html", html));
-
-        Request request = new Request();
+        MimeMessage message = mailSender.createMimeMessage();
         try {
-            request.setMethod(Method.POST);
-            request.setEndpoint(MAIL_SEND_ENDPOINT);
-            request.setBody(mail.build());
-
-            Response response = sendGrid.api(request);
-            if (response.getStatusCode() < SUCCESS_STATUS_MIN || response.getStatusCode() > SUCCESS_STATUS_MAX) {
-                throw BusinessException.of(ErrorCode.EMAIL_SEND_FAILED);
-            }
-        } catch (IOException exception) {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, ENCODING);
+            helper.setFrom(from, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(plainText, html);
+            mailSender.send(message);
+        } catch (MessagingException | UnsupportedEncodingException | MailException exception) {
             throw BusinessException.of(ErrorCode.EMAIL_SEND_FAILED);
         }
     }
