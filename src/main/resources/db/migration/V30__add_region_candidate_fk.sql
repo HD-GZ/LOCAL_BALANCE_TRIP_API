@@ -1,7 +1,8 @@
 ALTER TABLE tour_places ADD COLUMN region_candidate_id BIGINT NULL;
 UPDATE tour_places tp
 JOIN region_candidates rc
-    ON rc.ldong_regn_cd = tp.ldong_regn_cd AND rc.ldong_signgu_cd = tp.ldong_signgu_cd
+    ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = tp.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
+        AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = tp.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET tp.region_candidate_id = rc.id;
 ALTER TABLE tour_places MODIFY COLUMN region_candidate_id BIGINT NOT NULL;
 ALTER TABLE tour_places
@@ -13,7 +14,8 @@ ALTER TABLE tour_places DROP COLUMN ldong_regn_cd, DROP COLUMN ldong_signgu_cd;
 ALTER TABLE tour_region_stats ADD COLUMN region_candidate_id BIGINT NULL;
 UPDATE tour_region_stats trs
 JOIN region_candidates rc
-    ON rc.ldong_regn_cd = trs.ldong_regn_cd AND rc.ldong_signgu_cd = trs.ldong_signgu_cd
+    ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = trs.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
+        AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = trs.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET trs.region_candidate_id = rc.id;
 ALTER TABLE tour_region_stats MODIFY COLUMN region_candidate_id BIGINT NOT NULL;
 ALTER TABLE tour_region_stats
@@ -27,7 +29,8 @@ ALTER TABLE tour_region_stats DROP COLUMN ldong_regn_cd, DROP COLUMN ldong_signg
 ALTER TABLE region_visitor_stats ADD COLUMN region_candidate_id BIGINT NULL;
 UPDATE region_visitor_stats rvs
 JOIN region_candidates rc
-    ON rc.ldong_regn_cd = rvs.ldong_regn_cd AND rc.ldong_signgu_cd = rvs.ldong_signgu_cd
+    ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = rvs.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
+        AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = rvs.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET rvs.region_candidate_id = rc.id;
 ALTER TABLE region_visitor_stats MODIFY COLUMN region_candidate_id BIGINT NOT NULL;
 ALTER TABLE region_visitor_stats
@@ -42,7 +45,8 @@ ALTER TABLE region_visitor_stats DROP COLUMN ldong_regn_cd, DROP COLUMN ldong_si
 ALTER TABLE incentive_regions ADD COLUMN region_candidate_id BIGINT NULL;
 UPDATE incentive_regions ir
 JOIN region_candidates rc
-    ON rc.ldong_regn_cd = ir.ldong_regn_cd AND rc.ldong_signgu_cd = ir.ldong_signgu_cd
+    ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = ir.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
+        AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = ir.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET ir.region_candidate_id = rc.id;
 ALTER TABLE incentive_regions MODIFY COLUMN region_candidate_id BIGINT NOT NULL;
 ALTER TABLE incentive_regions
@@ -56,7 +60,8 @@ ALTER TABLE incentive_regions DROP COLUMN ldong_regn_cd, DROP COLUMN ldong_signg
 ALTER TABLE recommended_regions ADD COLUMN region_candidate_id BIGINT NULL;
 UPDATE recommended_regions rr
 JOIN region_candidates rc
-    ON rc.ldong_regn_cd = rr.ldong_regn_cd AND rc.ldong_signgu_cd = rr.ldong_signgu_cd
+    ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = rr.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
+        AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = rr.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET rr.region_candidate_id = rc.id;
 DELETE FROM course_places
 WHERE course_id IN (
@@ -76,7 +81,8 @@ ALTER TABLE recommended_regions DROP COLUMN ldong_regn_cd, DROP COLUMN ldong_sig
 ALTER TABLE saved_courses ADD COLUMN region_candidate_id BIGINT NULL;
 UPDATE saved_courses sc
 JOIN region_candidates rc
-    ON rc.ldong_regn_cd = sc.ldong_regn_cd AND rc.ldong_signgu_cd = sc.ldong_signgu_cd
+    ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = sc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
+        AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = sc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET sc.region_candidate_id = rc.id;
 ALTER TABLE saved_courses
     ADD CONSTRAINT fk_saved_courses_region_candidate
