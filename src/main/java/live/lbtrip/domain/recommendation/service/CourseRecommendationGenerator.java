@@ -8,6 +8,7 @@ import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
 import live.lbtrip.domain.tourism.service.RegionMetricsFinder;
+import live.lbtrip.global.config.RecommendationProperties;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -17,12 +18,17 @@ public class CourseRecommendationGenerator {
     private final PropensityFinder propensityFinder;
     private final RegionMetricsFinder regionMetricsFinder;
     private final RegionSelector regionSelector;
+    private final RecommendationProperties recommendationProperties;
 
     public void generate(Long userId) {
         // init
         Propensity propensity = propensityFinder.findByUserId(userId);
         List<RegionMetrics> metrics = regionMetricsFinder.findAllMetrics();
-        List<RegionMetrics> selectRegionMetrics = regionSelector.selectTop(propensity, metrics, 3);
+        List<RegionMetrics> selectRegionMetrics = regionSelector.selectTop(
+            propensity,
+            metrics,
+            recommendationProperties.maxRegions()
+        );
         
     }
 }

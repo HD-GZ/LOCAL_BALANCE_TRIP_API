@@ -82,3 +82,6 @@ tour-api:
   mobile-os: ${TOUR_API_MOBILE_OS}
   mobile-app: ${TOUR_API_MOBILE_APP}
   read-timeout: ${TOUR_API_READ_TIMEOUT}
+
+recommendation:
+  max-regions: ${RECOMMENDATION_MAX_REGIONS:3}
