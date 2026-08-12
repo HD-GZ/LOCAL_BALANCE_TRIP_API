@@ -113,7 +113,8 @@ public class TourRegionStats extends BaseEntity {
             TourContentType.LEPORTS.getCode(), leportsCount,
             TourContentType.ACCOMMODATION.getCode(), accommodationCount,
             TourContentType.SHOPPING.getCode(), shoppingCount,
-            TourContentType.RESTAURANT.getCode(), restaurantCount);
+            TourContentType.RESTAURANT.getCode(), restaurantCount
+        );
     }
 
     public Map<CategoryGroup, Integer> toGroupCounts() {
