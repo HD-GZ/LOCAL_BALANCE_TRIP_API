@@ -131,4 +131,18 @@ class CourseShareServiceTest {
                 .isEqualTo(ErrorCode.SHARE_TOKEN_EXPIRED);
         }
     }
+
+    @Nested
+    class 만료_토큰_정리 {
+
+        @Test
+        void 만료된_토큰을_삭제하고_삭제_개수를_반환한다() {
+            when(courseShareTokenRepository.deleteAllByExpiresAtBefore(any(LocalDateTime.class)))
+                .thenReturn(2L);
+
+            long deletedCount = courseShareService.deleteExpiredTokens();
+
+            assertThat(deletedCount).isEqualTo(2L);
+        }
+    }
 }

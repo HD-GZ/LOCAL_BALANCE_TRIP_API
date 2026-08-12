@@ -50,4 +50,9 @@ public class CourseShareService {
             savedCourse.getLdongSignguCd()
         ));
     }
+
+    @Transactional
+    public long deleteExpiredTokens() {
+        return courseShareTokenRepository.deleteAllByExpiresAtBefore(LocalDateTime.now());
+    }
 }
