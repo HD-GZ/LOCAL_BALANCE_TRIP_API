@@ -24,6 +24,7 @@ public class RecommendationService {
     private final GeneratedCourseFinder generatedCourseFinder;
     private final IncentiveFinder incentiveFinder;
 
+    @Transactional
     public void createRecommendations(Long userId) {
         courseRecommendationGenerator.generate(userId);
     }
