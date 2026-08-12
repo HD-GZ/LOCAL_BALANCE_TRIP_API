@@ -47,13 +47,15 @@ class CourseComposerTest {
     @BeforeEach
     void setUp() {
         when(chatClientBuilder.build()).thenReturn(chatClient);
+        RecommendationProperties properties = new RecommendationProperties(3, 3);
         courseComposer = new CourseComposer(
             chatClientBuilder,
             new ByteArrayResource("{regionName} {candidateLines} {maxCourses} {locality} {frugality} "
                 .concat("{experientiality} {vitality} {sociality} {accommodation} {food} ")
                 .concat("{experience} {transportation} {cafeExhibition}")
                 .getBytes(StandardCharsets.UTF_8)),
-            new RecommendationProperties(3, 3)
+            properties,
+            new CourseCompositionValidator(properties)
         );
     }
 
@@ -61,9 +63,9 @@ class CourseComposerTest {
     class 구성 {
 
         @Test
-        void LLM_응답을_반환한다() {
+        void 검증을_통과한_LLM_응답을_반환한다() {
             CourseComposition response = CourseComposition.of("추천 이유", List.of(
-                CoursePlan.of("코스", "코스 이유", List.of("100", "200", "300"))));
+                CoursePlan.of(RecommendationFixture.COURSE_NAME, "코스 이유", List.of("100", "200", "300"))));
             mockResponse(response);
 
             CourseComposition result = compose();
@@ -83,6 +85,17 @@ class CourseComposerTest {
             assertThat(promptCaptor.getValue())
                 .contains("100 | 관광지 | 죽녹원 | 126.986 | 35.325")
                 .contains(RecommendationFixture.REGION_NAME);
+        }
+
+        @Test
+        void 검증에서_모든_코스가_탈락하면_추천_생성_예외를_던진다() {
+            mockResponse(CourseComposition.of("추천 이유", List.of(
+                CoursePlan.of("환각 코스", "코스 이유", List.of("998", "999")))));
+
+            assertThatThrownBy(CourseComposerTest.this::compose)
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
 
         @Test

@@ -56,6 +56,42 @@ class RegionCompositionAssemblerTest {
     }
 
     @Test
+    void 구성에_실패한_지역은_건너뛰고_나머지를_수집한다() {
+        Propensity propensity = PropensityFixture.propensity();
+        RegionMetrics failing = RegionMetricsFixture.핫플럭셔리_지역();
+        RegionMetrics succeeding = RegionMetricsFixture.로컬실속_지역();
+        List<TourPlace> places = RecommendationFixture.tourPlaces();
+        CourseComposition composition = CourseComposition.of("추천 이유", List.of(
+            CoursePlan.of("코스", "코스 이유", List.of("100", "200", "300"))));
+        when(tourPlaceFinder.findAllByRegionCandidateId(failing.regionCandidateId())).thenReturn(places);
+        when(tourPlaceFinder.findAllByRegionCandidateId(succeeding.regionCandidateId())).thenReturn(places);
+        when(courseComposer.compose(propensity, failing.regionName(), places))
+            .thenThrow(BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED));
+        when(courseComposer.compose(propensity, succeeding.regionName(), places)).thenReturn(composition);
+
+        List<RegionComposition> result = regionCompositionAssembler.assemble(
+            propensity, List.of(failing, succeeding));
+
+        assertThat(result).singleElement()
+            .satisfies(regionComposition -> assertThat(regionComposition.region()).isEqualTo(succeeding));
+    }
+
+    @Test
+    void 모든_지역의_구성에_실패하면_추천_생성_예외를_던진다() {
+        Propensity propensity = PropensityFixture.propensity();
+        RegionMetrics region = RegionMetricsFixture.로컬실속_지역();
+        List<TourPlace> places = RecommendationFixture.tourPlaces();
+        when(tourPlaceFinder.findAllByRegionCandidateId(region.regionCandidateId())).thenReturn(places);
+        when(courseComposer.compose(propensity, region.regionName(), places))
+            .thenThrow(BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED));
+
+        assertThatThrownBy(() -> regionCompositionAssembler.assemble(propensity, List.of(region)))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
+    }
+
+    @Test
     void 구성된_지역이_없으면_추천_생성_예외를_던진다() {
         assertThatThrownBy(() -> regionCompositionAssembler.assemble(
             PropensityFixture.propensity(), List.of()))

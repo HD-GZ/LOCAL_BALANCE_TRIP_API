@@ -28,20 +28,24 @@ public class CourseComposer {
     private final ChatClient chatClient;
     private final PromptTemplate promptTemplate;
     private final RecommendationProperties recommendationProperties;
+    private final CourseCompositionValidator courseCompositionValidator;
 
     public CourseComposer(
         ChatClient.Builder chatClientBuilder,
         @Value("classpath:prompts/course-composition.st") Resource promptResource,
-        RecommendationProperties recommendationProperties
+        RecommendationProperties recommendationProperties,
+        CourseCompositionValidator courseCompositionValidator
     ) {
         this.chatClient = chatClientBuilder.build();
         this.promptTemplate = new PromptTemplate(promptResource);
         this.recommendationProperties = recommendationProperties;
+        this.courseCompositionValidator = courseCompositionValidator;
     }
 
     public CourseComposition compose(Propensity propensity, String regionName, List<TourPlace> candidates) {
+        CourseComposition raw;
         try {
-            return chatClient.prompt()
+            raw = chatClient.prompt()
                 .user(renderPrompt(propensity, regionName, candidates))
                 .call()
                 .entity(CourseComposition.class);
@@ -49,6 +53,7 @@ public class CourseComposer {
             log.error("LLM 코스 구성 호출 실패: region={}", regionName, e);
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
+        return courseCompositionValidator.validate(raw, candidates, regionName);
     }
 
     private String renderPrompt(Propensity propensity, String regionName, List<TourPlace> candidates) {
