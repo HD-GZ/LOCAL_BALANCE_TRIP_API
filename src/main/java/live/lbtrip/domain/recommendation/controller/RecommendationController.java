@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,6 +13,8 @@ import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +24,11 @@ import lombok.RequiredArgsConstructor;
 public class RecommendationController implements RecommendationApi {
 
     private final RecommendationService recommendationService;
+
+    @PostMapping
+    public ResponseEntity<Void> createRecommendations(@UserId Long userId) {
+        throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
+    }
 
     @GetMapping("/regions")
     public ResponseEntity<List<RegionRecommendationResponse>> getRecommendedRegions(@UserId Long userId) {

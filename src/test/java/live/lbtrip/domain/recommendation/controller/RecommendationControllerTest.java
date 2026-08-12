@@ -2,6 +2,7 @@ package live.lbtrip.domain.recommendation.controller;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,6 +46,21 @@ class RecommendationControllerTest {
 
     @MockitoBean
     private JpaMetamodelMappingContext jpaMappingContext;
+
+    @Nested
+    class 생성 {
+
+        @Test
+        void 생성_로직_재구현_전에는_실패를_응답한다() throws Exception {
+            인증된_사용자();
+
+            mockMvc.perform(post("/recommendations")
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.result").value("ERROR"))
+                .andExpect(jsonPath("$.error.code").value("RECOMMENDATION_GENERATION_FAILED"));
+        }
+    }
 
     @Nested
     class 조회 {
