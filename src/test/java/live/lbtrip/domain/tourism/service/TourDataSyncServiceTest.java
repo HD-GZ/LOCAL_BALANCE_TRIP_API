@@ -59,6 +59,9 @@ class TourDataSyncServiceTest {
     @Mock
     private RegionVisitorStatsRepository regionVisitorStatsRepository;
 
+    @Mock
+    private OdiiThemeMatcher odiiThemeMatcher;
+
     @InjectMocks
     private TourDataSyncService tourDataSyncService;
 

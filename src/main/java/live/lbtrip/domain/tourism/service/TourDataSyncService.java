@@ -36,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 public class TourDataSyncService {
 
     private static final int VISITOR_LOOKBACK_DAYS = 45;
+    private static final double THEME_LOOKUP_LON_DELTA = 0.23;
+    private static final double THEME_LOOKUP_LAT_DELTA = 0.18;
 
     private final RegionCandidateRepository regionCandidateRepository;
     private final TourApiClient tourApiClient;
@@ -45,6 +47,7 @@ public class TourDataSyncService {
     private final TourPlaceRepository tourPlaceRepository;
     private final OdiiThemeRepository odiiThemeRepository;
     private final RegionVisitorStatsRepository regionVisitorStatsRepository;
+    private final OdiiThemeMatcher odiiThemeMatcher;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -80,8 +83,51 @@ public class TourDataSyncService {
             fetchedPlaces.addAll(places);
         }
         upsertThemes(fetchedPlaces);
+        matchPlaceThemes(candidate);
         log.info("지역 데이터 적재 성공: region={}, placeCount={}, elapsedMs={}",
             candidate.getName(), fetchedPlaces.size(), elapsedMillis(startedAt));
+    }
+
+    private void matchPlaceThemes(RegionCandidate candidate) {
+        List<TourPlace> places = tourPlaceRepository
+            .findAllByRegionCandidateIdOrderByContentTypeIdAscSortOrderAsc(candidate.getId());
+        if (places.isEmpty()) {
+            return;
+        }
+
+        List<OdiiTheme> themes = odiiThemeRepository.findAllByLongitudeBetweenAndLatitudeBetween(
+            averagePlaceLongitude(places) - THEME_LOOKUP_LON_DELTA,
+            averagePlaceLongitude(places) + THEME_LOOKUP_LON_DELTA,
+            averagePlaceLatitude(places) - THEME_LOOKUP_LAT_DELTA,
+            averagePlaceLatitude(places) + THEME_LOOKUP_LAT_DELTA);
+        for (TourPlace place : places) {
+            place.assignOdiiTheme(odiiThemeMatcher.match(place, themes).orElse(null));
+            tourPlaceRepository.save(place);
+        }
+    }
+
+    private double averagePlaceLongitude(List<TourPlace> places) {
+        double sum = 0;
+        int count = 0;
+        for (TourPlace place : places) {
+            if (place.getLongitude() != null) {
+                sum += place.getLongitude();
+                count++;
+            }
+        }
+        return count == 0 ? 0 : sum / count;
+    }
+
+    private double averagePlaceLatitude(List<TourPlace> places) {
+        double sum = 0;
+        int count = 0;
+        for (TourPlace place : places) {
+            if (place.getLatitude() != null) {
+                sum += place.getLatitude();
+                count++;
+            }
+        }
+        return count == 0 ? 0 : sum / count;
     }
 
     private void upsertStats(RegionCandidate candidate, RegionStats stats) {

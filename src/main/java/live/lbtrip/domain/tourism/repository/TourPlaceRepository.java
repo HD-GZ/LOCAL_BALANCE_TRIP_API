@@ -15,6 +15,13 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, Long> {
 
     List<TourPlace> findAllByRegionCandidateIdOrderByContentTypeIdAscSortOrderAsc(Long regionCandidateId);
 
+    @Query("""
+        SELECT p FROM TourPlace p LEFT JOIN FETCH p.odiiTheme
+        WHERE p.regionCandidate.id = :regionCandidateId
+        ORDER BY p.contentTypeId ASC, p.sortOrder ASC
+        """)
+    List<TourPlace> findAllWithOdiiThemeByRegionCandidateId(@Param("regionCandidateId") Long regionCandidateId);
+
     List<TourPlace> findAllByOverviewIsNull();
 
     @Query(

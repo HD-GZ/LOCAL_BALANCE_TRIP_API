@@ -20,6 +20,7 @@ public class CourseRecommendationGenerator {
     private final RegionMetricsFinder regionMetricsFinder;
     private final RegionSelector regionSelector;
     private final RegionPlanAssembler regionPlanAssembler;
+    private final RecommendationStore recommendationStore;
     private final RecommendationProperties recommendationProperties;
 
     public void generate(Long userId) {
@@ -32,5 +33,6 @@ public class CourseRecommendationGenerator {
         );
 
         List<RegionPlan> plans = regionPlanAssembler.assemble(propensity, selectRegionMetrics);
+        recommendationStore.replace(userId, plans);
     }
 }

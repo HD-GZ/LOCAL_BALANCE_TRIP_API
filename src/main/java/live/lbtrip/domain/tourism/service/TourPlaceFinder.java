@@ -15,6 +15,6 @@ public class TourPlaceFinder {
     private final TourPlaceRepository tourPlaceRepository;
 
     public List<TourPlace> findAllByRegionCandidateId(Long regionCandidateId) {
-        return tourPlaceRepository.findAllByRegionCandidateIdOrderByContentTypeIdAscSortOrderAsc(regionCandidateId);
+        return tourPlaceRepository.findAllWithOdiiThemeByRegionCandidateId(regionCandidateId);
     }
 }

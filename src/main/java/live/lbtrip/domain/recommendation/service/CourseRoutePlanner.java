@@ -9,6 +9,7 @@ import live.lbtrip.domain.recommendation.model.vo.RoutedPlace;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.util.GeoDistanceCalculator;
 
 /**
  * 코스 장소들의 방문 순서를 확정하고 구간별 도보 시간을 붙여 동선을 계획한다.
@@ -35,7 +36,6 @@ public class CourseRoutePlanner {
 
     private static final int MAX_PLACES = 5;
     private static final double DISTANCE_EQUALITY_EPSILON_METERS = 0.000_001;
-    private static final double EARTH_RADIUS_METERS = 6_371_000;
     private static final double WALK_METERS_PER_MINUTE = 67;
 
     public List<RoutedPlace> plan(List<TourPlace> places) {
@@ -102,19 +102,8 @@ public class CourseRoutePlanner {
     }
 
     private Double distanceMeters(TourPlace from, TourPlace to) {
-        Double fromLon = from.getLongitude();
-        Double fromLat = from.getLatitude();
-        Double toLon = to.getLongitude();
-        Double toLat = to.getLatitude();
-        if (fromLon == null || fromLat == null || toLon == null || toLat == null) {
-            return null;
-        }
-        double dLat = Math.toRadians(toLat - fromLat);
-        double dLon = Math.toRadians(toLon - fromLon);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-            + Math.cos(Math.toRadians(fromLat)) * Math.cos(Math.toRadians(toLat))
-            * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        return 2 * EARTH_RADIUS_METERS * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return GeoDistanceCalculator.distanceMeters(
+            from.getLongitude(), from.getLatitude(), to.getLongitude(), to.getLatitude());
     }
 
     private static final class BestRoute {

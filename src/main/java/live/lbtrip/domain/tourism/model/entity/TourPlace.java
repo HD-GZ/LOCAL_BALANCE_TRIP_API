@@ -53,6 +53,10 @@ public class TourPlace extends BaseEntity {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "odii_theme_id")
+    private OdiiTheme odiiTheme;
+
     private TourPlace(
         String contentId, RegionCandidate regionCandidate, int contentTypeId,
         String title, String imageUrl, Double longitude, Double latitude, int sortOrder
@@ -86,5 +90,9 @@ public class TourPlace extends BaseEntity {
 
     public void updateOverview(String overview) {
         this.overview = overview;
+    }
+
+    public void assignOdiiTheme(OdiiTheme odiiTheme) {
+        this.odiiTheme = odiiTheme;
     }
 }

@@ -59,7 +59,10 @@ public class RegionPlanAssembler {
                 selected.add(placesById.get(contentId));
             }
             courses.add(PlannedCourse.of(
-                coursePlan.name(), coursePlan.reason(), courseRoutePlanner.plan(selected)));
+                coursePlan.name(),
+                coursePlan.reason(),
+                courseRoutePlanner.plan(selected))
+            );
         }
         return RegionPlan.of(region, composition.regionReason(), courses);
     }
