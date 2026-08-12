@@ -188,13 +188,6 @@ public class SavedCourse extends BaseEntity {
         return Duration.between(tourStartedAt, tourEndedAt).toMinutes();
     }
 
-    public Double walkedDistanceKm() {
-        if (walkedDistanceMeters == null) {
-            return null;
-        }
-        return roundToOneDecimal(walkedDistanceMeters / 1000.0);
-    }
-
     public Double carbonReductionKg() {
         if (walkedDistanceMeters == null) {
             return null;
