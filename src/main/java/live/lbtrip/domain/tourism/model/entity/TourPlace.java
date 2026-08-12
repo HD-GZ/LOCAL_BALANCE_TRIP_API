@@ -2,12 +2,15 @@ package live.lbtrip.domain.tourism.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,9 +19,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @Table(name = "tour_places",
-    uniqueConstraints = @UniqueConstraint(name = "uk_tour_places_content_id", columnNames = "content_id"),
-    indexes = @Index(name = "idx_tour_places_region",
-        columnList = "ldong_regn_cd, ldong_signgu_cd, content_type_id"))
+    uniqueConstraints = @UniqueConstraint(name = "uk_tour_places_content_id", columnNames = "content_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TourPlace extends BaseEntity {
 
@@ -29,11 +30,9 @@ public class TourPlace extends BaseEntity {
     @Column(name = "content_id", nullable = false, length = 20)
     private String contentId;
 
-    @Column(name = "ldong_regn_cd", nullable = false, length = 2)
-    private String ldongRegnCd;
-
-    @Column(name = "ldong_signgu_cd", nullable = false, length = 3)
-    private String ldongSignguCd;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_candidate_id", nullable = false)
+    private RegionCandidate regionCandidate;
 
     @Column(name = "content_type_id", nullable = false)
     private int contentTypeId;
@@ -54,13 +53,16 @@ public class TourPlace extends BaseEntity {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "odii_theme_id")
+    private OdiiTheme odiiTheme;
+
     private TourPlace(
-        String contentId, String ldongRegnCd, String ldongSignguCd, int contentTypeId,
+        String contentId, RegionCandidate regionCandidate, int contentTypeId,
         String title, String imageUrl, Double longitude, Double latitude, int sortOrder
     ) {
         this.contentId = contentId;
-        this.ldongRegnCd = ldongRegnCd;
-        this.ldongSignguCd = ldongSignguCd;
+        this.regionCandidate = regionCandidate;
         this.contentTypeId = contentTypeId;
         this.title = title;
         this.imageUrl = imageUrl;
@@ -70,11 +72,11 @@ public class TourPlace extends BaseEntity {
     }
 
     public static TourPlace create(
-        String contentId, String ldongRegnCd, String ldongSignguCd, int contentTypeId,
+        String contentId, RegionCandidate regionCandidate, int contentTypeId,
         String title, String imageUrl, Double longitude, Double latitude, int sortOrder
     ) {
         return new TourPlace(
-            contentId, ldongRegnCd, ldongSignguCd, contentTypeId,
+            contentId, regionCandidate, contentTypeId,
             title, imageUrl, longitude, latitude, sortOrder);
     }
 
@@ -88,5 +90,9 @@ public class TourPlace extends BaseEntity {
 
     public void updateOverview(String overview) {
         this.overview = overview;
+    }
+
+    public void assignOdiiTheme(OdiiTheme odiiTheme) {
+        this.odiiTheme = odiiTheme;
     }
 }

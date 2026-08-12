@@ -1,23 +1,30 @@
 package live.lbtrip.domain.tourism.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
+import live.lbtrip.domain.tourism.client.DataLabClient;
 import live.lbtrip.domain.tourism.client.OdiiClient;
 import live.lbtrip.domain.tourism.client.TourApiClient;
 import live.lbtrip.domain.tourism.client.dto.OdiiThemeItem;
 import live.lbtrip.domain.tourism.client.dto.RegionStats;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
+import live.lbtrip.domain.tourism.client.dto.VisitorStatItem;
 import live.lbtrip.domain.tourism.model.entity.OdiiTheme;
+import live.lbtrip.domain.tourism.model.entity.RegionVisitorStats;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
+import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +35,19 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TourDataSyncService {
 
+    private static final int VISITOR_LOOKBACK_DAYS = 45;
+    private static final double THEME_LOOKUP_LON_DELTA = 0.23;
+    private static final double THEME_LOOKUP_LAT_DELTA = 0.18;
+
     private final RegionCandidateRepository regionCandidateRepository;
     private final TourApiClient tourApiClient;
     private final OdiiClient odiiClient;
+    private final DataLabClient dataLabClient;
     private final TourRegionStatsRepository tourRegionStatsRepository;
     private final TourPlaceRepository tourPlaceRepository;
     private final OdiiThemeRepository odiiThemeRepository;
+    private final RegionVisitorStatsRepository regionVisitorStatsRepository;
+    private final OdiiThemeMatcher odiiThemeMatcher;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -49,6 +63,7 @@ public class TourDataSyncService {
         }
         syncOverviews();
         syncAudioUrls();
+        syncVisitorStats();
         log.info("관광 데이터 적재 완료: successRegions={}/{}, elapsedMs={}",
             successCount, candidates.size(), elapsedMillis(startedAt));
     }
@@ -56,7 +71,7 @@ public class TourDataSyncService {
     private void syncRegion(RegionCandidate candidate) {
         long startedAt = System.nanoTime();
         RegionStats stats = tourApiClient.fetchRegionStats(candidate);
-        upsertStats(stats);
+        upsertStats(candidate, stats);
 
         List<TourPlaceItem> fetchedPlaces = new ArrayList<>();
         for (TourContentType contentType : TourContentType.courseCandidates()) {
@@ -68,21 +83,65 @@ public class TourDataSyncService {
             fetchedPlaces.addAll(places);
         }
         upsertThemes(fetchedPlaces);
+        matchPlaceThemes(candidate);
         log.info("지역 데이터 적재 성공: region={}, placeCount={}, elapsedMs={}",
             candidate.getName(), fetchedPlaces.size(), elapsedMillis(startedAt));
     }
 
-    private void upsertStats(RegionStats stats) {
+    private void matchPlaceThemes(RegionCandidate candidate) {
+        List<TourPlace> places = tourPlaceRepository
+            .findAllByRegionCandidateIdOrderByContentTypeIdAscSortOrderAsc(candidate.getId());
+        if (places.isEmpty()) {
+            return;
+        }
+
+        List<OdiiTheme> themes = odiiThemeRepository.findAllByLongitudeBetweenAndLatitudeBetween(
+            averagePlaceLongitude(places) - THEME_LOOKUP_LON_DELTA,
+            averagePlaceLongitude(places) + THEME_LOOKUP_LON_DELTA,
+            averagePlaceLatitude(places) - THEME_LOOKUP_LAT_DELTA,
+            averagePlaceLatitude(places) + THEME_LOOKUP_LAT_DELTA);
+        for (TourPlace place : places) {
+            place.assignOdiiTheme(odiiThemeMatcher.match(place, themes).orElse(null));
+            tourPlaceRepository.save(place);
+        }
+    }
+
+    private double averagePlaceLongitude(List<TourPlace> places) {
+        double sum = 0;
+        int count = 0;
+        for (TourPlace place : places) {
+            if (place.getLongitude() != null) {
+                sum += place.getLongitude();
+                count++;
+            }
+        }
+        return count == 0 ? 0 : sum / count;
+    }
+
+    private double averagePlaceLatitude(List<TourPlace> places) {
+        double sum = 0;
+        int count = 0;
+        for (TourPlace place : places) {
+            if (place.getLatitude() != null) {
+                sum += place.getLatitude();
+                count++;
+            }
+        }
+        return count == 0 ? 0 : sum / count;
+    }
+
+    private void upsertStats(RegionCandidate candidate, RegionStats stats) {
         tourRegionStatsRepository
-            .findByLdongRegnCdAndLdongSignguCd(stats.ldongRegnCd(), stats.ldongSignguCd())
+            .findByRegionCandidateId(candidate.getId())
             .ifPresentOrElse(
                 existing -> {
-                    existing.update(stats.totalCount(), stats.sampleSize(), stats.typeCounts());
+                    existing.update(stats.totalCount(), stats.sampleSize(),
+                        stats.typeCounts(), stats.groupCounts());
                     tourRegionStatsRepository.save(existing);
                 },
                 () -> tourRegionStatsRepository.save(TourRegionStats.create(
-                    stats.ldongRegnCd(), stats.ldongSignguCd(),
-                    stats.totalCount(), stats.sampleSize(), stats.typeCounts())));
+                    candidate, stats.totalCount(), stats.sampleSize(),
+                    stats.typeCounts(), stats.groupCounts())));
     }
 
     private void upsertPlace(TourPlaceItem item, RegionCandidate candidate, int sortOrder) {
@@ -94,8 +153,7 @@ public class TourDataSyncService {
                     tourPlaceRepository.save(existing);
                 },
                 () -> tourPlaceRepository.save(TourPlace.create(
-                    item.contentId(), candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
-                    item.contentTypeId(), item.title(), item.imageUrl(),
+                    item.contentId(), candidate, item.contentTypeId(), item.title(), item.imageUrl(),
                     item.longitude(), item.latitude(), sortOrder)));
     }
 
@@ -141,6 +199,46 @@ public class TourDataSyncService {
             odiiThemeRepository.save(theme);
         }
         log.info("Odii 오디오 적재 완료: count={}", pending.size());
+    }
+
+    private void syncVisitorStats() {
+        Map<String, RegionCandidate> candidatesByCode = new HashMap<>();
+        for (RegionCandidate candidate : regionCandidateRepository.findAll()) {
+            candidatesByCode.put(candidate.getLdongRegnCd() + candidate.getLdongSignguCd(), candidate);
+        }
+        int syncedDays = 0;
+        for (int daysAgo = VISITOR_LOOKBACK_DAYS; daysAgo >= 1; daysAgo--) {
+            LocalDate baseDate = LocalDate.now().minusDays(daysAgo);
+            if (regionVisitorStatsRepository.existsByBaseDate(baseDate)) {
+                continue;
+            }
+            List<VisitorStatItem> items = dataLabClient.fetchDailyVisitors(baseDate);
+            if (items.isEmpty()) {
+                continue;
+            }
+            for (VisitorStatItem item : items) {
+                RegionCandidate candidate = candidatesByCode.get(item.signguCode());
+                if (candidate == null) {
+                    continue;
+                }
+                upsertVisitorStat(candidate, item);
+            }
+            syncedDays++;
+        }
+        log.info("방문자수 적재 완료: syncedDays={}", syncedDays);
+    }
+
+    private void upsertVisitorStat(RegionCandidate candidate, VisitorStatItem item) {
+        regionVisitorStatsRepository
+            .findByRegionCandidateIdAndBaseDateAndVisitorType(
+                candidate.getId(), item.baseDate(), item.visitorType())
+            .ifPresentOrElse(
+                existing -> {
+                    existing.updateCount(item.visitorCount());
+                    regionVisitorStatsRepository.save(existing);
+                },
+                () -> regionVisitorStatsRepository.save(RegionVisitorStats.create(
+                    candidate, item.baseDate(), item.visitorType(), item.visitorCount())));
     }
 
     private double averageLongitude(List<TourPlaceItem> places) {

@@ -1,7 +1,7 @@
 package live.lbtrip.domain.recommendation.controller;
 
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,11 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
-import live.lbtrip.domain.recommendation.service.RecommendationGenerationService;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.global.config.CorsProperties;
-import live.lbtrip.global.error.BusinessException;
-import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.TokenFixture;
@@ -38,9 +35,6 @@ class RecommendationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockitoBean
-    private RecommendationGenerationService recommendationGenerationService;
 
     @MockitoBean
     private RecommendationService recommendationService;
@@ -63,22 +57,11 @@ class RecommendationControllerTest {
 
             mockMvc.perform(post("/recommendations")
                     .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").doesNotExist());
-        }
 
-        @Test
-        void 취향_결과가_없으면_예외를_응답한다() throws Exception {
-            인증된_사용자();
-            doThrow(BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND))
-                .when(recommendationGenerationService).createRecommendations(AuthResponseFixture.USER_ID);
-
-            mockMvc.perform(post("/recommendations")
-                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.result").value("ERROR"))
-                .andExpect(jsonPath("$.error.code").value("PROPENSITY_NOT_FOUND"));
+            verify(recommendationService).createRecommendations(AuthResponseFixture.USER_ID);
         }
     }
 

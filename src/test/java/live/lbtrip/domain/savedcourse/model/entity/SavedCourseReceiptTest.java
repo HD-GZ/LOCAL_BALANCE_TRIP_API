@@ -14,6 +14,7 @@ import live.lbtrip.domain.image.model.entity.Image;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 class SavedCourseReceiptTest {
 
@@ -74,8 +75,7 @@ class SavedCourseReceiptTest {
             "담양",
             "추천 이유",
             null,
-            "46",
-            "710"
+            RegionCandidateFixture.candidateWithId()
         );
     }
 

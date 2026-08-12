@@ -20,6 +20,7 @@ import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 @ExtendWith(MockitoExtension.class)
 class RecommendationServiceTest {
@@ -78,8 +79,7 @@ class RecommendationServiceTest {
             GeneratedCourse course = region.getCourses().getFirst();
             when(generatedCourseFinder.findByIdAndUserId(
                 RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID)).thenReturn(course);
-            when(incentiveFinder.findAllByRegion(
-                RecommendationFixture.LDONG_REGN_CD, RecommendationFixture.LDONG_SIGNGU_CD))
+            when(incentiveFinder.findAllByRegion(RegionCandidateFixture.CANDIDATE_ID))
                 .thenReturn(List.of());
 
             CourseDetailResponse response = recommendationService.getCourseDetail(

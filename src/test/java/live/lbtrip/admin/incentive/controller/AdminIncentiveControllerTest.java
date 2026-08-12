@@ -36,6 +36,7 @@ import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AdminFixture;
 import live.lbtrip.support.fixture.AdminIncentiveRequestFixture;
 import live.lbtrip.support.fixture.AdminIncentiveResponseFixture;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 import live.lbtrip.admin.auth.model.AdminJwtTokenSubject;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
@@ -80,7 +81,9 @@ class AdminIncentiveControllerTest {
                 .andExpect(jsonPath("$.data.title").value(AdminIncentiveRequestFixture.TITLE))
                 .andExpect(jsonPath("$.data.url").value(AdminIncentiveRequestFixture.URL))
                 .andExpect(jsonPath("$.data.startDate").value("2026-07-01"))
-                .andExpect(jsonPath("$.data.endDate").value("2026-08-31"));
+                .andExpect(jsonPath("$.data.endDate").value("2026-08-31"))
+                .andExpect(jsonPath("$.data.regions[0].regionCandidateId").value(RegionCandidateFixture.CANDIDATE_ID))
+                .andExpect(jsonPath("$.data.regions[0].name").value(RegionCandidateFixture.NAME));
         }
 
         @Test
@@ -93,7 +96,7 @@ class AdminIncentiveControllerTest {
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
                         " ", AdminIncentiveRequestFixture.URL, AdminIncentiveRequestFixture.DESCRIPTION,
                         AdminIncentiveRequestFixture.START_DATE, AdminIncentiveRequestFixture.END_DATE,
-                        AdminIncentiveRequestFixture.regions()))))
+                        AdminIncentiveRequestFixture.regionCandidateIds()))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
@@ -112,7 +115,7 @@ class AdminIncentiveControllerTest {
                         AdminIncentiveRequestFixture.DESCRIPTION,
                         null,
                         AdminIncentiveRequestFixture.END_DATE,
-                        AdminIncentiveRequestFixture.regions()
+                        AdminIncentiveRequestFixture.regionCandidateIds()
                     ))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("ERROR"))
@@ -233,7 +236,7 @@ class AdminIncentiveControllerTest {
                         AdminIncentiveRequestFixture.DESCRIPTION,
                         null,
                         AdminIncentiveRequestFixture.END_DATE,
-                        AdminIncentiveRequestFixture.regions()
+                        AdminIncentiveRequestFixture.regionCandidateIds()
                     ))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("ERROR"))

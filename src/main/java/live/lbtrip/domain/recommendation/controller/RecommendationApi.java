@@ -31,10 +31,9 @@ public interface RecommendationApi {
     @Operation(
         summary = "코스 추천 생성",
         description = """
-            사용자 성향(10축)과 TourAPI 관광 정보를 기반으로 맞춤 코스 추천을 생성합니다.
-            추천 지역 최대 5곳, 지역별 코스 최대 3개와 코스별 장소 스냅샷을 저장합니다.
-            생성이 완료되면 기존 추천 결과를 새 결과로 교체합니다.
-            외부 API를 순차 호출하므로 수십 초가 걸릴 수 있으며, 완료 후 추천 여행지 목록을 별도로 조회해야 합니다.
+            사용자 성향과 관광 정보를 기반으로 맞춤 코스 추천을 생성합니다.
+            생성이 완료되면 기존 추천 결과를 새 결과로 교체하며, 완료 후 추천 여행지 목록을 별도로 조회해야 합니다.
+            추천 생성 로직 재구현 전까지는 항상 RECOMMENDATION_GENERATION_FAILED를 응답합니다.
             """
     )
     @ApiSuccessResponse(status = CREATED, description = "추천 생성 성공")

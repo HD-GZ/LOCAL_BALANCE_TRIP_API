@@ -45,10 +45,8 @@ public class CourseShareService {
         shareToken.validateUsable(LocalDateTime.now());
         SavedCourse savedCourse = shareToken.getSavedCourse();
 
-        return SharedCourseDetailResponse.of(savedCourse, incentiveFinder.findAllByRegion(
-            savedCourse.getLdongRegnCd(),
-            savedCourse.getLdongSignguCd()
-        ));
+        return SharedCourseDetailResponse.of(savedCourse,
+            incentiveFinder.findAllByRegion(savedCourse.regionCandidateId()));
     }
 
     @Transactional

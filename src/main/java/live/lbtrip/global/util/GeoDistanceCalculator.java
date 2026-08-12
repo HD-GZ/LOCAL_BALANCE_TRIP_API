@@ -1,19 +1,15 @@
-package live.lbtrip.domain.recommendation.service;
+package live.lbtrip.global.util;
 
-public final class WalkTimeCalculator {
+/**
+ * 하버사인 공식 기반 좌표 거리 계산 유틸.
+ * 지구를 반경 6,371km의 구로 근사해 두 위경도 사이의 대원(great-circle)
+ * 직선거리를 미터로 반환한다. 좌표가 하나라도 없으면 계산 불가로 보고 null을 반환한다.
+ */
+public final class GeoDistanceCalculator {
 
     private static final double EARTH_RADIUS_METERS = 6_371_000;
-    private static final double WALK_METERS_PER_MINUTE = 67;
 
-    private WalkTimeCalculator() {
-    }
-
-    public static Integer walkMinutes(Double fromLon, Double fromLat, Double toLon, Double toLat) {
-        Double distance = distanceMeters(fromLon, fromLat, toLon, toLat);
-        if (distance == null) {
-            return null;
-        }
-        return Math.max(1, (int) Math.round(distance / WALK_METERS_PER_MINUTE));
+    private GeoDistanceCalculator() {
     }
 
     public static Double distanceMeters(Double fromLon, Double fromLat, Double toLon, Double toLat) {

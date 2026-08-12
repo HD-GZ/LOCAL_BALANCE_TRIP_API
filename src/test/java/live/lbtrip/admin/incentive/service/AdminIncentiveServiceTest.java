@@ -27,6 +27,7 @@ import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AdminIncentiveRequestFixture;
 import live.lbtrip.support.fixture.AdminIncentiveResponseFixture;
 import live.lbtrip.support.fixture.IncentiveFixture;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 @ExtendWith(MockitoExtension.class)
 class AdminIncentiveServiceTest {
@@ -47,10 +48,8 @@ class AdminIncentiveServiceTest {
         void 인센티브를_등록한다() {
             Incentive incentive = IncentiveFixture.incentive();
             when(adminIncentiveRepository.save(any(Incentive.class))).thenReturn(incentive);
-            when(regionCandidateRepository.existsByLdongRegnCdAndLdongSignguCd(
-                AdminIncentiveRequestFixture.LDONG_REGN_CD,
-                AdminIncentiveRequestFixture.LDONG_SIGNGU_CD))
-                .thenReturn(true);
+            when(regionCandidateRepository.findAllById(List.of(RegionCandidateFixture.CANDIDATE_ID)))
+                .thenReturn(List.of(RegionCandidateFixture.candidateWithId()));
 
             AdminIncentiveResponse response = adminIncentiveService.createIncentive(
                 AdminIncentiveRequestFixture.incentiveRequest()
@@ -64,10 +63,8 @@ class AdminIncentiveServiceTest {
 
         @Test
         void 종료일이_시작일보다_빠르면_예외를_던지고_인센티브를_저장하지_않는다() {
-            when(regionCandidateRepository.existsByLdongRegnCdAndLdongSignguCd(
-                AdminIncentiveRequestFixture.LDONG_REGN_CD,
-                AdminIncentiveRequestFixture.LDONG_SIGNGU_CD))
-                .thenReturn(true);
+            when(regionCandidateRepository.findAllById(List.of(RegionCandidateFixture.CANDIDATE_ID)))
+                .thenReturn(List.of(RegionCandidateFixture.candidateWithId()));
 
             assertThatThrownBy(() -> adminIncentiveService.createIncentive(new AdminIncentiveRequest(
                 AdminIncentiveRequestFixture.TITLE,
@@ -75,11 +72,26 @@ class AdminIncentiveServiceTest {
                 AdminIncentiveRequestFixture.DESCRIPTION,
                 AdminIncentiveRequestFixture.START_DATE,
                 AdminIncentiveRequestFixture.START_DATE.minusDays(1),
-                AdminIncentiveRequestFixture.regions()
+                AdminIncentiveRequestFixture.regionCandidateIds()
             )))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.INVALID_INCENTIVE_PERIOD);
+
+            verify(adminIncentiveRepository, never()).save(any(Incentive.class));
+        }
+
+        @Test
+        void 존재하지_않는_지역_후보이면_예외를_던지고_인센티브를_저장하지_않는다() {
+            when(regionCandidateRepository.findAllById(List.of(RegionCandidateFixture.CANDIDATE_ID)))
+                .thenReturn(List.of());
+
+            assertThatThrownBy(() -> adminIncentiveService.createIncentive(
+                AdminIncentiveRequestFixture.incentiveRequest()
+            ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INCENTIVE_REGION_INVALID);
 
             verify(adminIncentiveRepository, never()).save(any(Incentive.class));
         }
@@ -108,10 +120,8 @@ class AdminIncentiveServiceTest {
             Incentive incentive = IncentiveFixture.incentive();
             when(adminIncentiveRepository.findById(AdminIncentiveResponseFixture.INCENTIVE_ID))
                 .thenReturn(Optional.of(incentive));
-            when(regionCandidateRepository.existsByLdongRegnCdAndLdongSignguCd(
-                AdminIncentiveRequestFixture.LDONG_REGN_CD,
-                AdminIncentiveRequestFixture.LDONG_SIGNGU_CD))
-                .thenReturn(true);
+            when(regionCandidateRepository.findAllById(List.of(RegionCandidateFixture.CANDIDATE_ID)))
+                .thenReturn(List.of(RegionCandidateFixture.candidateWithId()));
 
             AdminIncentiveResponse response = adminIncentiveService.updateIncentive(
                 AdminIncentiveResponseFixture.INCENTIVE_ID,

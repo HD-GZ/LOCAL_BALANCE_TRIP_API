@@ -1,5 +1,6 @@
 package live.lbtrip.support.fixture;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.test.util.ReflectionTestUtils;
@@ -10,6 +11,7 @@ import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationRespon
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.user.model.User;
 
@@ -22,8 +24,6 @@ public final class RecommendationFixture {
     public static final String COURSE_NAME = "전라남도 담양군 산책 코스";
     public static final String COURSE_REASON = "자연과 문화를 함께 둘러보는 코스예요.";
     public static final String IMAGE_URL = "https://images.example.com/course.jpg";
-    public static final String LDONG_REGN_CD = "46";
-    public static final String LDONG_SIGNGU_CD = "710";
 
     private RecommendationFixture() {
     }
@@ -31,7 +31,7 @@ public final class RecommendationFixture {
     public static RecommendedRegion region() {
         User user = UserFixture.user();
         RecommendedRegion region = RecommendedRegion.create(
-            user, REGION_NAME, LDONG_REGN_CD, LDONG_SIGNGU_CD,
+            user, REGION_NAME, RegionCandidateFixture.candidateWithId(),
             IMAGE_URL, REGION_REASON, 1);
         ReflectionTestUtils.setField(region, "id", REGION_ID);
         region.addCourse(course(user));
@@ -55,14 +55,25 @@ public final class RecommendationFixture {
     }
 
     public static List<TourPlace> tourPlaces() {
+        RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
         return List.of(
-            TourPlace.create("100", LDONG_REGN_CD, LDONG_SIGNGU_CD, 12,
+            TourPlace.create("100", candidate, 12,
                 "죽녹원", IMAGE_URL, 126.986, 35.325, 1),
-            TourPlace.create("200", LDONG_REGN_CD, LDONG_SIGNGU_CD, 14,
+            TourPlace.create("200", candidate, 14,
                 "관방제림", IMAGE_URL, 126.981, 35.321, 2),
-            TourPlace.create("300", LDONG_REGN_CD, LDONG_SIGNGU_CD, 39,
+            TourPlace.create("300", candidate, 39,
                 "담양시장", IMAGE_URL, 126.979, 35.319, 3)
         );
+    }
+
+    public static List<TourPlace> manyTourPlaces(int count) {
+        RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
+        List<TourPlace> places = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            places.add(TourPlace.create(String.valueOf(100 + i), candidate, 12,
+                "장소" + i, IMAGE_URL, 126.9 + i * 0.001, 35.3 + i * 0.001, i + 1));
+        }
+        return List.copyOf(places);
     }
 
     public static RegionRecommendationResponse regionResponse() {

@@ -25,8 +25,7 @@ public final class CourseShareFixture {
             RecommendationFixture.REGION_NAME,
             RecommendationFixture.COURSE_REASON,
             RecommendationFixture.IMAGE_URL,
-            RecommendationFixture.LDONG_REGN_CD,
-            RecommendationFixture.LDONG_SIGNGU_CD
+            RegionCandidateFixture.candidateWithId()
         );
         ReflectionTestUtils.setField(savedCourse, "id", SAVED_COURSE_ID);
         return savedCourse;

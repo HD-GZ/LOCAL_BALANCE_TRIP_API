@@ -64,7 +64,12 @@ slack:
 tour-api:
   base-url: http://localhost
   odii-base-url: http://localhost
+  data-lab-base-url: http://localhost
   service-key: test-key
   mobile-os: ETC
   mobile-app: lbtrip-test
   read-timeout: 5s
+
+recommendation:
+  max-regions: 3
+  max-courses: 3

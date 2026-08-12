@@ -17,11 +17,8 @@ public record HomeIncentiveResponse(
         @Schema(description = "지역명", example = "충청북도 제천시")
         String regionName,
 
-        @Schema(description = "법정동 시도 코드", example = "43")
-        String ldongRegnCd,
-
-        @Schema(description = "법정동 시군구 코드", example = "150")
-        String ldongSignguCd,
+        @Schema(description = "지역 후보 ID", example = "1")
+        Long regionCandidateId,
 
         @Schema(description = "해당 지역의 진행중 인센티브")
         List<InnerIncentive> incentives
@@ -58,8 +55,9 @@ public record HomeIncentiveResponse(
         }
     }
 
-    public static InnerRegionTab tab(String regionName, String regn, String signgu, List<Incentive> incentives, LocalDate today) {
-        return new InnerRegionTab(regionName, regn, signgu,
+    public static InnerRegionTab tab(String regionName, Long regionCandidateId,
+        List<Incentive> incentives, LocalDate today) {
+        return new InnerRegionTab(regionName, regionCandidateId,
             incentives.stream().map(i -> InnerIncentive.of(i, today)).toList());
     }
 

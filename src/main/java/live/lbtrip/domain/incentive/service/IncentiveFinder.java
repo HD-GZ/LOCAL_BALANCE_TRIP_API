@@ -15,17 +15,17 @@ public class IncentiveFinder {
 
     private final IncentiveRepository incentiveRepository;
 
-    public List<Incentive> findAllByRegion(String ldongRegnCd,  String ldongSignguCd) {
-        if (ldongRegnCd == null || ldongSignguCd == null) {
+    public List<Incentive> findAllByRegion(Long regionCandidateId) {
+        if (regionCandidateId == null) {
             return List.of();
         }
-        return incentiveRepository.findAllByRegion(ldongRegnCd, ldongSignguCd);
+        return incentiveRepository.findAllByRegion(regionCandidateId);
     }
 
-    public List<Incentive> findActiveByRegion(String ldongRegnCd, String ldongSignguCd, LocalDate today) {
-        if (ldongRegnCd == null || ldongSignguCd == null) {
+    public List<Incentive> findActiveByRegion(Long regionCandidateId, LocalDate today) {
+        if (regionCandidateId == null) {
             return List.of();
         }
-        return incentiveRepository.findActiveByRegion(ldongRegnCd, ldongSignguCd, today);
+        return incentiveRepository.findActiveByRegion(regionCandidateId, today);
     }
 }

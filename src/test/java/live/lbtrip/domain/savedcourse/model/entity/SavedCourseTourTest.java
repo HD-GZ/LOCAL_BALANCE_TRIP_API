@@ -12,6 +12,7 @@ import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 class SavedCourseTourTest {
 
@@ -167,8 +168,7 @@ class SavedCourseTourTest {
             "충청남도 공주시",
             "천천히 걷는 코스",
             null,
-            "44",
-            "150"
+            RegionCandidateFixture.candidateWithId()
         );
     }
 

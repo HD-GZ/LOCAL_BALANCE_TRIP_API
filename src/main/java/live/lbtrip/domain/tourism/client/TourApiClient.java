@@ -1,6 +1,7 @@
 package live.lbtrip.domain.tourism.client;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.client.dto.RegionStats;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
+import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
+import live.lbtrip.domain.tourism.model.vo.CategoryGroupMapping;
+import live.lbtrip.domain.tourism.service.CategoryGroupClassifier;
 import live.lbtrip.global.config.TourApiProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -28,16 +32,17 @@ import lombok.extern.slf4j.Slf4j;
 public class TourApiClient {
 
     private static final String RESULT_OK = "0000";
-    private static final int STATS_SAMPLE_SIZE = 100;
+    private static final int STATS_SAMPLE_SIZE = 1000;
     private static final int PLACES_PAGE_SIZE = 15;
 
     private final RestClient restClient;
     private final String serviceKey;
     private final String mobileOs;
     private final String mobileApp;
+    private final CategoryGroupClassifier categoryGroupClassifier;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public TourApiClient(TourApiProperties properties) {
+    public TourApiClient(TourApiProperties properties, CategoryGroupClassifier categoryGroupClassifier) {
         DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(properties.baseUrl());
         uriFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
         ReactorClientHttpRequestFactory requestFactory = new ReactorClientHttpRequestFactory();
@@ -49,6 +54,7 @@ public class TourApiClient {
         this.serviceKey = properties.serviceKey();
         this.mobileOs = properties.mobileOs();
         this.mobileApp = properties.mobileApp();
+        this.categoryGroupClassifier = categoryGroupClassifier;
     }
 
     public RegionStats fetchRegionStats(RegionCandidate candidate) {
@@ -58,16 +64,24 @@ public class TourApiClient {
             .queryParam("lDongRegnCd", candidate.getLdongRegnCd())
             .queryParam("lDongSignguCd", candidate.getLdongSignguCd()));
 
+        CategoryGroupMapping mapping = categoryGroupClassifier.load();
         int totalCount = body.path("totalCount").asInt(0);
         int sampleSize = 0;
         Map<Integer, Integer> typeCounts = new HashMap<>();
+        Map<CategoryGroup, Integer> groupCounts = new EnumMap<>(CategoryGroup.class);
         for (JsonNode item : items(body)) {
             typeCounts.merge(item.path("contenttypeid").asInt(0), 1, Integer::sum);
+            for (CategoryGroup group : mapping.classify(
+                item.path("cat1").asText(null),
+                item.path("cat2").asText(null),
+                item.path("cat3").asText(null))) {
+                groupCounts.merge(group, 1, Integer::sum);
+            }
             sampleSize++;
         }
         return new RegionStats(
-            candidate.getName(), candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
-            totalCount, sampleSize, typeCounts);
+            candidate.getId(), candidate.getName(),
+            totalCount, sampleSize, typeCounts, groupCounts);
     }
 
     public List<TourPlaceItem> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {

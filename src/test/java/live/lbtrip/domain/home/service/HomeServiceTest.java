@@ -41,8 +41,9 @@ import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
 import live.lbtrip.domain.recommendation.repository.GeneratedCourseRepository;
 import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
-import live.lbtrip.domain.recommendation.repository.dto.PopularRegionCode;
+import live.lbtrip.domain.recommendation.repository.dto.PopularRegion;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseListResponse;
 import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
@@ -51,6 +52,7 @@ import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.service.ImageStorage;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 import live.lbtrip.support.fixture.TravelProfileFixture;
 
 @ExtendWith(MockitoExtension.class)
@@ -157,13 +159,10 @@ class HomeServiceTest {
 
     @Test
     void 인기_지역의_대표_코스를_반환한다() {
-        PopularRegionCode code = new PopularRegionCode() {
-            @Override public String getLdongRegnCd() { return "46"; }
-            @Override public String getLdongSignguCd() { return "710"; }
-        };
-        when(recommendedRegionRepository.findPopularRegionCodes(
+        PopularRegion popular = () -> RegionCandidateFixture.CANDIDATE_ID;
+        when(recommendedRegionRepository.findPopularRegions(
             org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
-            .thenReturn(List.of(code));
+            .thenReturn(List.of(popular));
 
         GeneratedCourse course = org.mockito.Mockito.mock(GeneratedCourse.class);
         RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
@@ -174,7 +173,7 @@ class HomeServiceTest {
         when(course.getRecommendedRegion()).thenReturn(region);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
         when(generatedCourseRepository
-            .findFirstByRecommendedRegion_LdongRegnCdAndRecommendedRegion_LdongSignguCdOrderByIdAsc("46", "710"))
+            .findFirstByRecommendedRegionRegionCandidateIdOrderByIdAsc(RegionCandidateFixture.CANDIDATE_ID))
             .thenReturn(java.util.Optional.of(course));
 
         PopularCourseListResponse response = homeService.getPopularCourses();
@@ -210,19 +209,20 @@ class HomeServiceTest {
         Long userId = 1L;
         RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
-        when(region.getLdongRegnCd()).thenReturn("46");
-        when(region.getLdongSignguCd()).thenReturn("710");
+        when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
         when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId)).thenReturn(List.of(region));
 
         Incentive incentive = Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
             LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
-        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
+        when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
+            .thenReturn(List.of(incentive));
 
         HomeIncentiveResponse response = homeService.getIncentives(userId);
 
         assertThat(response.regions()).hasSize(1);
         assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
+        assertThat(response.regions().get(0).regionCandidateId()).isEqualTo(RegionCandidateFixture.CANDIDATE_ID);
         assertThat(response.regions().get(0).incentives().get(0).dday()).isEqualTo(12L);
     }
 
@@ -231,19 +231,21 @@ class HomeServiceTest {
         Long userId = 1L;
         RecommendedRegion withIncentive = org.mockito.Mockito.mock(RecommendedRegion.class);
         when(withIncentive.getRegionName()).thenReturn("전라남도 담양군");
-        when(withIncentive.getLdongRegnCd()).thenReturn("46");
-        when(withIncentive.getLdongSignguCd()).thenReturn("710");
+        when(withIncentive.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
         RecommendedRegion withoutIncentive = org.mockito.Mockito.mock(RecommendedRegion.class);
-        when(withoutIncentive.getLdongRegnCd()).thenReturn("44");
-        when(withoutIncentive.getLdongSignguCd()).thenReturn("150");
+        RegionCandidate withoutIncentiveCandidate = RegionCandidate.create("충청남도 홍성군", "44", "150");
+        org.springframework.test.util.ReflectionTestUtils.setField(withoutIncentiveCandidate, "id", 2L);
+        when(withoutIncentive.getRegionCandidate())
+            .thenReturn(withoutIncentiveCandidate);
         when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId))
             .thenReturn(List.of(withIncentive, withoutIncentive));
 
         Incentive incentive = Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
             LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
-        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
-        when(incentiveFinder.findActiveByRegion(eq("44"), eq("150"), any())).thenReturn(List.of());
+        when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
+            .thenReturn(List.of(incentive));
+        when(incentiveFinder.findActiveByRegion(eq(2L), any())).thenReturn(List.of());
 
         HomeIncentiveResponse response = homeService.getIncentives(userId);
 
@@ -253,30 +255,28 @@ class HomeServiceTest {
 
     @Test
     void 비로그인_진행중_인센티브는_인기_지역_탭별로_반환한다() {
-        PopularRegionCode code = new PopularRegionCode() {
-            @Override public String getLdongRegnCd() { return "46"; }
-            @Override public String getLdongSignguCd() { return "710"; }
-        };
-        when(recommendedRegionRepository.findPopularRegionCodes(
+        PopularRegion popular = () -> RegionCandidateFixture.CANDIDATE_ID;
+        when(recommendedRegionRepository.findPopularRegions(
             org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
-            .thenReturn(List.of(code));
+            .thenReturn(List.of(popular));
 
         RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
-        when(region.getLdongRegnCd()).thenReturn("46");
-        when(region.getLdongSignguCd()).thenReturn("710");
-        when(recommendedRegionRepository.findFirstByLdongRegnCdAndLdongSignguCd("46", "710"))
+        when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
+        when(recommendedRegionRepository.findFirstByRegionCandidateId(RegionCandidateFixture.CANDIDATE_ID))
             .thenReturn(java.util.Optional.of(region));
 
         Incentive incentive = Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
             LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
-        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
+        when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
+            .thenReturn(List.of(incentive));
 
         HomeIncentiveResponse response = homeService.getIncentives(null);
 
         assertThat(response.regions()).hasSize(1);
         assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
+        assertThat(response.regions().get(0).regionCandidateId()).isEqualTo(RegionCandidateFixture.CANDIDATE_ID);
         assertThat(response.regions().get(0).incentives()).hasSize(1);
     }
 
@@ -289,10 +289,9 @@ class HomeServiceTest {
         when(course.getPlaces()).thenReturn(List.of());
         when(course.getRecommendedRegion()).thenReturn(region);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
-        when(region.getLdongRegnCd()).thenReturn("46");
-        when(region.getLdongSignguCd()).thenReturn("710");
+        when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
         when(generatedCourseRepository.findById(10L)).thenReturn(Optional.of(course));
-        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any(LocalDate.class)))
+        when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
             .thenReturn(List.of());
 
         CourseDetailResponse response = homeService.getPopularCourseDetail(10L);

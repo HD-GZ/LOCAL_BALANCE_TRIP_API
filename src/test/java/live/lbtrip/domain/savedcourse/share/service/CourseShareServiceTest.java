@@ -97,8 +97,7 @@ class CourseShareServiceTest {
             when(courseShareTokenFinder.findByToken(CourseShareFixture.TOKEN))
                 .thenReturn(shareToken);
             when(incentiveFinder.findAllByRegion(
-                shareToken.getSavedCourse().getLdongRegnCd(),
-                shareToken.getSavedCourse().getLdongSignguCd()))
+                shareToken.getSavedCourse().regionCandidateId()))
                 .thenReturn(List.of());
 
             SharedCourseDetailResponse response = courseShareService.getSharedCourseDetail(CourseShareFixture.TOKEN);

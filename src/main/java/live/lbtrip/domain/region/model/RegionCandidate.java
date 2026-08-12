@@ -29,4 +29,14 @@ public class RegionCandidate extends BaseEntity {
 
     @Column(name = "ldong_signgu_cd", nullable = false, length = 3)
     private String ldongSignguCd;
+
+    private RegionCandidate(String name, String ldongRegnCd, String ldongSignguCd) {
+        this.name = name;
+        this.ldongRegnCd = ldongRegnCd;
+        this.ldongSignguCd = ldongSignguCd;
+    }
+
+    public static RegionCandidate create(String name, String ldongRegnCd, String ldongSignguCd) {
+        return new RegionCandidate(name, ldongRegnCd, ldongSignguCd);
+    }
 }

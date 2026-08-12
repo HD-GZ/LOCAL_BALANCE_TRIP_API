@@ -49,7 +49,7 @@ public final class AdminIncentiveResponseFixture {
 
     private static List<AdminIncentiveResponse.RegionResponse> regionResponses() {
         return List.of(new AdminIncentiveResponse.RegionResponse(
-            AdminIncentiveRequestFixture.LDONG_REGN_CD, AdminIncentiveRequestFixture.LDONG_SIGNGU_CD));
+            RegionCandidateFixture.CANDIDATE_ID, RegionCandidateFixture.NAME));
     }
 
     public static List<AdminIncentiveResponse> incentiveResponses() {

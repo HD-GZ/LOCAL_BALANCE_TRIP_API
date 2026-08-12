@@ -104,10 +104,9 @@ public class HomeService {
 
     public PopularCourseListResponse getPopularCourses() {
         List<GeneratedCourse> courses = recommendedRegionRepository
-            .findPopularRegionCodes(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
-            .map(code -> generatedCourseRepository
-                .findFirstByRecommendedRegion_LdongRegnCdAndRecommendedRegion_LdongSignguCdOrderByIdAsc(
-                    code.getLdongRegnCd(), code.getLdongSignguCd()))
+            .findPopularRegions(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+            .map(popular -> generatedCourseRepository
+                .findFirstByRecommendedRegionRegionCandidateIdOrderByIdAsc(popular.getRegionCandidateId()))
             .flatMap(Optional::stream)
             .toList();
         return PopularCourseListResponse.of(courses);
@@ -118,7 +117,7 @@ public class HomeService {
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
         RecommendedRegion region = course.getRecommendedRegion();
         List<Incentive> incentives = incentiveFinder.findActiveByRegion(
-            region.getLdongRegnCd(), region.getLdongSignguCd(), LocalDate.now());
+            region.getRegionCandidate().getId(), LocalDate.now());
         return CourseDetailResponse.of(course, incentives);
     }
 
@@ -162,19 +161,22 @@ public class HomeService {
     private List<HomeIncentiveResponse.InnerRegionTab> myRegionTabs(Long userId, LocalDate today) {
         return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
             .map(r -> HomeIncentiveResponse.tab(
-                r.getRegionName(), r.getLdongRegnCd(), r.getLdongSignguCd(),
-                incentiveFinder.findActiveByRegion(r.getLdongRegnCd(), r.getLdongSignguCd(), today), today))
+                r.getRegionName(), r.getRegionCandidate().getId(),
+                incentiveFinder.findActiveByRegion(r.getRegionCandidate().getId(), today),
+                today))
             .filter(tab -> !tab.incentives().isEmpty())
             .toList();
     }
 
     private List<HomeIncentiveResponse.InnerRegionTab> popularRegionTabs(LocalDate today) {
-        return recommendedRegionRepository.findPopularRegionCodes(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
-            .map(code -> recommendedRegionRepository
-                .findFirstByLdongRegnCdAndLdongSignguCd(code.getLdongRegnCd(), code.getLdongSignguCd())
+        return recommendedRegionRepository.findPopularRegions(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+            .map(popular -> recommendedRegionRepository
+                .findFirstByRegionCandidateId(popular.getRegionCandidateId())
                 .map(region -> HomeIncentiveResponse.tab(
-                    region.getRegionName(), region.getLdongRegnCd(), region.getLdongSignguCd(),
-                    incentiveFinder.findActiveByRegion(region.getLdongRegnCd(), region.getLdongSignguCd(), today), today))
+                    region.getRegionName(),
+                    region.getRegionCandidate().getId(),
+                    incentiveFinder.findActiveByRegion(region.getRegionCandidate().getId(), today),
+                    today))
                 .orElse(null))
             .filter(Objects::nonNull)
             .filter(tab -> !tab.incentives().isEmpty())

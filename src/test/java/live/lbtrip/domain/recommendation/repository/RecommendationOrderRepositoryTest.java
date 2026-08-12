@@ -11,9 +11,11 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.support.fixture.RecommendationFixture;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 import live.lbtrip.support.fixture.UserFixture;
 
 @DataJpaTest
@@ -31,11 +33,12 @@ class RecommendationOrderRepositoryTest {
     @Test
     void 코스와_장소를_표시_순서대로_조회한다() {
         User user = userRepository.save(UserFixture.user());
+        RegionCandidate candidate = RegionCandidateFixture.candidate();
+        entityManager.persist(candidate);
         RecommendedRegion region = RecommendedRegion.create(
             user,
             RecommendationFixture.REGION_NAME,
-            RecommendationFixture.LDONG_REGN_CD,
-            RecommendationFixture.LDONG_SIGNGU_CD,
+            candidate,
             RecommendationFixture.IMAGE_URL,
             RecommendationFixture.REGION_REASON,
             1
