@@ -45,8 +45,8 @@ public class RecommendationService {
         GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
         RecommendedRegion recommendedRegion = course.getRecommendedRegion();
         List<Incentive> incentives = incentiveFinder.findAllByRegion(
-            recommendedRegion.getLdongRegnCd(),
-            recommendedRegion.getLdongSignguCd()
+            recommendedRegion.getRegionCandidate().getLdongRegnCd(),
+            recommendedRegion.getRegionCandidate().getLdongSignguCd()
         );
 
         return CourseDetailResponse.of(course, incentives);

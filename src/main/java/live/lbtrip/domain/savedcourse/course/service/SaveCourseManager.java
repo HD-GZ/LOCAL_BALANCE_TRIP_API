@@ -26,8 +26,7 @@ public class SaveCourseManager {
             recommendedRegion.getRegionName(),
             generatedCourse.getReason(),
             generatedCourse.getImageUrl(),
-            recommendedRegion.getLdongRegnCd(),
-            recommendedRegion.getLdongSignguCd()
+            recommendedRegion.getRegionCandidate()
         );
 
         for (CoursePlace place : generatedCourse.getPlaces()) {

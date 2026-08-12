@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
-import live.lbtrip.domain.recommendation.repository.dto.PopularRegionCode;
+import live.lbtrip.domain.recommendation.repository.dto.PopularRegion;
 
 public interface RecommendedRegionRepository extends JpaRepository<RecommendedRegion, Long> {
 
@@ -16,13 +16,12 @@ public interface RecommendedRegionRepository extends JpaRepository<RecommendedRe
 
     Optional<RecommendedRegion> findByIdAndUserId(Long id, Long userId);
 
-    Optional<RecommendedRegion> findFirstByLdongRegnCdAndLdongSignguCd(String ldongRegnCd, String ldongSignguCd);
+    Optional<RecommendedRegion> findFirstByRegionCandidateId(Long regionCandidateId);
 
     @Query(
-        "SELECT r.ldongRegnCd AS ldongRegnCd, r.ldongSignguCd AS ldongSignguCd "
+        "SELECT r.regionCandidate.id AS regionCandidateId "
             + "FROM RecommendedRegion r "
-            + "WHERE r.ldongRegnCd IS NOT NULL AND r.ldongSignguCd IS NOT NULL "
-            + "GROUP BY r.ldongRegnCd, r.ldongSignguCd "
-            + "ORDER BY COUNT(r) DESC, r.ldongRegnCd ASC, r.ldongSignguCd ASC")
-    List<PopularRegionCode> findPopularRegionCodes(Pageable pageable);
+            + "GROUP BY r.regionCandidate.id "
+            + "ORDER BY COUNT(r) DESC, r.regionCandidate.id ASC")
+    List<PopularRegion> findPopularRegions(Pageable pageable);
 }

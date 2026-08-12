@@ -20,6 +20,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.error.BusinessException;
@@ -66,6 +67,10 @@ public class SavedCourse extends BaseEntity {
     @Column(name = "ldong_signgu_cd", length = 3)
     private String ldongSignguCd;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_candidate_id")
+    private RegionCandidate regionCandidate;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SavedCourseStatus status;
@@ -89,7 +94,7 @@ public class SavedCourse extends BaseEntity {
 
     private SavedCourse(
         User user, Long sourceCourseId, String courseName, String regionName, String reason,
-        String imageUrl, String ldongRegnCd, String ldongSignguCd
+        String imageUrl, RegionCandidate regionCandidate
     ) {
         this.user = user;
         this.sourceCourseId = sourceCourseId;
@@ -97,17 +102,22 @@ public class SavedCourse extends BaseEntity {
         this.regionName = regionName;
         this.reason = reason;
         this.imageUrl = imageUrl;
-        this.ldongRegnCd = ldongRegnCd;
-        this.ldongSignguCd = ldongSignguCd;
+        this.regionCandidate = regionCandidate;
+        this.ldongRegnCd = regionCandidate == null ? null : regionCandidate.getLdongRegnCd();
+        this.ldongSignguCd = regionCandidate == null ? null : regionCandidate.getLdongSignguCd();
         this.status = SavedCourseStatus.BEFORE_TRIP;
     }
 
     public static SavedCourse create(
         User user, Long sourceCourseId, String courseName, String regionName, String reason,
-        String imageUrl, String ldongRegnCd, String ldongSignguCd
+        String imageUrl, RegionCandidate regionCandidate
     ) {
         return new SavedCourse(user, sourceCourseId, courseName, regionName, reason,
-            imageUrl, ldongRegnCd, ldongSignguCd);
+            imageUrl, regionCandidate);
+    }
+
+    public Long regionCandidateId() {
+        return regionCandidate == null ? null : regionCandidate.getId();
     }
 
     public void changeStatus(SavedCourseStatus status) {

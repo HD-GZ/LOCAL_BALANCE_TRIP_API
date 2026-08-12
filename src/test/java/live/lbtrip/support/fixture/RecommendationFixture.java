@@ -23,8 +23,6 @@ public final class RecommendationFixture {
     public static final String COURSE_NAME = "전라남도 담양군 산책 코스";
     public static final String COURSE_REASON = "자연과 문화를 함께 둘러보는 코스예요.";
     public static final String IMAGE_URL = "https://images.example.com/course.jpg";
-    public static final String LDONG_REGN_CD = "46";
-    public static final String LDONG_SIGNGU_CD = "710";
 
     private RecommendationFixture() {
     }
@@ -32,7 +30,7 @@ public final class RecommendationFixture {
     public static RecommendedRegion region() {
         User user = UserFixture.user();
         RecommendedRegion region = RecommendedRegion.create(
-            user, REGION_NAME, LDONG_REGN_CD, LDONG_SIGNGU_CD,
+            user, REGION_NAME, RegionCandidateFixture.candidateWithId(),
             IMAGE_URL, REGION_REASON, 1);
         ReflectionTestUtils.setField(region, "id", REGION_ID);
         region.addCourse(course(user));

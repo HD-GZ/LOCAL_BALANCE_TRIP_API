@@ -12,17 +12,16 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
-import live.lbtrip.domain.recommendation.repository.dto.PopularRegionCode;
+import live.lbtrip.domain.recommendation.repository.dto.PopularRegion;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.support.fixture.RecommendationFixture;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 import live.lbtrip.support.fixture.UserFixture;
 
 @DataJpaTest
 class RecommendedRegionPopularQueryTest {
-
-    private static final String OTHER_LDONG_REGN_CD = "44";
-    private static final String OTHER_LDONG_SIGNGU_CD = "150";
 
     @Autowired
     private RecommendedRegionRepository recommendedRegionRepository;
@@ -34,31 +33,34 @@ class RecommendedRegionPopularQueryTest {
     private EntityManager entityManager;
 
     @Test
-    void 추천_수가_많은_지역_코드를_COUNT_내림차순으로_반환한다() {
+    void 추천_수가_많은_지역_후보를_COUNT_내림차순으로_반환한다() {
         User user = userRepository.save(UserFixture.user());
-        recommendedRegionRepository.save(region(user, RecommendationFixture.LDONG_REGN_CD,
-            RecommendationFixture.LDONG_SIGNGU_CD, 1));
-        recommendedRegionRepository.save(region(user, RecommendationFixture.LDONG_REGN_CD,
-            RecommendationFixture.LDONG_SIGNGU_CD, 2));
-        recommendedRegionRepository.save(region(user, OTHER_LDONG_REGN_CD, OTHER_LDONG_SIGNGU_CD, 3));
+        RegionCandidate popular = persistCandidate(RegionCandidateFixture.candidate());
+        RegionCandidate other = persistCandidate(
+            RegionCandidate.create("충청남도 홍성군", "44", "150"));
+        recommendedRegionRepository.save(region(user, popular, 1));
+        recommendedRegionRepository.save(region(user, popular, 2));
+        recommendedRegionRepository.save(region(user, other, 3));
         entityManager.flush();
         entityManager.clear();
 
-        List<PopularRegionCode> result = recommendedRegionRepository.findPopularRegionCodes(PageRequest.of(0, 6));
+        List<PopularRegion> result = recommendedRegionRepository.findPopularRegions(PageRequest.of(0, 6));
 
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).getLdongRegnCd()).isEqualTo(RecommendationFixture.LDONG_REGN_CD);
-        assertThat(result.get(0).getLdongSignguCd()).isEqualTo(RecommendationFixture.LDONG_SIGNGU_CD);
-        assertThat(result.get(1).getLdongRegnCd()).isEqualTo(OTHER_LDONG_REGN_CD);
-        assertThat(result.get(1).getLdongSignguCd()).isEqualTo(OTHER_LDONG_SIGNGU_CD);
+        assertThat(result.get(0).getRegionCandidateId()).isEqualTo(popular.getId());
+        assertThat(result.get(1).getRegionCandidateId()).isEqualTo(other.getId());
     }
 
-    private RecommendedRegion region(User user, String ldongRegnCd, String ldongSignguCd, int displayOrder) {
+    private RegionCandidate persistCandidate(RegionCandidate candidate) {
+        entityManager.persist(candidate);
+        return candidate;
+    }
+
+    private RecommendedRegion region(User user, RegionCandidate candidate, int displayOrder) {
         return RecommendedRegion.create(
             user,
             RecommendationFixture.REGION_NAME,
-            ldongRegnCd,
-            ldongSignguCd,
+            candidate,
             RecommendationFixture.IMAGE_URL,
             RecommendationFixture.REGION_REASON,
             displayOrder);
