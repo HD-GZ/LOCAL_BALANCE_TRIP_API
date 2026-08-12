@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
-import live.lbtrip.domain.recommendation.model.vo.RegionComposition;
+import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
 import live.lbtrip.domain.tourism.service.RegionMetricsFinder;
 import live.lbtrip.global.config.RecommendationProperties;
@@ -19,7 +19,7 @@ public class CourseRecommendationGenerator {
     private final PropensityFinder propensityFinder;
     private final RegionMetricsFinder regionMetricsFinder;
     private final RegionSelector regionSelector;
-    private final RegionCompositionAssembler regionCompositionAssembler;
+    private final RegionPlanAssembler regionPlanAssembler;
     private final RecommendationProperties recommendationProperties;
 
     public void generate(Long userId) {
@@ -31,6 +31,6 @@ public class CourseRecommendationGenerator {
             recommendationProperties.maxRegions()
         );
 
-        List<RegionComposition> compositions = regionCompositionAssembler.assemble(propensity, selectRegionMetrics);
+        List<RegionPlan> plans = regionPlanAssembler.assemble(propensity, selectRegionMetrics);
     }
 }

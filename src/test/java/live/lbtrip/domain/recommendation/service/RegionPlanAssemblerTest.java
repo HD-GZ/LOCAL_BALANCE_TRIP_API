@@ -15,7 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
-import live.lbtrip.domain.recommendation.model.vo.RegionComposition;
+import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
+import live.lbtrip.domain.recommendation.model.vo.RoutedPlace;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
 import live.lbtrip.domain.tourism.service.TourPlaceFinder;
@@ -26,7 +27,7 @@ import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.RegionMetricsFixture;
 
 @ExtendWith(MockitoExtension.class)
-class RegionCompositionAssemblerTest {
+class RegionPlanAssemblerTest {
 
     @Mock
     private TourPlaceFinder tourPlaceFinder;
@@ -34,24 +35,38 @@ class RegionCompositionAssemblerTest {
     @Mock
     private CourseComposer courseComposer;
 
+    @Mock
+    private CourseRoutePlanner courseRoutePlanner;
+
     @InjectMocks
-    private RegionCompositionAssembler regionCompositionAssembler;
+    private RegionPlanAssembler regionPlanAssembler;
 
     @Test
-    void 지역별로_장소를_조회해_코스_구성_결과를_수집한다() {
+    void 검증된_코스의_장소를_역참조해_동선이_확정된_지역_계획을_만든다() {
         Propensity propensity = PropensityFixture.propensity();
         RegionMetrics region = RegionMetricsFixture.로컬실속_지역();
         List<TourPlace> places = RecommendationFixture.tourPlaces();
         CourseComposition composition = CourseComposition.of("추천 이유", List.of(
-            CoursePlan.of("코스", "코스 이유", List.of("100", "200", "300"))));
+            CoursePlan.of("코스", "코스 이유", List.of("300", "100", "200"))));
+        List<TourPlace> selectedInOrder = List.of(places.get(2), places.get(0), places.get(1));
+        List<RoutedPlace> routed = List.of(
+            RoutedPlace.of(places.get(0), null),
+            RoutedPlace.of(places.get(1), 5),
+            RoutedPlace.of(places.get(2), 7));
         when(tourPlaceFinder.findAllByRegionCandidateId(region.regionCandidateId())).thenReturn(places);
         when(courseComposer.compose(propensity, region.regionName(), places)).thenReturn(composition);
+        when(courseRoutePlanner.plan(selectedInOrder)).thenReturn(routed);
 
-        List<RegionComposition> result = regionCompositionAssembler.assemble(propensity, List.of(region));
+        List<RegionPlan> result = regionPlanAssembler.assemble(propensity, List.of(region));
 
-        assertThat(result).singleElement().satisfies(regionComposition -> {
-            assertThat(regionComposition.region()).isEqualTo(region);
-            assertThat(regionComposition.composition()).isEqualTo(composition);
+        assertThat(result).singleElement().satisfies(plan -> {
+            assertThat(plan.region()).isEqualTo(region);
+            assertThat(plan.regionReason()).isEqualTo("추천 이유");
+            assertThat(plan.courses()).singleElement().satisfies(course -> {
+                assertThat(course.name()).isEqualTo("코스");
+                assertThat(course.reason()).isEqualTo("코스 이유");
+                assertThat(course.places()).isEqualTo(routed);
+            });
         });
     }
 
@@ -69,11 +84,10 @@ class RegionCompositionAssemblerTest {
             .thenThrow(BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED));
         when(courseComposer.compose(propensity, succeeding.regionName(), places)).thenReturn(composition);
 
-        List<RegionComposition> result = regionCompositionAssembler.assemble(
-            propensity, List.of(failing, succeeding));
+        List<RegionPlan> result = regionPlanAssembler.assemble(propensity, List.of(failing, succeeding));
 
         assertThat(result).singleElement()
-            .satisfies(regionComposition -> assertThat(regionComposition.region()).isEqualTo(succeeding));
+            .satisfies(plan -> assertThat(plan.region()).isEqualTo(succeeding));
     }
 
     @Test
@@ -85,7 +99,7 @@ class RegionCompositionAssemblerTest {
         when(courseComposer.compose(propensity, region.regionName(), places))
             .thenThrow(BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED));
 
-        assertThatThrownBy(() -> regionCompositionAssembler.assemble(propensity, List.of(region)))
+        assertThatThrownBy(() -> regionPlanAssembler.assemble(propensity, List.of(region)))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
@@ -93,7 +107,7 @@ class RegionCompositionAssemblerTest {
 
     @Test
     void 구성된_지역이_없으면_추천_생성_예외를_던진다() {
-        assertThatThrownBy(() -> regionCompositionAssembler.assemble(
+        assertThatThrownBy(() -> regionPlanAssembler.assemble(
             PropensityFixture.propensity(), List.of()))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
