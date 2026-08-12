@@ -55,6 +55,8 @@ public enum ErrorCode {
     TOUR_RECEIPT_NOT_FOUND(HttpStatus.NOT_FOUND, "환급 증빙을 찾을 수 없습니다."),
     TOUR_REPORT_NOT_AVAILABLE(HttpStatus.CONFLICT, "투어 종료 전에는 리포트를 조회할 수 없습니다."),
     TERMS_NOT_FOUND(HttpStatus.NOT_FOUND, "약관을 찾을 수 없습니다."),
+    SHARE_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "공유 링크를 찾을 수 없습니다."),
+    SHARE_TOKEN_EXPIRED(HttpStatus.GONE, "만료된 공유 링크입니다."),
     ;
 
     private final HttpStatus status;
