@@ -19,15 +19,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
-import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.course.service.SavedCourseFinder;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.share.dto.response.SharedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.share.model.entity.CourseShareToken;
 import live.lbtrip.domain.savedcourse.share.repository.CourseShareTokenRepository;
 import live.lbtrip.domain.savedcourse.share.dto.response.ShareTokenResponse;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.CourseShareFixture;
+import live.lbtrip.support.fixture.RecommendationFixture;
+import live.lbtrip.support.fixture.UserFixture;
 
 @ExtendWith(MockitoExtension.class)
 class CourseShareServiceTest {
@@ -99,9 +101,11 @@ class CourseShareServiceTest {
                 shareToken.getSavedCourse().getLdongSignguCd()))
                 .thenReturn(List.of());
 
-            SavedCourseDetailResponse response = courseShareService.getSharedCourseDetail(CourseShareFixture.TOKEN);
+            SharedCourseDetailResponse response = courseShareService.getSharedCourseDetail(CourseShareFixture.TOKEN);
 
             assertThat(response.savedCourseId()).isEqualTo(CourseShareFixture.SAVED_COURSE_ID);
+            assertThat(response.sharedByName()).isEqualTo(UserFixture.NAME);
+            assertThat(response.imageUrl()).isEqualTo(RecommendationFixture.IMAGE_URL);
             assertThat(response.benefits()).isEmpty();
         }
 
