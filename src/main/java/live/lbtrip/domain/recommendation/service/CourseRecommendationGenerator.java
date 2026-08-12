@@ -16,11 +16,13 @@ public class CourseRecommendationGenerator {
 
     private final PropensityFinder propensityFinder;
     private final RegionMetricsFinder regionMetricsFinder;
+    private final RegionSelector regionSelector;
 
     public void generate(Long userId) {
         // init
         Propensity propensity = propensityFinder.findByUserId(userId);
         List<RegionMetrics> metrics = regionMetricsFinder.findAllMetrics();
-
+        List<RegionMetrics> selectRegionMetrics = regionSelector.selectTop(propensity, metrics, 3);
+        
     }
 }
