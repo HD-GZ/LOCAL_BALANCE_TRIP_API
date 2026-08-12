@@ -10,6 +10,7 @@ import live.lbtrip.admin.incentive.dto.response.AdminIncentiveResponse;
 import live.lbtrip.admin.incentive.repository.AdminIncentiveRepository;
 import live.lbtrip.domain.incentive.model.Incentive;
 import live.lbtrip.domain.incentive.model.IncentiveRegion;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -26,7 +27,7 @@ public class AdminIncentiveService {
 
     @Transactional
     public AdminIncentiveResponse createIncentive(AdminIncentiveRequest request) {
-        List<AdminIncentiveRequest.RegionRequest> regions = validateRegions(request.regions());
+        List<RegionCandidate> candidates = validateRegions(request.regionCandidateIds());
 
         Incentive incentive = Incentive.create(
             StringNormalizer.trim(request.title()),
@@ -35,7 +36,7 @@ public class AdminIncentiveService {
             request.startDate(),
             request.endDate()
         );
-        incentive.replaceRegions(toIncentiveRegions(regions));
+        incentive.replaceRegions(toIncentiveRegions(candidates));
         return AdminIncentiveResponse.from(adminIncentiveRepository.save(incentive));
     }
 
@@ -48,7 +49,7 @@ public class AdminIncentiveService {
     @Transactional
     public AdminIncentiveResponse updateIncentive(Long incentiveId, AdminIncentiveRequest request) {
         Incentive incentive = findIncentive(incentiveId);
-        List<AdminIncentiveRequest.RegionRequest> regions = validateRegions(request.regions());
+        List<RegionCandidate> candidates = validateRegions(request.regionCandidateIds());
 
         incentive.update(
             StringNormalizer.trim(request.title()),
@@ -57,7 +58,7 @@ public class AdminIncentiveService {
             request.startDate(),
             request.endDate()
         );
-        incentive.replaceRegions(toIncentiveRegions(regions));
+        incentive.replaceRegions(toIncentiveRegions(candidates));
         return AdminIncentiveResponse.from(incentive);
     }
 
@@ -72,22 +73,18 @@ public class AdminIncentiveService {
             .orElseThrow(() -> BusinessException.of(ErrorCode.INCENTIVE_NOT_FOUND));
     }
 
-    private List<AdminIncentiveRequest.RegionRequest> validateRegions(
-        List<AdminIncentiveRequest.RegionRequest> regions
-    ) {
-        List<AdminIncentiveRequest.RegionRequest> distinctRegions = regions.stream().distinct().toList();
-        for (AdminIncentiveRequest.RegionRequest region : distinctRegions) {
-            if (!regionCandidateRepository.existsByLdongRegnCdAndLdongSignguCd(
-                    region.ldongRegnCd(), region.ldongSignguCd())) {
-                throw BusinessException.of(ErrorCode.INCENTIVE_REGION_INVALID);
-            }
+    private List<RegionCandidate> validateRegions(List<Long> regionCandidateIds) {
+        List<Long> distinctIds = regionCandidateIds.stream().distinct().toList();
+        List<RegionCandidate> candidates = regionCandidateRepository.findAllById(distinctIds);
+        if (candidates.size() != distinctIds.size()) {
+            throw BusinessException.of(ErrorCode.INCENTIVE_REGION_INVALID);
         }
-        return distinctRegions;
+        return candidates;
     }
 
-    private List<IncentiveRegion> toIncentiveRegions(List<AdminIncentiveRequest.RegionRequest> regions) {
-        return regions.stream()
-            .map(region -> IncentiveRegion.create(region.ldongRegnCd(), region.ldongSignguCd()))
+    private List<IncentiveRegion> toIncentiveRegions(List<RegionCandidate> candidates) {
+        return candidates.stream()
+            .map(IncentiveRegion::create)
             .toList();
     }
 

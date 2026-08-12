@@ -58,9 +58,7 @@ public class SavedCourseService {
     public SavedCourseDetailResponse getSavedCourseDetail(Long userId, Long savedCourseId) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
-        return SavedCourseDetailResponse.of(savedCourse, incentiveFinder.findAllByRegion(
-            savedCourse.getLdongRegnCd(),
-            savedCourse.getLdongSignguCd()
-        ));
+        return SavedCourseDetailResponse.of(savedCourse,
+            incentiveFinder.findAllByRegion(savedCourse.regionCandidateId()));
     }
 }

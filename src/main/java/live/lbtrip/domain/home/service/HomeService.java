@@ -117,8 +117,7 @@ public class HomeService {
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
         RecommendedRegion region = course.getRecommendedRegion();
         List<Incentive> incentives = incentiveFinder.findActiveByRegion(
-            region.getRegionCandidate().getLdongRegnCd(), region.getRegionCandidate().getLdongSignguCd(),
-            LocalDate.now());
+            region.getRegionCandidate().getId(), LocalDate.now());
         return CourseDetailResponse.of(course, incentives);
     }
 
@@ -162,9 +161,8 @@ public class HomeService {
     private List<HomeIncentiveResponse.InnerRegionTab> myRegionTabs(Long userId, LocalDate today) {
         return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
             .map(r -> HomeIncentiveResponse.tab(
-                r.getRegionName(), r.getRegionCandidate().getLdongRegnCd(), r.getRegionCandidate().getLdongSignguCd(),
-                incentiveFinder.findActiveByRegion(
-                    r.getRegionCandidate().getLdongRegnCd(), r.getRegionCandidate().getLdongSignguCd(), today),
+                r.getRegionName(), r.getRegionCandidate().getId(),
+                incentiveFinder.findActiveByRegion(r.getRegionCandidate().getId(), today),
                 today))
             .filter(tab -> !tab.incentives().isEmpty())
             .toList();
@@ -176,10 +174,8 @@ public class HomeService {
                 .findFirstByRegionCandidateId(popular.getRegionCandidateId())
                 .map(region -> HomeIncentiveResponse.tab(
                     region.getRegionName(),
-                    region.getRegionCandidate().getLdongRegnCd(), region.getRegionCandidate().getLdongSignguCd(),
-                    incentiveFinder.findActiveByRegion(
-                        region.getRegionCandidate().getLdongRegnCd(), region.getRegionCandidate().getLdongSignguCd(),
-                        today),
+                    region.getRegionCandidate().getId(),
+                    incentiveFinder.findActiveByRegion(region.getRegionCandidate().getId(), today),
                     today))
                 .orElse(null))
             .filter(Objects::nonNull)

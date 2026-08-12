@@ -6,10 +6,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record AdminIncentiveRequest(
@@ -34,22 +33,8 @@ public record AdminIncentiveRequest(
     @Schema(description = "혜택 종료일. null이면 종료일 없이 유지됩니다.", example = "2026-08-31", nullable = true)
     LocalDate endDate,
 
-    @Schema(description = "적용 지역 목록(법정동 코드)", requiredMode = REQUIRED)
-    @NotNull(message = "적용 지역 목록은 필수입니다.")
-    @Valid
-    List<RegionRequest> regions
+    @Schema(description = "적용 지역 후보 ID 목록", requiredMode = REQUIRED)
+    @NotEmpty(message = "적용 지역 목록은 필수입니다.")
+    List<Long> regionCandidateIds
 ) {
-
-    public record RegionRequest(
-        @Schema(description = "법정동 시도 코드(2자리)", example = "46", requiredMode = REQUIRED)
-        @NotBlank(message = "법정동 시도 코드는 필수입니다.")
-        @Pattern(regexp = "\\d{2}", message = "법정동 시도 코드는 2자리 숫자여야 합니다.")
-        String ldongRegnCd,
-
-        @Schema(description = "법정동 시군구 코드(3자리)", example = "710", requiredMode = REQUIRED)
-        @NotBlank(message = "법정동 시군구 코드는 필수입니다.")
-        @Pattern(regexp = "\\d{3}", message = "법정동 시군구 코드는 3자리 숫자여야 합니다.")
-        String ldongSignguCd
-    ) {
-    }
 }

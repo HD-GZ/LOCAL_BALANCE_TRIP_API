@@ -215,12 +215,14 @@ class HomeServiceTest {
         Incentive incentive = Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
             LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
-        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
+        when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
+            .thenReturn(List.of(incentive));
 
         HomeIncentiveResponse response = homeService.getIncentives(userId);
 
         assertThat(response.regions()).hasSize(1);
         assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
+        assertThat(response.regions().get(0).regionCandidateId()).isEqualTo(RegionCandidateFixture.CANDIDATE_ID);
         assertThat(response.regions().get(0).incentives().get(0).dday()).isEqualTo(12L);
     }
 
@@ -231,16 +233,19 @@ class HomeServiceTest {
         when(withIncentive.getRegionName()).thenReturn("전라남도 담양군");
         when(withIncentive.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
         RecommendedRegion withoutIncentive = org.mockito.Mockito.mock(RecommendedRegion.class);
+        RegionCandidate withoutIncentiveCandidate = RegionCandidate.create("충청남도 홍성군", "44", "150");
+        org.springframework.test.util.ReflectionTestUtils.setField(withoutIncentiveCandidate, "id", 2L);
         when(withoutIncentive.getRegionCandidate())
-            .thenReturn(RegionCandidate.create("충청남도 홍성군", "44", "150"));
+            .thenReturn(withoutIncentiveCandidate);
         when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId))
             .thenReturn(List.of(withIncentive, withoutIncentive));
 
         Incentive incentive = Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
             LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
-        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
-        when(incentiveFinder.findActiveByRegion(eq("44"), eq("150"), any())).thenReturn(List.of());
+        when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
+            .thenReturn(List.of(incentive));
+        when(incentiveFinder.findActiveByRegion(eq(2L), any())).thenReturn(List.of());
 
         HomeIncentiveResponse response = homeService.getIncentives(userId);
 
@@ -264,12 +269,14 @@ class HomeServiceTest {
         Incentive incentive = Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
             LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
-        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any())).thenReturn(List.of(incentive));
+        when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
+            .thenReturn(List.of(incentive));
 
         HomeIncentiveResponse response = homeService.getIncentives(null);
 
         assertThat(response.regions()).hasSize(1);
         assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
+        assertThat(response.regions().get(0).regionCandidateId()).isEqualTo(RegionCandidateFixture.CANDIDATE_ID);
         assertThat(response.regions().get(0).incentives()).hasSize(1);
     }
 
@@ -284,7 +291,7 @@ class HomeServiceTest {
         when(region.getRegionName()).thenReturn("전라남도 담양군");
         when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
         when(generatedCourseRepository.findById(10L)).thenReturn(Optional.of(course));
-        when(incentiveFinder.findActiveByRegion(eq("46"), eq("710"), any(LocalDate.class)))
+        when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
             .thenReturn(List.of());
 
         CourseDetailResponse response = homeService.getPopularCourseDetail(10L);

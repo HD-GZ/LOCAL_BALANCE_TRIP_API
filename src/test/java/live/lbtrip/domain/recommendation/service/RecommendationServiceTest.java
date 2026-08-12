@@ -79,8 +79,7 @@ class RecommendationServiceTest {
             GeneratedCourse course = region.getCourses().getFirst();
             when(generatedCourseFinder.findByIdAndUserId(
                 RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID)).thenReturn(course);
-            when(incentiveFinder.findAllByRegion(
-                RegionCandidateFixture.LDONG_REGN_CD, RegionCandidateFixture.LDONG_SIGNGU_CD))
+            when(incentiveFinder.findAllByRegion(RegionCandidateFixture.CANDIDATE_ID))
                 .thenReturn(List.of());
 
             CourseDetailResponse response = recommendationService.getCourseDetail(

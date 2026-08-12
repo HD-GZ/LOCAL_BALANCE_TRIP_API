@@ -26,20 +26,22 @@ public record AdminIncentiveResponse(
     @Schema(description = "혜택 종료일. null이면 종료일 없이 유지됩니다.", nullable = true, example = "2026-08-31")
     LocalDate endDate,
 
-    @Schema(description = "적용 지역 목록(법정동 코드)")
+    @Schema(description = "적용 지역 목록")
     List<RegionResponse> regions
 ) {
 
     public record RegionResponse(
-        @Schema(description = "법정동 시도 코드(2자리)", example = "46")
-        String ldongRegnCd,
+        @Schema(description = "지역 후보 ID", example = "1")
+        Long regionCandidateId,
 
-        @Schema(description = "법정동 시군구 코드(3자리)", example = "710")
-        String ldongSignguCd
+        @Schema(description = "지역 이름", example = "전라남도 담양군")
+        String name
     ) {
 
         private static RegionResponse from(IncentiveRegion region) {
-            return new RegionResponse(region.getLdongRegnCd(), region.getLdongSignguCd());
+            return new RegionResponse(
+                region.getRegionCandidate().getId(),
+                region.getRegionCandidate().getName());
         }
     }
 

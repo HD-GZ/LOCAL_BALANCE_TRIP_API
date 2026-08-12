@@ -5,6 +5,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import live.lbtrip.domain.region.model.RegionCandidate;
 
 public interface RegionCandidateRepository extends JpaRepository<RegionCandidate, Long> {
-
-    boolean existsByLdongRegnCdAndLdongSignguCd(String ldongRegnCd, String ldongSignguCd);
 }
