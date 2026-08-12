@@ -84,4 +84,5 @@ tour-api:
   read-timeout: ${TOUR_API_READ_TIMEOUT}
 
 recommendation:
-  max-regions: ${RECOMMENDATION_MAX_REGIONS:3}
+  max-regions: ${RECOMMENDATION_MAX_REGIONS}
+  max-courses: ${RECOMMENDATION_MAX_COURSES}

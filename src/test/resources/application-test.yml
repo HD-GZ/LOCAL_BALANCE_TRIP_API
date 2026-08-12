@@ -69,3 +69,7 @@ tour-api:
   mobile-os: ETC
   mobile-app: lbtrip-test
   read-timeout: 5s
+
+recommendation:
+  max-regions: 3
+  max-courses: 3
