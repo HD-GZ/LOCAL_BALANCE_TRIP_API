@@ -6,11 +6,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.model.enums.VisitorType;
 import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
 import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
 import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
 import live.lbtrip.domain.tourism.repository.dto.RegionVisitorSum;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -23,8 +26,13 @@ public class RegionMetricsFinder {
     private final RegionVisitorStatsRepository regionVisitorStatsRepository;
 
     public List<RegionMetrics> findAllMetrics() {
+        List<TourRegionStats> statsList = tourRegionStatsRepository.findAllWithRegionCandidate();
+        if (statsList.isEmpty()) {
+            throw BusinessException.of(ErrorCode.TOUR_DATA_NOT_READY);
+        }
+
         Map<Long, Double> visitorSums = recentOutsiderVisitorSums();
-        return tourRegionStatsRepository.findAllWithRegionCandidate().stream()
+        return statsList.stream()
             .map(stats -> RegionMetrics.of(
                 stats,
                 stats.getRegionCandidate(),

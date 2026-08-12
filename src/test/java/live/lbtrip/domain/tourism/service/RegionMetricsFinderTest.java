@@ -1,6 +1,7 @@
 package live.lbtrip.domain.tourism.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +24,8 @@ import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
 import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
 import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
 import live.lbtrip.domain.tourism.repository.dto.RegionVisitorSum;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 @ExtendWith(MockitoExtension.class)
@@ -93,13 +96,13 @@ class RegionMetricsFinderTest {
     }
 
     @Test
-    void 관광_통계가_없으면_빈_목록을_반환한다() {
+    void 관광_통계가_없으면_예외가_발생한다() {
         when(tourRegionStatsRepository.findAllWithRegionCandidate()).thenReturn(List.of());
-        when(regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc()).thenReturn(Optional.empty());
 
-        List<RegionMetrics> result = regionMetricsFinder.findAllMetrics();
-
-        assertThat(result).isEmpty();
+        assertThatThrownBy(() -> regionMetricsFinder.findAllMetrics())
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.TOUR_DATA_NOT_READY);
     }
 
     private void 통계_조회됨(RegionCandidate regionCandidate) {
