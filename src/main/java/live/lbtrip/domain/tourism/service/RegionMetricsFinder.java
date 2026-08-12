@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class RegionStatsFinder {
+public class RegionMetricsFinder {
 
     private static final int RECENT_DAYS = 30;
 

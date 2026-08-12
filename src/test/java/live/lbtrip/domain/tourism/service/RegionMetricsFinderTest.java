@@ -26,7 +26,7 @@ import live.lbtrip.domain.tourism.repository.dto.RegionVisitorSum;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 @ExtendWith(MockitoExtension.class)
-class RegionStatsFinderTest {
+class RegionMetricsFinderTest {
 
     private static final LocalDate LATEST_BASE_DATE = LocalDate.of(2026, 7, 10);
 
@@ -40,7 +40,7 @@ class RegionStatsFinderTest {
     private TourRegionStats tourRegionStats;
 
     @InjectMocks
-    private RegionStatsFinder regionStatsFinder;
+    private RegionMetricsFinder regionMetricsFinder;
 
     @Test
     void 지역_통계와_최근_30일_외지인_방문자_합을_묶어_조회한다() {
@@ -52,7 +52,7 @@ class RegionStatsFinderTest {
             VisitorType.OUTSIDER, LATEST_BASE_DATE.minusDays(30)))
             .thenReturn(List.of(방문자_합(RegionCandidateFixture.CANDIDATE_ID, 1234.5)));
 
-        List<RegionMetrics> result = regionStatsFinder.findAllMetrics();
+        List<RegionMetrics> result = regionMetricsFinder.findAllMetrics();
 
         assertThat(result).singleElement().satisfies(regionMetrics -> {
             assertThat(regionMetrics.regionName()).isEqualTo(RegionCandidateFixture.NAME);
@@ -74,7 +74,7 @@ class RegionStatsFinderTest {
             VisitorType.OUTSIDER, LATEST_BASE_DATE.minusDays(30)))
             .thenReturn(List.of(방문자_합(RegionCandidateFixture.CANDIDATE_ID + 1, 999.0)));
 
-        List<RegionMetrics> result = regionStatsFinder.findAllMetrics();
+        List<RegionMetrics> result = regionMetricsFinder.findAllMetrics();
 
         assertThat(result).singleElement()
             .satisfies(regionMetrics -> assertThat(regionMetrics.recentOutsiderVisitors()).isZero());
@@ -86,7 +86,7 @@ class RegionStatsFinderTest {
         통계_조회됨(regionCandidate);
         when(regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc()).thenReturn(Optional.empty());
 
-        List<RegionMetrics> result = regionStatsFinder.findAllMetrics();
+        List<RegionMetrics> result = regionMetricsFinder.findAllMetrics();
 
         assertThat(result).singleElement()
             .satisfies(regionMetrics -> assertThat(regionMetrics.recentOutsiderVisitors()).isZero());
@@ -97,7 +97,7 @@ class RegionStatsFinderTest {
         when(tourRegionStatsRepository.findAllWithRegionCandidate()).thenReturn(List.of());
         when(regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc()).thenReturn(Optional.empty());
 
-        List<RegionMetrics> result = regionStatsFinder.findAllMetrics();
+        List<RegionMetrics> result = regionMetricsFinder.findAllMetrics();
 
         assertThat(result).isEmpty();
     }
