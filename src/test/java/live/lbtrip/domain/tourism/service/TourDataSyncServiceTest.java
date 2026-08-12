@@ -30,6 +30,7 @@ import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
 import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 @ExtendWith(MockitoExtension.class)
 class TourDataSyncServiceTest {
@@ -58,27 +59,25 @@ class TourDataSyncServiceTest {
     @Mock
     private RegionVisitorStatsRepository regionVisitorStatsRepository;
 
-    @Mock
-    private RegionCandidate regionCandidate;
-
     @InjectMocks
     private TourDataSyncService tourDataSyncService;
 
     @Test
     void 후보_지역과_일치하는_방문자_행만_저장한다() {
+        RegionCandidate regionCandidate = RegionCandidateFixture.candidateWithId();
         when(regionCandidateRepository.findAll()).thenReturn(List.of(regionCandidate));
-        when(regionCandidate.getLdongRegnCd()).thenReturn("46");
-        when(regionCandidate.getLdongSignguCd()).thenReturn("710");
         when(tourPlaceRepository.findAllByOverviewIsNull()).thenReturn(List.of());
         when(odiiThemeRepository.findAllByAudioSyncedAtIsNull()).thenReturn(List.of());
         when(regionVisitorStatsRepository.existsByBaseDate(any())).thenReturn(false);
         when(regionVisitorStatsRepository
-            .findByLdongRegnCdAndLdongSignguCdAndBaseDateAndVisitorType(any(), any(), any(), any()))
+            .findByRegionCandidateIdAndBaseDateAndVisitorType(any(), any(), any()))
             .thenReturn(Optional.empty());
         LocalDate someDay = LocalDate.now().minusDays(10);
         when(dataLabClient.fetchDailyVisitors(any())).thenReturn(List.of());
         when(dataLabClient.fetchDailyVisitors(someDay)).thenReturn(List.of(
-            new VisitorStatItem("46710", VisitorType.OUTSIDER, 500.0, someDay),
+            new VisitorStatItem(
+                RegionCandidateFixture.LDONG_REGN_CD + RegionCandidateFixture.LDONG_SIGNGU_CD,
+                VisitorType.OUTSIDER, 500.0, someDay),
             new VisitorStatItem("11110", VisitorType.OUTSIDER, 999.0, someDay)));
 
         tourDataSyncService.syncAll();
@@ -86,17 +85,13 @@ class TourDataSyncServiceTest {
         ArgumentCaptor<RegionVisitorStats> captor = ArgumentCaptor.forClass(RegionVisitorStats.class);
         verify(regionVisitorStatsRepository, atLeastOnce()).save(captor.capture());
         assertThat(captor.getAllValues())
-            .allSatisfy(saved -> {
-                assertThat(saved.getLdongRegnCd()).isEqualTo("46");
-                assertThat(saved.getLdongSignguCd()).isEqualTo("710");
-            });
+            .allSatisfy(saved -> assertThat(saved.getRegionCandidate()).isEqualTo(regionCandidate));
     }
 
     @Test
     void 이미_적재된_일자는_다시_조회하지_않는다() {
+        RegionCandidate regionCandidate = RegionCandidateFixture.candidateWithId();
         when(regionCandidateRepository.findAll()).thenReturn(List.of(regionCandidate));
-        when(regionCandidate.getLdongRegnCd()).thenReturn("46");
-        when(regionCandidate.getLdongSignguCd()).thenReturn("710");
         when(tourPlaceRepository.findAllByOverviewIsNull()).thenReturn(List.of());
         when(odiiThemeRepository.findAllByAudioSyncedAtIsNull()).thenReturn(List.of());
         when(regionVisitorStatsRepository.existsByBaseDate(any())).thenReturn(true);

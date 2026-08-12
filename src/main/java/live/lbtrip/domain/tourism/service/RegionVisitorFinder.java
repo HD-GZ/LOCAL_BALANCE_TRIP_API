@@ -15,12 +15,11 @@ public class RegionVisitorFinder {
 
     private final RegionVisitorStatsRepository regionVisitorStatsRepository;
 
-    public double sumRecentOutsiderVisitors(String ldongRegnCd, String ldongSignguCd) {
+    public double sumRecentOutsiderVisitors(Long regionCandidateId) {
         return regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc()
             .map(regionVisitorStats -> regionVisitorStatsRepository
-                .findAllByLdongRegnCdAndLdongSignguCdAndVisitorTypeAndBaseDateAfter(
-                    ldongRegnCd,
-                    ldongSignguCd,
+                .findAllByRegionCandidateIdAndVisitorTypeAndBaseDateAfter(
+                    regionCandidateId,
                     VisitorType.OUTSIDER,
                     regionVisitorStats.getBaseDate().minusDays(RECENT_DAYS)
                 )

@@ -1,6 +1,7 @@
 package live.lbtrip.domain.tourism.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import live.lbtrip.domain.tourism.model.entity.RegionVisitorStats;
 import live.lbtrip.domain.tourism.model.enums.VisitorType;
 import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 @ExtendWith(MockitoExtension.class)
 class RegionVisitorFinderTest {
@@ -31,29 +33,30 @@ class RegionVisitorFinderTest {
     void 최근_가용일_기준_30일_외지인_방문자를_합산한다() {
         LocalDate latest = LocalDate.of(2026, 7, 10);
         RegionVisitorStats latestStats = RegionVisitorStats.create(
-            "46", "710", latest, VisitorType.OUTSIDER, 1000.0);
+            RegionCandidateFixture.candidateWithId(), latest, VisitorType.OUTSIDER, 1000.0);
         when(regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc())
             .thenReturn(Optional.of(latestStats));
         when(regionVisitorStatsRepository
-            .findAllByLdongRegnCdAndLdongSignguCdAndVisitorTypeAndBaseDateAfter(
-                "46", "710", VisitorType.OUTSIDER, latest.minusDays(30)))
+            .findAllByRegionCandidateIdAndVisitorTypeAndBaseDateAfter(
+                RegionCandidateFixture.CANDIDATE_ID, VisitorType.OUTSIDER, latest.minusDays(30)))
             .thenReturn(List.of(
                 latestStats,
-                RegionVisitorStats.create("46", "710", latest.minusDays(1), VisitorType.OUTSIDER, 234.5)
+                RegionVisitorStats.create(
+                    RegionCandidateFixture.candidateWithId(), latest.minusDays(1), VisitorType.OUTSIDER, 234.5)
             ));
 
-        double sum = regionVisitorFinder.sumRecentOutsiderVisitors("46", "710");
+        double sum = regionVisitorFinder.sumRecentOutsiderVisitors(RegionCandidateFixture.CANDIDATE_ID);
 
         assertThat(sum).isEqualTo(1234.5);
         verify(regionVisitorStatsRepository)
-            .findAllByLdongRegnCdAndLdongSignguCdAndVisitorTypeAndBaseDateAfter(
-                "46", "710", VisitorType.OUTSIDER, latest.minusDays(30));
+            .findAllByRegionCandidateIdAndVisitorTypeAndBaseDateAfter(
+                eq(RegionCandidateFixture.CANDIDATE_ID), eq(VisitorType.OUTSIDER), eq(latest.minusDays(30)));
     }
 
     @Test
     void 방문자_데이터가_전혀_없으면_0을_반환한다() {
         when(regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc()).thenReturn(Optional.empty());
 
-        assertThat(regionVisitorFinder.sumRecentOutsiderVisitors("46", "710")).isZero();
+        assertThat(regionVisitorFinder.sumRecentOutsiderVisitors(RegionCandidateFixture.CANDIDATE_ID)).isZero();
     }
 }

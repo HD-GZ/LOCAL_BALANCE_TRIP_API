@@ -10,6 +10,7 @@ import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationRespon
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.user.model.User;
 
@@ -55,12 +56,13 @@ public final class RecommendationFixture {
     }
 
     public static List<TourPlace> tourPlaces() {
+        RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
         return List.of(
-            TourPlace.create("100", LDONG_REGN_CD, LDONG_SIGNGU_CD, 12,
+            TourPlace.create("100", candidate, 12,
                 "죽녹원", IMAGE_URL, 126.986, 35.325, 1),
-            TourPlace.create("200", LDONG_REGN_CD, LDONG_SIGNGU_CD, 14,
+            TourPlace.create("200", candidate, 14,
                 "관방제림", IMAGE_URL, 126.981, 35.321, 2),
-            TourPlace.create("300", LDONG_REGN_CD, LDONG_SIGNGU_CD, 39,
+            TourPlace.create("300", candidate, 39,
                 "담양시장", IMAGE_URL, 126.979, 35.319, 3)
         );
     }

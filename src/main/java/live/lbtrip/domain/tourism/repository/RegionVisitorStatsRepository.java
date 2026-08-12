@@ -11,17 +11,13 @@ import live.lbtrip.domain.tourism.model.enums.VisitorType;
 
 public interface RegionVisitorStatsRepository extends JpaRepository<RegionVisitorStats, Long> {
 
-    Optional<RegionVisitorStats> findByLdongRegnCdAndLdongSignguCdAndBaseDateAndVisitorType(
-        String ldongRegnCd, String ldongSignguCd, LocalDate baseDate, VisitorType visitorType);
+    Optional<RegionVisitorStats> findByRegionCandidateIdAndBaseDateAndVisitorType(
+        Long regionCandidateId, LocalDate baseDate, VisitorType visitorType);
 
     boolean existsByBaseDate(LocalDate baseDate);
 
     Optional<RegionVisitorStats> findFirstByOrderByBaseDateDesc();
 
-    List<RegionVisitorStats> findAllByLdongRegnCdAndLdongSignguCdAndVisitorTypeAndBaseDateAfter(
-        String ldongRegnCd,
-        String ldongSignguCd,
-        VisitorType visitorType,
-        LocalDate after
-    );
+    List<RegionVisitorStats> findAllByRegionCandidateIdAndVisitorTypeAndBaseDateAfter(
+        Long regionCandidateId, VisitorType visitorType, LocalDate after);
 }

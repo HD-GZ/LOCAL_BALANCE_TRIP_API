@@ -68,7 +68,7 @@ public class TourDataSyncService {
     private void syncRegion(RegionCandidate candidate) {
         long startedAt = System.nanoTime();
         RegionStats stats = tourApiClient.fetchRegionStats(candidate);
-        upsertStats(stats);
+        upsertStats(candidate, stats);
 
         List<TourPlaceItem> fetchedPlaces = new ArrayList<>();
         for (TourContentType contentType : TourContentType.courseCandidates()) {
@@ -84,9 +84,9 @@ public class TourDataSyncService {
             candidate.getName(), fetchedPlaces.size(), elapsedMillis(startedAt));
     }
 
-    private void upsertStats(RegionStats stats) {
+    private void upsertStats(RegionCandidate candidate, RegionStats stats) {
         tourRegionStatsRepository
-            .findByLdongRegnCdAndLdongSignguCd(stats.ldongRegnCd(), stats.ldongSignguCd())
+            .findByRegionCandidateId(candidate.getId())
             .ifPresentOrElse(
                 existing -> {
                     existing.update(stats.totalCount(), stats.sampleSize(),
@@ -94,8 +94,7 @@ public class TourDataSyncService {
                     tourRegionStatsRepository.save(existing);
                 },
                 () -> tourRegionStatsRepository.save(TourRegionStats.create(
-                    stats.ldongRegnCd(), stats.ldongSignguCd(),
-                    stats.totalCount(), stats.sampleSize(),
+                    candidate, stats.totalCount(), stats.sampleSize(),
                     stats.typeCounts(), stats.groupCounts())));
     }
 
@@ -108,8 +107,7 @@ public class TourDataSyncService {
                     tourPlaceRepository.save(existing);
                 },
                 () -> tourPlaceRepository.save(TourPlace.create(
-                    item.contentId(), candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
-                    item.contentTypeId(), item.title(), item.imageUrl(),
+                    item.contentId(), candidate, item.contentTypeId(), item.title(), item.imageUrl(),
                     item.longitude(), item.latitude(), sortOrder)));
     }
 
@@ -186,17 +184,15 @@ public class TourDataSyncService {
 
     private void upsertVisitorStat(RegionCandidate candidate, VisitorStatItem item) {
         regionVisitorStatsRepository
-            .findByLdongRegnCdAndLdongSignguCdAndBaseDateAndVisitorType(
-                candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
-                item.baseDate(), item.visitorType())
+            .findByRegionCandidateIdAndBaseDateAndVisitorType(
+                candidate.getId(), item.baseDate(), item.visitorType())
             .ifPresentOrElse(
                 existing -> {
                     existing.updateCount(item.visitorCount());
                     regionVisitorStatsRepository.save(existing);
                 },
                 () -> regionVisitorStatsRepository.save(RegionVisitorStats.create(
-                    candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
-                    item.baseDate(), item.visitorType(), item.visitorCount())));
+                    candidate, item.baseDate(), item.visitorType(), item.visitorCount())));
     }
 
     private double averageLongitude(List<TourPlaceItem> places) {

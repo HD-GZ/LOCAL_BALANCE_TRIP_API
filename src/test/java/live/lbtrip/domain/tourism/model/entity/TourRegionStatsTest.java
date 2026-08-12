@@ -8,13 +8,14 @@ import org.junit.jupiter.api.Test;
 
 import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 class TourRegionStatsTest {
 
     @Test
     void 카테고리_그룹_카운트를_저장하고_복원한다() {
         TourRegionStats stats = TourRegionStats.create(
-            "46", "710", 120, 100,
+            RegionCandidateFixture.candidate(), 120, 100,
             Map.of(TourContentType.RESTAURANT.getCode(), 30),
             Map.of(CategoryGroup.CAFE, 7, CategoryGroup.TRADITIONAL_MARKET, 3));
 
@@ -27,7 +28,7 @@ class TourRegionStatsTest {
     @Test
     void 업데이트하면_그룹_카운트를_덮어쓴다() {
         TourRegionStats stats = TourRegionStats.create(
-            "46", "710", 120, 100, Map.of(), Map.of(CategoryGroup.CAFE, 7));
+            RegionCandidateFixture.candidate(), 120, 100, Map.of(), Map.of(CategoryGroup.CAFE, 7));
 
         stats.update(130, 100, Map.of(), Map.of(CategoryGroup.CAFE, 9));
 

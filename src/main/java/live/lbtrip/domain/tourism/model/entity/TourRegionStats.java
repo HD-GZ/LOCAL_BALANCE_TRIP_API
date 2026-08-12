@@ -5,11 +5,15 @@ import java.util.Map;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.model.BaseEntity;
@@ -20,8 +24,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @Table(name = "tour_region_stats",
-    uniqueConstraints = @UniqueConstraint(name = "uk_tour_region_stats",
-        columnNames = {"ldong_regn_cd", "ldong_signgu_cd"}))
+    uniqueConstraints = @UniqueConstraint(name = "uk_tour_region_stats_candidate",
+        columnNames = "region_candidate_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TourRegionStats extends BaseEntity {
 
@@ -29,11 +33,9 @@ public class TourRegionStats extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ldong_regn_cd", nullable = false, length = 2)
-    private String ldongRegnCd;
-
-    @Column(name = "ldong_signgu_cd", nullable = false, length = 3)
-    private String ldongSignguCd;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_candidate_id", nullable = false)
+    private RegionCandidate regionCandidate;
 
     @Column(name = "total_count", nullable = false)
     private int totalCount;
@@ -81,21 +83,20 @@ public class TourRegionStats extends BaseEntity {
     private int exhibitionCount;
 
     private TourRegionStats(
-        String ldongRegnCd, String ldongSignguCd,
+        RegionCandidate regionCandidate,
         int totalCount, int sampleSize,
         Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts
     ) {
-        this.ldongRegnCd = ldongRegnCd;
-        this.ldongSignguCd = ldongSignguCd;
+        this.regionCandidate = regionCandidate;
         apply(totalCount, sampleSize, typeCounts, groupCounts);
     }
 
     public static TourRegionStats create(
-        String ldongRegnCd, String ldongSignguCd,
+        RegionCandidate regionCandidate,
         int totalCount, int sampleSize,
         Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts
     ) {
-        return new TourRegionStats(ldongRegnCd, ldongSignguCd, totalCount, sampleSize, typeCounts, groupCounts);
+        return new TourRegionStats(regionCandidate, totalCount, sampleSize, typeCounts, groupCounts);
     }
 
     public void update(

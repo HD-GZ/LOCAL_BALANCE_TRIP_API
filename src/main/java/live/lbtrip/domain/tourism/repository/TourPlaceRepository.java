@@ -13,8 +13,7 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, Long> {
 
     Optional<TourPlace> findByContentId(String contentId);
 
-    List<TourPlace> findAllByLdongRegnCdAndLdongSignguCdOrderByContentTypeIdAscSortOrderAsc(
-        String ldongRegnCd, String ldongSignguCd);
+    List<TourPlace> findAllByRegionCandidateIdOrderByContentTypeIdAscSortOrderAsc(Long regionCandidateId);
 
     List<TourPlace> findAllByOverviewIsNull();
 

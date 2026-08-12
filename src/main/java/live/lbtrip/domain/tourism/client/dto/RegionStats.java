@@ -2,22 +2,22 @@ package live.lbtrip.domain.tourism.client.dto;
 
 import java.util.Map;
 
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
 
 public record RegionStats(
+    Long regionCandidateId,
     String regionName,
-    String ldongRegnCd,
-    String ldongSignguCd,
     int totalCount,
     int sampleSize,
     Map<Integer, Integer> typeCounts,
     Map<CategoryGroup, Integer> groupCounts
 ) {
 
-    public static RegionStats of(TourRegionStats stats, String regionName) {
+    public static RegionStats of(TourRegionStats stats, RegionCandidate candidate) {
         return new RegionStats(
-            regionName, stats.getLdongRegnCd(), stats.getLdongSignguCd(),
+            candidate.getId(), candidate.getName(),
             stats.getTotalCount(), stats.getSampleSize(), stats.toTypeCounts(), stats.toGroupCounts());
     }
 

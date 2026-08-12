@@ -80,7 +80,7 @@ public class TourApiClient {
             sampleSize++;
         }
         return new RegionStats(
-            candidate.getName(), candidate.getLdongRegnCd(), candidate.getLdongSignguCd(),
+            candidate.getId(), candidate.getName(),
             totalCount, sampleSize, typeCounts, groupCounts);
     }
 

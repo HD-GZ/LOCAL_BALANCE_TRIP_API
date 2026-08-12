@@ -19,8 +19,8 @@ public class RegionStatsFinder {
     public List<RegionStats> findAll() {
         return regionCandidateRepository.findAll().stream()
             .map(candidate -> tourRegionStatsRepository
-                .findByLdongRegnCdAndLdongSignguCd(candidate.getLdongRegnCd(), candidate.getLdongSignguCd())
-                .map(stats -> RegionStats.of(stats, candidate.getName())))
+                .findByRegionCandidateId(candidate.getId())
+                .map(stats -> RegionStats.of(stats, candidate)))
             .flatMap(java.util.Optional::stream)
             .toList();
     }

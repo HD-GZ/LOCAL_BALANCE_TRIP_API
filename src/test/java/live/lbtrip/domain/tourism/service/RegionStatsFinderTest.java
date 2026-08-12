@@ -18,6 +18,7 @@ import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.domain.tourism.client.dto.RegionStats;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 @ExtendWith(MockitoExtension.class)
 class RegionStatsFinderTest {
@@ -29,9 +30,6 @@ class RegionStatsFinderTest {
     private TourRegionStatsRepository tourRegionStatsRepository;
 
     @Mock
-    private RegionCandidate regionCandidate;
-
-    @Mock
     private TourRegionStats tourRegionStats;
 
     @InjectMocks
@@ -39,14 +37,10 @@ class RegionStatsFinderTest {
 
     @Test
     void 지역_후보에_해당하는_관광_통계를_조회한다() {
+        RegionCandidate regionCandidate = RegionCandidateFixture.candidateWithId();
         when(regionCandidateRepository.findAll()).thenReturn(List.of(regionCandidate));
-        when(regionCandidate.getLdongRegnCd()).thenReturn("46");
-        when(regionCandidate.getLdongSignguCd()).thenReturn("710");
-        when(regionCandidate.getName()).thenReturn("담양");
-        when(tourRegionStatsRepository.findByLdongRegnCdAndLdongSignguCd("46", "710"))
+        when(tourRegionStatsRepository.findByRegionCandidateId(RegionCandidateFixture.CANDIDATE_ID))
             .thenReturn(Optional.of(tourRegionStats));
-        when(tourRegionStats.getLdongRegnCd()).thenReturn("46");
-        when(tourRegionStats.getLdongSignguCd()).thenReturn("710");
         when(tourRegionStats.getTotalCount()).thenReturn(10);
         when(tourRegionStats.getSampleSize()).thenReturn(5);
         when(tourRegionStats.toTypeCounts()).thenReturn(Map.of());
@@ -54,9 +48,8 @@ class RegionStatsFinderTest {
         List<RegionStats> result = regionStatsFinder.findAll();
 
         assertThat(result).singleElement().satisfies(stats -> {
-            assertThat(stats.regionName()).isEqualTo("담양");
-            assertThat(stats.ldongRegnCd()).isEqualTo("46");
-            assertThat(stats.ldongSignguCd()).isEqualTo("710");
+            assertThat(stats.regionName()).isEqualTo(RegionCandidateFixture.NAME);
+            assertThat(stats.regionCandidateId()).isEqualTo(RegionCandidateFixture.CANDIDATE_ID);
             assertThat(stats.totalCount()).isEqualTo(10);
             assertThat(stats.sampleSize()).isEqualTo(5);
         });
@@ -64,10 +57,9 @@ class RegionStatsFinderTest {
 
     @Test
     void 관광_통계가_없는_지역_후보는_제외한다() {
+        RegionCandidate regionCandidate = RegionCandidateFixture.candidateWithId();
         when(regionCandidateRepository.findAll()).thenReturn(List.of(regionCandidate));
-        when(regionCandidate.getLdongRegnCd()).thenReturn("46");
-        when(regionCandidate.getLdongSignguCd()).thenReturn("710");
-        when(tourRegionStatsRepository.findByLdongRegnCdAndLdongSignguCd("46", "710"))
+        when(tourRegionStatsRepository.findByRegionCandidateId(RegionCandidateFixture.CANDIDATE_ID))
             .thenReturn(Optional.empty());
 
         List<RegionStats> result = regionStatsFinder.findAll();
