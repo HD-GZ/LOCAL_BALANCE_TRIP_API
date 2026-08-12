@@ -23,9 +23,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
-import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.share.dto.response.ShareTokenResponse;
+import live.lbtrip.domain.savedcourse.share.dto.response.SharedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.share.service.CourseShareService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
@@ -34,6 +34,7 @@ import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.CourseShareFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.TokenFixture;
+import live.lbtrip.support.fixture.UserFixture;
 
 @WebMvcTest(CourseShareController.class)
 @Import(CourseShareControllerTest.TestCorsConfig.class)
@@ -101,8 +102,10 @@ class CourseShareControllerTest {
         @Test
         void 인증_없이_공유_코스_상세를_조회한다() throws Exception {
             when(courseShareService.getSharedCourseDetail(CourseShareFixture.TOKEN))
-                .thenReturn(new SavedCourseDetailResponse(
+                .thenReturn(new SharedCourseDetailResponse(
                     SAVED_COURSE_ID,
+                    UserFixture.NAME,
+                    RecommendationFixture.IMAGE_URL,
                     RecommendationFixture.REGION_NAME,
                     RecommendationFixture.COURSE_NAME,
                     SavedCourseStatus.BEFORE_TRIP,
@@ -113,6 +116,8 @@ class CourseShareControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.savedCourseId").value(SAVED_COURSE_ID))
+                .andExpect(jsonPath("$.data.sharedByName").value(UserFixture.NAME))
+                .andExpect(jsonPath("$.data.imageUrl").value(RecommendationFixture.IMAGE_URL))
                 .andExpect(jsonPath("$.data.title").value(RecommendationFixture.COURSE_NAME));
         }
 

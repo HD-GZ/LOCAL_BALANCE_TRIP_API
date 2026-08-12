@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse;
+import live.lbtrip.domain.savedcourse.share.dto.response.SharedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.share.dto.response.ShareTokenResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
 import live.lbtrip.global.swagger.ApiSuccessResponse;
@@ -43,7 +43,7 @@ public interface CourseShareApi {
         summary = "공유 코스 상세 조회",
         description = """
             공유 토큰으로 저장 코스의 상세 정보를 조회합니다.
-            인증 없이 호출할 수 있으며, 저장 코스 상세 조회와 동일한 구조로 응답합니다.
+            인증 없이 호출할 수 있으며, 공유한 사용자 이름과 코스 대표 이미지를 포함합니다.
             토큰이 없으면 404, 만료된 토큰이면 410을 응답합니다.
             """
     )
@@ -52,7 +52,7 @@ public interface CourseShareApi {
         SHARE_TOKEN_NOT_FOUND,
         SHARE_TOKEN_EXPIRED
     })
-    ResponseEntity<SavedCourseDetailResponse> getSharedCourseDetail(
+    ResponseEntity<SharedCourseDetailResponse> getSharedCourseDetail(
         @Parameter(description = "공유 토큰", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable String token
     );

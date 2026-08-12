@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
-import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.course.service.SavedCourseFinder;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.share.dto.response.ShareTokenResponse;
+import live.lbtrip.domain.savedcourse.share.dto.response.SharedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.share.model.entity.CourseShareToken;
 import live.lbtrip.domain.savedcourse.share.repository.CourseShareTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,12 +40,12 @@ public class CourseShareService {
         return ShareTokenResponse.from(shareToken);
     }
 
-    public SavedCourseDetailResponse getSharedCourseDetail(String token) {
+    public SharedCourseDetailResponse getSharedCourseDetail(String token) {
         CourseShareToken shareToken = courseShareTokenFinder.findByToken(token);
         shareToken.validateUsable(LocalDateTime.now());
         SavedCourse savedCourse = shareToken.getSavedCourse();
 
-        return SavedCourseDetailResponse.of(savedCourse, incentiveFinder.findAllByRegion(
+        return SharedCourseDetailResponse.of(savedCourse, incentiveFinder.findAllByRegion(
             savedCourse.getLdongRegnCd(),
             savedCourse.getLdongSignguCd()
         ));
