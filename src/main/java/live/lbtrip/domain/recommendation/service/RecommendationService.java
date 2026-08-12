@@ -19,9 +19,15 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class RecommendationService {
 
+    private final CourseRecommendationGenerator courseRecommendationGenerator;
     private final RecommendedRegionFinder recommendedRegionFinder;
     private final GeneratedCourseFinder generatedCourseFinder;
     private final IncentiveFinder incentiveFinder;
+
+    @Transactional
+    public void createRecommendations(Long userId) {
+        courseRecommendationGenerator.generate(userId);
+    }
 
     public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
         return recommendedRegionFinder.findAllByUserId(userId).stream()

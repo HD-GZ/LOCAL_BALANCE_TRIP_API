@@ -13,8 +13,6 @@ import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
-import live.lbtrip.global.error.BusinessException;
-import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +25,8 @@ public class RecommendationController implements RecommendationApi {
 
     @PostMapping
     public ResponseEntity<Void> createRecommendations(@UserId Long userId) {
-        throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
+        recommendationService.createRecommendations(userId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/regions")
