@@ -4,6 +4,7 @@ JOIN region_candidates rc
     ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = tp.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
         AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = tp.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET tp.region_candidate_id = rc.id;
+DELETE FROM tour_places WHERE region_candidate_id IS NULL;
 ALTER TABLE tour_places MODIFY COLUMN region_candidate_id BIGINT NOT NULL;
 ALTER TABLE tour_places
     ADD CONSTRAINT fk_tour_places_region_candidate
@@ -17,6 +18,7 @@ JOIN region_candidates rc
     ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = trs.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
         AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = trs.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET trs.region_candidate_id = rc.id;
+DELETE FROM tour_region_stats WHERE region_candidate_id IS NULL;
 ALTER TABLE tour_region_stats MODIFY COLUMN region_candidate_id BIGINT NOT NULL;
 ALTER TABLE tour_region_stats
     ADD CONSTRAINT uk_tour_region_stats_candidate UNIQUE (region_candidate_id);
@@ -32,6 +34,7 @@ JOIN region_candidates rc
     ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = rvs.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
         AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = rvs.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET rvs.region_candidate_id = rc.id;
+DELETE FROM region_visitor_stats WHERE region_candidate_id IS NULL;
 ALTER TABLE region_visitor_stats MODIFY COLUMN region_candidate_id BIGINT NOT NULL;
 ALTER TABLE region_visitor_stats
     ADD CONSTRAINT uk_region_visitor_stats_candidate
@@ -48,6 +51,7 @@ JOIN region_candidates rc
     ON rc.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci = ir.ldong_regn_cd COLLATE utf8mb4_0900_ai_ci
         AND rc.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci = ir.ldong_signgu_cd COLLATE utf8mb4_0900_ai_ci
 SET ir.region_candidate_id = rc.id;
+DELETE FROM incentive_regions WHERE region_candidate_id IS NULL;
 ALTER TABLE incentive_regions MODIFY COLUMN region_candidate_id BIGINT NOT NULL;
 ALTER TABLE incentive_regions
     ADD CONSTRAINT uk_incentive_regions_candidate UNIQUE (incentive_id, region_candidate_id);
