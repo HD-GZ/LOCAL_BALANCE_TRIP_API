@@ -3,6 +3,7 @@ package live.lbtrip.domain.tourism.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ class RegionVisitorStatsRepositoryTest {
     private RegionVisitorStatsRepository regionVisitorStatsRepository;
 
     @Test
-    void 기간_이후_외지인_방문자수를_합산한다() {
+    void 기간_이후_외지인_방문자수를_조회한다() {
         LocalDate latest = LocalDate.of(2026, 7, 10);
         regionVisitorStatsRepository.save(
             RegionVisitorStats.create("46", "710", latest, VisitorType.OUTSIDER, 100.5));
@@ -29,18 +30,22 @@ class RegionVisitorStatsRepositoryTest {
         regionVisitorStatsRepository.save(
             RegionVisitorStats.create("46", "710", latest.minusDays(40), VisitorType.OUTSIDER, 777.0));
 
-        double sum = regionVisitorStatsRepository.sumVisitors(
-            "46", "710", VisitorType.OUTSIDER, latest.minusDays(30));
+        List<RegionVisitorStats> visitorStats = regionVisitorStatsRepository
+            .findAllByLdongRegnCdAndLdongSignguCdAndVisitorTypeAndBaseDateAfter(
+                "46", "710", VisitorType.OUTSIDER, latest.minusDays(30));
 
-        assertThat(sum).isEqualTo(150.5);
+        assertThat(visitorStats)
+            .extracting(RegionVisitorStats::getVisitorCount)
+            .containsExactlyInAnyOrder(100.5, 50.0);
     }
 
     @Test
-    void 데이터가_없으면_합산은_0이다() {
-        double sum = regionVisitorStatsRepository.sumVisitors(
-            "46", "710", VisitorType.OUTSIDER, LocalDate.of(2026, 7, 1));
+    void 조건에_맞는_데이터가_없으면_빈_목록을_반환한다() {
+        List<RegionVisitorStats> visitorStats = regionVisitorStatsRepository
+            .findAllByLdongRegnCdAndLdongSignguCdAndVisitorTypeAndBaseDateAfter(
+                "46", "710", VisitorType.OUTSIDER, LocalDate.of(2026, 7, 1));
 
-        assertThat(sum).isZero();
+        assertThat(visitorStats).isEmpty();
     }
 
     @Test
@@ -50,7 +55,8 @@ class RegionVisitorStatsRepositoryTest {
         regionVisitorStatsRepository.save(RegionVisitorStats.create(
             "46", "710", LocalDate.of(2026, 7, 10), VisitorType.OUTSIDER, 1.0));
 
-        assertThat(regionVisitorStatsRepository.findMaxBaseDate())
+        assertThat(regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc())
+            .map(RegionVisitorStats::getBaseDate)
             .contains(LocalDate.of(2026, 7, 10));
         assertThat(regionVisitorStatsRepository.existsByBaseDate(LocalDate.of(2026, 7, 10))).isTrue();
         assertThat(regionVisitorStatsRepository.existsByBaseDate(LocalDate.of(2026, 7, 11))).isFalse();

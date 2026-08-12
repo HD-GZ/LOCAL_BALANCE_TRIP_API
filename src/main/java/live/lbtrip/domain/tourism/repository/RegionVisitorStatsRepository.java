@@ -1,11 +1,10 @@
 package live.lbtrip.domain.tourism.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import live.lbtrip.domain.tourism.model.entity.RegionVisitorStats;
 import live.lbtrip.domain.tourism.model.enums.VisitorType;
@@ -17,20 +16,12 @@ public interface RegionVisitorStatsRepository extends JpaRepository<RegionVisito
 
     boolean existsByBaseDate(LocalDate baseDate);
 
-    @Query("select max(v.baseDate) from RegionVisitorStats v")
-    Optional<LocalDate> findMaxBaseDate();
+    Optional<RegionVisitorStats> findFirstByOrderByBaseDateDesc();
 
-    @Query("""
-        select coalesce(sum(v.visitorCount), 0)
-        from RegionVisitorStats v
-        where v.ldongRegnCd = :ldongRegnCd
-          and v.ldongSignguCd = :ldongSignguCd
-          and v.visitorType = :visitorType
-          and v.baseDate > :after
-        """)
-    double sumVisitors(
-        @Param("ldongRegnCd") String ldongRegnCd,
-        @Param("ldongSignguCd") String ldongSignguCd,
-        @Param("visitorType") VisitorType visitorType,
-        @Param("after") LocalDate after);
+    List<RegionVisitorStats> findAllByLdongRegnCdAndLdongSignguCdAndVisitorTypeAndBaseDateAfter(
+        String ldongRegnCd,
+        String ldongSignguCd,
+        VisitorType visitorType,
+        LocalDate after
+    );
 }
