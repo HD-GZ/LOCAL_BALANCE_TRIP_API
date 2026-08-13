@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import live.lbtrip.domain.tourism.client.dto.VisitorStatItem;
-import live.lbtrip.domain.tourism.model.enums.VisitorType;
 import live.lbtrip.global.config.TourApiProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,12 +36,7 @@ public class DataLabClient {
 
             List<VisitorStatItem> items = new ArrayList<>();
             for (JsonNode item : publicDataClient.items(body)) {
-                VisitorType.fromCode(item.path("touDivCd").asText())
-                    .ifPresent(type -> items.add(new VisitorStatItem(
-                        item.path("signguCode").asText(),
-                        type,
-                        item.path("touNum").asDouble(0),
-                        baseDate)));
+                VisitorStatItem.from(item, baseDate).ifPresent(items::add);
             }
             return items;
         } catch (Exception e) {

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import live.lbtrip.domain.tourism.client.dto.OdiiThemeItem;
 import live.lbtrip.global.config.TourApiProperties;
+import live.lbtrip.global.util.JsonNodes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,13 +35,7 @@ public class OdiiClient {
 
             List<OdiiThemeItem> themes = new ArrayList<>();
             for (JsonNode item : publicDataClient.items(body)) {
-                themes.add(new OdiiThemeItem(
-                    item.path("tid").asText(),
-                    item.path("tlid").asText(),
-                    item.path("title").asText(),
-                    publicDataClient.coordinateOf(item, "mapX"),
-                    publicDataClient.coordinateOf(item, "mapY")
-                ));
+                themes.add(OdiiThemeItem.from(item));
             }
             return themes;
         } catch (Exception e) {
@@ -56,7 +51,7 @@ public class OdiiClient {
                 .queryParam("tlid", tlid));
 
             for (JsonNode item : publicDataClient.items(body)) {
-                String audioUrl = publicDataClient.textOf(item, "audioUrl");
+                String audioUrl = JsonNodes.textOrNull(item, "audioUrl");
                 if (audioUrl != null) {
                     return audioUrl;
                 }

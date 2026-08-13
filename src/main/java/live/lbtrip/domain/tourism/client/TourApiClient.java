@@ -14,6 +14,7 @@ import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.global.config.TourApiProperties;
+import live.lbtrip.global.util.JsonNodes;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -35,14 +36,9 @@ public class TourApiClient {
 
         List<AreaBasedItem> items = new ArrayList<>();
         for (JsonNode item : publicDataClient.items(body)) {
-            items.add(new AreaBasedItem(
-                item.path("contenttypeid").asInt(0),
-                item.path("cat1").asText(null),
-                item.path("cat2").asText(null),
-                item.path("cat3").asText(null)
-            ));
+            items.add(AreaBasedItem.from(item));
         }
-        return new AreaBasedSample(body.path("totalCount").asInt(0), items);
+        return AreaBasedSample.of(body.path("totalCount").asInt(0), items);
     }
 
     public List<TourPlaceItem> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {
@@ -55,14 +51,7 @@ public class TourApiClient {
 
         List<TourPlaceItem> places = new ArrayList<>();
         for (JsonNode item : publicDataClient.items(body)) {
-            places.add(new TourPlaceItem(
-                item.path("contentid").asText(),
-                item.path("title").asText(),
-                item.path("contenttypeid").asInt(0),
-                publicDataClient.textOf(item, "firstimage"),
-                publicDataClient.coordinateOf(item, "mapx"),
-                publicDataClient.coordinateOf(item, "mapy")
-            ));
+            places.add(TourPlaceItem.from(item));
         }
         return places;
     }
@@ -70,7 +59,7 @@ public class TourApiClient {
     public String fetchOverview(String contentId) {
         JsonNode body = get("/detailCommon2", uri -> uri.queryParam("contentId", contentId));
         for (JsonNode item : publicDataClient.items(body)) {
-            String overview = publicDataClient.textOf(item, "overview");
+            String overview = JsonNodes.textOrNull(item, "overview");
             if (overview != null) {
                 return overview;
             }

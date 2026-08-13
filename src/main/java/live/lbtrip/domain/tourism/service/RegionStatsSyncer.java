@@ -39,7 +39,7 @@ public class RegionStatsSyncer {
                 groupCounts.merge(group, 1, Integer::sum);
             }
         }
-        return new RegionStats(sample.totalCount(), sample.items().size(), typeCounts, groupCounts);
+        return RegionStats.of(sample.totalCount(), sample.items().size(), typeCounts, groupCounts);
     }
 
     private void upsert(RegionCandidate candidate, RegionStats stats) {

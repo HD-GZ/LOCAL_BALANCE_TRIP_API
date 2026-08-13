@@ -1,5 +1,9 @@
 package live.lbtrip.domain.tourism.client.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import live.lbtrip.global.util.JsonNodes;
+
 public record TourPlaceItem(
     String contentId,
     String title,
@@ -8,4 +12,15 @@ public record TourPlaceItem(
     Double longitude,
     Double latitude
 ) {
+
+    public static TourPlaceItem from(JsonNode item) {
+        return new TourPlaceItem(
+            item.path("contentid").asText(),
+            item.path("title").asText(),
+            item.path("contenttypeid").asInt(0),
+            JsonNodes.textOrNull(item, "firstimage"),
+            JsonNodes.doubleOrNull(item, "mapx"),
+            JsonNodes.doubleOrNull(item, "mapy")
+        );
+    }
 }

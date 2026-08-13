@@ -33,6 +33,6 @@ public class CategoryGroupClassifier {
             target.computeIfAbsent(mapping.getCode(), key -> new HashSet<>())
                 .add(mapping.getCategoryGroup());
         }
-        return new CategoryGroupMapping(byCat1, byCat2, byCat3);
+        return CategoryGroupMapping.of(byCat1, byCat2, byCat3);
     }
 }

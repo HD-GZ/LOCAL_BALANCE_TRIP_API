@@ -6,4 +6,8 @@ public record AreaBasedSample(
     int totalCount,
     List<AreaBasedItem> items
 ) {
+
+    public static AreaBasedSample of(int totalCount, List<AreaBasedItem> items) {
+        return new AreaBasedSample(totalCount, items);
+    }
 }

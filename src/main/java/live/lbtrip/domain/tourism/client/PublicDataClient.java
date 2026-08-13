@@ -67,23 +67,6 @@ public class PublicDataClient {
         return objectMapper.createArrayNode();
     }
 
-    public Double coordinateOf(JsonNode item, String field) {
-        String value = item.path(field).asText("");
-        if (value.isBlank()) {
-            return null;
-        }
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    public String textOf(JsonNode item, String field) {
-        String value = item.path(field).asText("");
-        return value.isBlank() ? null : value;
-    }
-
     private RestClient clientFor(String baseUrl) {
         return clientsByBaseUrl.computeIfAbsent(baseUrl, this::createClient);
     }
