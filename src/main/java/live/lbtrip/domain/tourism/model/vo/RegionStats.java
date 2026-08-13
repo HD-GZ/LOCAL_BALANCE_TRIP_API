@@ -12,9 +12,16 @@ public record RegionStats(
 ) {
 
     public static RegionStats of(
-        int totalCount, int sampleSize,
-        Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts
+        int totalCount,
+        int sampleSize,
+        Map<Integer, Integer> typeCounts,
+        Map<CategoryGroup, Integer> groupCounts
     ) {
-        return new RegionStats(totalCount, sampleSize, typeCounts, groupCounts);
+        return new RegionStats(
+            totalCount,
+            sampleSize,
+            typeCounts,
+            groupCounts
+        );
     }
 }

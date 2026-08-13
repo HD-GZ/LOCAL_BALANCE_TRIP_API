@@ -26,7 +26,10 @@ public class TourPlaceSyncer {
         List<TourPlaceItem> fetched = new ArrayList<>();
         for (TourContentType contentType : TourContentType.courseCandidates()) {
             List<TourPlaceItem> places = tourApiClient.fetchPlaces(
-                candidate.getLdongRegnCd(), candidate.getLdongSignguCd(), contentType.getCode());
+                candidate.getLdongRegnCd(),
+                candidate.getLdongSignguCd(),
+                contentType.getCode()
+            );
             for (int order = 0; order < places.size(); order++) {
                 upsert(places.get(order), candidate, order);
             }

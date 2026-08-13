@@ -31,9 +31,10 @@ public class RegionStatsSyncer {
         Map<Integer, Integer> typeCounts = new HashMap<>();
         Map<CategoryGroup, Integer> groupCounts = new EnumMap<>(CategoryGroup.class);
         for (AreaBasedItem item : sample.items()) {
-            typeCounts.merge(item.contentTypeId(), 1, Integer::sum);
+            int contentTypeId = item.contentTypeId();
+            typeCounts.put(contentTypeId, typeCounts.getOrDefault(contentTypeId, 0) + 1);
             for (CategoryGroup group : CategoryGroup.classify(item.cat1(), item.cat2(), item.cat3())) {
-                groupCounts.merge(group, 1, Integer::sum);
+                groupCounts.put(group, groupCounts.getOrDefault(group, 0) + 1);
             }
         }
         return RegionStats.of(sample.totalCount(), sample.items().size(), typeCounts, groupCounts);
@@ -43,13 +44,22 @@ public class RegionStatsSyncer {
         tourRegionStatsRepository
             .findByRegionCandidateId(candidate.getId())
             .ifPresentOrElse(
-                existing -> {
-                    existing.update(stats.totalCount(), stats.sampleSize(),
-                        stats.typeCounts(), stats.groupCounts());
-                    tourRegionStatsRepository.save(existing);
+                regionStats -> {
+                    regionStats.update(
+                        stats.totalCount(),
+                        stats.sampleSize(),
+                        stats.typeCounts(),
+                        stats.groupCounts()
+                    );
+                    tourRegionStatsRepository.save(regionStats);
                 },
                 () -> tourRegionStatsRepository.save(TourRegionStats.create(
-                    candidate, stats.totalCount(), stats.sampleSize(),
-                    stats.typeCounts(), stats.groupCounts())));
+                    candidate,
+                    stats.totalCount(),
+                    stats.sampleSize(),
+                    stats.typeCounts(),
+                    stats.groupCounts()
+                ))
+            );
     }
 }
