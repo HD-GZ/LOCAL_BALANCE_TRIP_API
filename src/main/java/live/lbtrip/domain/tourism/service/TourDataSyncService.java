@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,21 +27,33 @@ public class TourDataSyncService {
     public void syncAll() {
         long startedAt = System.nanoTime();
         List<RegionCandidate> candidates = regionCandidateRepository.findAll();
+        syncRegions(candidates);
+        linkPlaceThemes(candidates);
+        tourPlaceSyncer.syncOverviews();
+        odiiThemeSyncer.syncAudioUrls();
+        visitorStatsSyncer.sync();
+        log.info("관광 데이터 적재 완료: elapsedMs={}", elapsedMillis(startedAt));
+    }
+
+    private void syncRegions(List<RegionCandidate> candidates) {
         int successCount = 0;
         for (RegionCandidate candidate : candidates) {
             try {
                 syncRegion(candidate);
                 successCount++;
+            } catch (BusinessException e) {
+                if (e.getErrorCode() != ErrorCode.TOUR_API_QUOTA_EXCEEDED) {
+                    log.error("지역 데이터 적재 실패 - 다음 지역 진행: region={}", candidate.getName(), e);
+                    continue;
+                }
+                log.warn("지역 데이터 적재 중단 - 일일 한도 초과: success={}/{}",
+                    successCount, candidates.size());
+                return;
             } catch (Exception e) {
                 log.error("지역 데이터 적재 실패 - 다음 지역 진행: region={}", candidate.getName(), e);
             }
         }
-        linkPlaceThemes(candidates);
-        tourPlaceSyncer.syncOverviews();
-        odiiThemeSyncer.syncAudioUrls();
-        visitorStatsSyncer.sync();
-        log.info("관광 데이터 적재 완료: successRegions={}/{}, elapsedMs={}",
-            successCount, candidates.size(), elapsedMillis(startedAt));
+        log.info("지역 데이터 적재 완료: success={}/{}", successCount, candidates.size());
     }
 
     private void syncRegion(RegionCandidate candidate) {

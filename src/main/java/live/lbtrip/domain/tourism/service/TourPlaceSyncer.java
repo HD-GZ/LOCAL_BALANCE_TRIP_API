@@ -11,6 +11,8 @@ import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +49,13 @@ public class TourPlaceSyncer {
                 place.updateOverview(overview == null ? "" : overview);
                 tourPlaceRepository.save(place);
                 successCount++;
+            } catch (BusinessException e) {
+                if (e.getErrorCode() != ErrorCode.TOUR_API_QUOTA_EXCEEDED) {
+                    log.warn("overview 적재 실패 - 다음 장소 진행: contentId={}", place.getContentId(), e);
+                    continue;
+                }
+                log.warn("overview 적재 중단 - 일일 한도 초과: success={}/{}", successCount, pending.size());
+                return;
             } catch (Exception e) {
                 log.warn("overview 적재 실패 - 다음 장소 진행: contentId={}", place.getContentId(), e);
             }

@@ -13,6 +13,8 @@ import live.lbtrip.domain.tourism.client.DataLabClient;
 import live.lbtrip.domain.tourism.client.dto.VisitorStatItem;
 import live.lbtrip.domain.tourism.model.entity.RegionVisitorStats;
 import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,8 +33,16 @@ public class VisitorStatsSyncer {
         Map<String, RegionCandidate> candidatesByCode = candidatesByCode();
         int syncedDays = 0;
         for (int daysAgo = LOOKBACK_DAYS; daysAgo >= 1; daysAgo--) {
-            if (syncDate(LocalDate.now().minusDays(daysAgo), candidatesByCode)) {
-                syncedDays++;
+            try {
+                if (syncDate(LocalDate.now().minusDays(daysAgo), candidatesByCode)) {
+                    syncedDays++;
+                }
+            } catch (BusinessException e) {
+                if (e.getErrorCode() != ErrorCode.TOUR_API_QUOTA_EXCEEDED) {
+                    throw e;
+                }
+                log.warn("방문자수 적재 중단 - 일일 한도 초과: syncedDays={}", syncedDays);
+                return;
             }
         }
         log.info("방문자수 적재 완료: syncedDays={}", syncedDays);

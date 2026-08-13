@@ -11,6 +11,8 @@ import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.domain.tourism.model.entity.OdiiTheme;
 import live.lbtrip.domain.tourism.model.vo.Centroid;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,12 +31,22 @@ public class OdiiThemeSyncer {
 
     public void syncAudioUrls() {
         List<OdiiTheme> pending = odiiThemeRepository.findAllByAudioSyncedAtIsNull();
+        int successCount = 0;
         for (OdiiTheme theme : pending) {
-            String audioUrl = odiiClient.fetchFirstAudioUrl(theme.getTid(), theme.getTlid());
-            theme.updateAudio(audioUrl, LocalDateTime.now());
-            odiiThemeRepository.save(theme);
+            try {
+                String audioUrl = odiiClient.fetchFirstAudioUrl(theme.getTid(), theme.getTlid());
+                theme.updateAudio(audioUrl, LocalDateTime.now());
+                odiiThemeRepository.save(theme);
+                successCount++;
+            } catch (BusinessException e) {
+                if (e.getErrorCode() != ErrorCode.TOUR_API_QUOTA_EXCEEDED) {
+                    throw e;
+                }
+                log.warn("Odii 오디오 적재 중단 - 일일 한도 초과: success={}/{}", successCount, pending.size());
+                return;
+            }
         }
-        log.info("Odii 오디오 적재 완료: count={}", pending.size());
+        log.info("Odii 오디오 적재 완료: success={}/{}", successCount, pending.size());
     }
 
     private void upsertThemesNear(Centroid centroid) {
