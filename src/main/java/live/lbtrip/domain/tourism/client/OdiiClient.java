@@ -39,6 +39,7 @@ public class OdiiClient {
             }
             return themes;
         } catch (Exception e) {
+            publicDataClient.rethrowIfQuotaExceeded(e);
             log.warn("Odii 테마 조회 실패 — 오디오 없이 진행", e);
             return List.of();
         }
@@ -58,6 +59,7 @@ public class OdiiClient {
             }
             return null;
         } catch (Exception e) {
+            publicDataClient.rethrowIfQuotaExceeded(e);
             log.warn("Odii 스토리 조회 실패 — 오디오 없이 진행: tid={}", tid, e);
             return null;
         }

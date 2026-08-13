@@ -40,6 +40,7 @@ public class DataLabClient {
             }
             return items;
         } catch (Exception e) {
+            publicDataClient.rethrowIfQuotaExceeded(e);
             log.warn("DataLab 방문자수 조회 실패 - 해당 일자 건너뜀: baseDate={}", baseDate, e);
             return List.of();
         }
