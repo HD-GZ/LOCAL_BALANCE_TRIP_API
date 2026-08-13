@@ -13,7 +13,6 @@ import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
-import live.lbtrip.domain.tourism.client.dto.TourPlacePage;
 import live.lbtrip.global.config.TourApiProperties;
 import live.lbtrip.global.util.JsonNodes;
 import lombok.RequiredArgsConstructor;
@@ -22,14 +21,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TourApiClient {
 
-    private static final int PAGE_SIZE = 1000;
+    private static final int STATS_SAMPLE_SIZE = 1000;
+    private static final int PLACES_PAGE_SIZE = 15;
 
     private final PublicDataClient publicDataClient;
     private final TourApiProperties properties;
 
     public AreaBasedSample fetchAreaBasedSample(RegionCandidate candidate) {
         JsonNode body = get("/areaBasedList2", uri -> uri
-            .queryParam("numOfRows", PAGE_SIZE)
+            .queryParam("numOfRows", STATS_SAMPLE_SIZE)
             .queryParam("arrange", "C")
             .queryParam("lDongRegnCd", candidate.getLdongRegnCd())
             .queryParam("lDongSignguCd", candidate.getLdongSignguCd()));
@@ -41,18 +41,19 @@ public class TourApiClient {
         return AreaBasedSample.of(body.path("totalCount").asInt(0), items);
     }
 
-    public TourPlacePage fetchPlaces(RegionCandidate candidate) {
+    public List<TourPlaceItem> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {
         JsonNode body = get("/areaBasedList2", uri -> uri
-            .queryParam("numOfRows", PAGE_SIZE)
+            .queryParam("numOfRows", PLACES_PAGE_SIZE)
             .queryParam("arrange", "O")
-            .queryParam("lDongRegnCd", candidate.getLdongRegnCd())
-            .queryParam("lDongSignguCd", candidate.getLdongSignguCd()));
+            .queryParam("contentTypeId", contentTypeId)
+            .queryParam("lDongRegnCd", ldongRegnCd)
+            .queryParam("lDongSignguCd", ldongSignguCd));
 
         List<TourPlaceItem> places = new ArrayList<>();
         for (JsonNode item : publicDataClient.items(body)) {
             places.add(TourPlaceItem.from(item));
         }
-        return TourPlacePage.of(body.path("totalCount").asInt(0), places);
+        return places;
     }
 
     public String fetchOverview(String contentId) {
