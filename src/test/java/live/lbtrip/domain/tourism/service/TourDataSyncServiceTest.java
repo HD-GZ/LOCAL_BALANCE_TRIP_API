@@ -1,8 +1,11 @@
 package live.lbtrip.domain.tourism.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -11,6 +14,7 @@ import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -66,6 +70,21 @@ class TourDataSyncServiceTest {
         }
 
         @Test
+        void 모든_지역의_테마_적재가_끝난_뒤에_장소_테마를_매칭한다() {
+            RegionCandidate first = RegionCandidateFixture.candidate();
+            RegionCandidate second = RegionCandidateFixture.candidateWithId();
+            when(regionCandidateRepository.findAll()).thenReturn(List.of(first, second));
+            when(tourPlaceSyncer.sync(any())).thenReturn(List.of());
+
+            tourDataSyncService.syncAll();
+
+            InOrder inOrder = inOrder(odiiThemeSyncer, placeThemeLinker);
+            inOrder.verify(odiiThemeSyncer, times(2)).sync(anyList());
+            inOrder.verify(placeThemeLinker).link(first);
+            inOrder.verify(placeThemeLinker).link(second);
+        }
+
+        @Test
         void 한_지역이_실패해도_다음_지역과_전역_보강을_계속_진행한다() {
             RegionCandidate failing = RegionCandidateFixture.candidate();
             RegionCandidate succeeding = RegionCandidateFixture.candidateWithId();
@@ -77,8 +96,23 @@ class TourDataSyncServiceTest {
             tourDataSyncService.syncAll();
 
             verify(regionStatsSyncer).sync(succeeding);
+            verify(tourPlaceSyncer, never()).sync(failing);
+            verify(visitorStatsSyncer).sync();
+        }
+
+        @Test
+        void 매칭이_실패한_지역이_있어도_나머지_지역과_전역_보강을_계속_진행한다() {
+            RegionCandidate failing = RegionCandidateFixture.candidate();
+            RegionCandidate succeeding = RegionCandidateFixture.candidateWithId();
+            when(regionCandidateRepository.findAll()).thenReturn(List.of(failing, succeeding));
+            when(tourPlaceSyncer.sync(any())).thenReturn(List.of());
+            doThrow(BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE))
+                .when(placeThemeLinker).link(failing);
+
+            tourDataSyncService.syncAll();
+
             verify(placeThemeLinker).link(succeeding);
-            verify(placeThemeLinker, never()).link(failing);
+            verify(tourPlaceSyncer).syncOverviews();
             verify(visitorStatsSyncer).sync();
         }
 

@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public record Centroid(double longitude, double latitude) {
+public record Centroid(
+    double longitude,
+    double latitude
+) {
 
     public static <T> Optional<Centroid> of(
         List<T> points,

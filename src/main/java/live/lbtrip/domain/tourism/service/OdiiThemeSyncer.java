@@ -46,11 +46,17 @@ public class OdiiThemeSyncer {
     private void upsert(OdiiThemeItem item) {
         odiiThemeRepository.findByTidAndTlid(item.tid(), item.tlid())
             .ifPresentOrElse(
-                existing -> {
-                    existing.update(item.title(), item.longitude(), item.latitude());
-                    odiiThemeRepository.save(existing);
+                odiiTheme -> {
+                    odiiTheme.update(item.title(), item.longitude(), item.latitude());
+                    odiiThemeRepository.save(odiiTheme);
                 },
                 () -> odiiThemeRepository.save(OdiiTheme.create(
-                    item.tid(), item.tlid(), item.title(), item.longitude(), item.latitude())));
+                    item.tid(),
+                    item.tlid(),
+                    item.title(),
+                    item.longitude(),
+                    item.latitude()
+                ))
+            );
     }
 }

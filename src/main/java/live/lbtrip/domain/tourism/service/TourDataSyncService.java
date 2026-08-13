@@ -34,6 +34,7 @@ public class TourDataSyncService {
                 log.error("지역 데이터 적재 실패 - 다음 지역 진행: region={}", candidate.getName(), e);
             }
         }
+        linkPlaceThemes(candidates);
         tourPlaceSyncer.syncOverviews();
         odiiThemeSyncer.syncAudioUrls();
         visitorStatsSyncer.sync();
@@ -46,9 +47,21 @@ public class TourDataSyncService {
         regionStatsSyncer.sync(candidate);
         List<TourPlaceItem> places = tourPlaceSyncer.sync(candidate);
         odiiThemeSyncer.sync(places);
-        placeThemeLinker.link(candidate);
         log.info("지역 데이터 적재 성공: region={}, placeCount={}, elapsedMs={}",
             candidate.getName(), places.size(), elapsedMillis(startedAt));
+    }
+
+    private void linkPlaceThemes(List<RegionCandidate> candidates) {
+        int successCount = 0;
+        for (RegionCandidate candidate : candidates) {
+            try {
+                placeThemeLinker.link(candidate);
+                successCount++;
+            } catch (Exception e) {
+                log.error("장소-테마 매칭 실패 - 다음 지역 진행: region={}", candidate.getName(), e);
+            }
+        }
+        log.info("장소-테마 매칭 완료: success={}/{}", successCount, candidates.size());
     }
 
     private long elapsedMillis(long startedAt) {
