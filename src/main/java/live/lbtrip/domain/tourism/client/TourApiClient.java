@@ -1,87 +1,44 @@
 package live.lbtrip.domain.tourism.client;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.UnaryOperator;
 
-import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import live.lbtrip.domain.region.model.RegionCandidate;
-import live.lbtrip.domain.tourism.client.dto.RegionStats;
+import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
+import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
-import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
-import live.lbtrip.domain.tourism.model.vo.CategoryGroupMapping;
-import live.lbtrip.domain.tourism.service.CategoryGroupClassifier;
 import live.lbtrip.global.config.TourApiProperties;
-import live.lbtrip.global.error.BusinessException;
-import live.lbtrip.global.error.ErrorCode;
-import lombok.extern.slf4j.Slf4j;
+import live.lbtrip.global.util.JsonNodes;
+import lombok.RequiredArgsConstructor;
 
-@Slf4j
 @Component
+@RequiredArgsConstructor
 public class TourApiClient {
 
-    private static final String RESULT_OK = "0000";
     private static final int STATS_SAMPLE_SIZE = 1000;
     private static final int PLACES_PAGE_SIZE = 15;
 
-    private final RestClient restClient;
-    private final String serviceKey;
-    private final String mobileOs;
-    private final String mobileApp;
-    private final CategoryGroupClassifier categoryGroupClassifier;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PublicDataClient publicDataClient;
+    private final TourApiProperties properties;
 
-    public TourApiClient(TourApiProperties properties, CategoryGroupClassifier categoryGroupClassifier) {
-        DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(properties.baseUrl());
-        uriFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
-        ReactorClientHttpRequestFactory requestFactory = new ReactorClientHttpRequestFactory();
-        requestFactory.setReadTimeout(properties.readTimeout());
-        this.restClient = RestClient.builder()
-            .uriBuilderFactory(uriFactory)
-            .requestFactory(requestFactory)
-            .build();
-        this.serviceKey = properties.serviceKey();
-        this.mobileOs = properties.mobileOs();
-        this.mobileApp = properties.mobileApp();
-        this.categoryGroupClassifier = categoryGroupClassifier;
-    }
-
-    public RegionStats fetchRegionStats(RegionCandidate candidate) {
+    public AreaBasedSample fetchAreaBasedSample(RegionCandidate candidate) {
         JsonNode body = get("/areaBasedList2", uri -> uri
             .queryParam("numOfRows", STATS_SAMPLE_SIZE)
             .queryParam("arrange", "C")
             .queryParam("lDongRegnCd", candidate.getLdongRegnCd())
             .queryParam("lDongSignguCd", candidate.getLdongSignguCd()));
 
-        CategoryGroupMapping mapping = categoryGroupClassifier.load();
-        int totalCount = body.path("totalCount").asInt(0);
-        int sampleSize = 0;
-        Map<Integer, Integer> typeCounts = new HashMap<>();
-        Map<CategoryGroup, Integer> groupCounts = new EnumMap<>(CategoryGroup.class);
-        for (JsonNode item : items(body)) {
-            typeCounts.merge(item.path("contenttypeid").asInt(0), 1, Integer::sum);
-            for (CategoryGroup group : mapping.classify(
-                item.path("cat1").asText(null),
-                item.path("cat2").asText(null),
-                item.path("cat3").asText(null))) {
-                groupCounts.merge(group, 1, Integer::sum);
-            }
-            sampleSize++;
+        List<AreaBasedItem> items = new ArrayList<>();
+        for (JsonNode item : publicDataClient.items(body)) {
+            items.add(AreaBasedItem.from(item));
         }
-        return new RegionStats(
-            candidate.getId(), candidate.getName(),
-            totalCount, sampleSize, typeCounts, groupCounts);
+        return AreaBasedSample.of(body.path("totalCount").asInt(0), items);
     }
 
     public List<TourPlaceItem> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {
@@ -93,81 +50,24 @@ public class TourApiClient {
             .queryParam("lDongSignguCd", ldongSignguCd));
 
         List<TourPlaceItem> places = new ArrayList<>();
-        for (JsonNode item : items(body)) {
-            places.add(new TourPlaceItem(
-                item.path("contentid").asText(),
-                item.path("title").asText(),
-                item.path("contenttypeid").asInt(0),
-                parseText(item, "firstimage"),
-                parseCoordinate(item, "mapx"),
-                parseCoordinate(item, "mapy")
-            ));
+        for (JsonNode item : publicDataClient.items(body)) {
+            places.add(TourPlaceItem.from(item));
         }
         return places;
     }
 
     public String fetchOverview(String contentId) {
         JsonNode body = get("/detailCommon2", uri -> uri.queryParam("contentId", contentId));
-        for (JsonNode item : items(body)) {
-            String overview = item.path("overview").asText(null);
-            if (overview != null && !overview.isBlank()) {
+        for (JsonNode item : publicDataClient.items(body)) {
+            String overview = JsonNodes.textOrNull(item, "overview");
+            if (overview != null) {
                 return overview;
             }
         }
         return null;
     }
 
-    private Double parseCoordinate(JsonNode item, String field) {
-        String value = item.path(field).asText("");
-        if (value.isBlank()) {
-            return null;
-        }
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private String parseText(JsonNode item, String field) {
-        String value = item.path(field).asText("");
-        return value.isBlank() ? null : value;
-    }
-
     private JsonNode get(String path, UnaryOperator<UriBuilder> customizer) {
-        try {
-            String raw = restClient.get()
-                .uri(uriBuilder -> customizer.apply(uriBuilder
-                        .path(path)
-                        .queryParam("serviceKey", serviceKey)
-                        .queryParam("MobileOS", mobileOs)
-                        .queryParam("MobileApp", mobileApp)
-                        .queryParam("_type", "json")
-                        .queryParam("pageNo", 1))
-                    .build())
-                .retrieve()
-                .body(String.class);
-
-            JsonNode root = objectMapper.readTree(raw);
-            String resultCode = root.path("response").path("header").path("resultCode").asText();
-            if (!RESULT_OK.equals(resultCode)) {
-                log.error("TourAPI 오류 응답: path={}, resultCode={}", path, resultCode);
-                throw BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE);
-            }
-            return root.path("response").path("body");
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("TourAPI 호출 실패: path={}", path, e);
-            throw BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE);
-        }
-    }
-
-    private JsonNode items(JsonNode body) {
-        JsonNode item = body.path("items").path("item");
-        if (item.isArray()) {
-            return item;
-        }
-        return objectMapper.createArrayNode();
+        return publicDataClient.get(properties.baseUrl(), path, customizer);
     }
 }

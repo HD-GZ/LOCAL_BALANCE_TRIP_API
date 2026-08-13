@@ -37,7 +37,6 @@ class ImageServiceTest {
     private static final Long IMAGE_ID = 1L;
     private static final Long UPLOADER_ID = 2L;
     private static final String IMAGE_KEY = "receipts/test.jpg";
-    private static final String IMAGE_URL = "https://images.example.com/" + IMAGE_KEY;
 
     @Mock
     private ImageRepository imageRepository;
@@ -145,16 +144,6 @@ class ImageServiceTest {
 
     @Nested
     class 저장소_접근 {
-
-        @Test
-        void 이미지의_공개_URL을_조회한다() {
-            Image image = image();
-            when(imageStorage.publicUrl(IMAGE_KEY)).thenReturn(IMAGE_URL);
-
-            String result = imageService.getPublicUrl(image);
-
-            assertThat(result).isEqualTo(IMAGE_URL);
-        }
 
         @Test
         void 저장소에서_이미지를_삭제한다() {

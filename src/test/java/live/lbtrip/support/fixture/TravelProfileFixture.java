@@ -1,5 +1,7 @@
 package live.lbtrip.support.fixture;
 
+import org.springframework.test.util.ReflectionTestUtils;
+
 import live.lbtrip.domain.propensity.model.TravelProfile;
 
 public final class TravelProfileFixture {
@@ -21,7 +23,7 @@ public final class TravelProfileFixture {
     public static TravelProfile featured(String code, String nickname, int featuredOrder) {
         TravelProfile profile = TravelProfile.create(
             code, nickname, nickname + " 설명", "travel-profiles/" + code.toLowerCase() + ".png");
-        profile.assignFeaturedOrder(featuredOrder);
+        ReflectionTestUtils.setField(profile, "featuredOrder", featuredOrder);
         return profile;
     }
 }

@@ -4,44 +4,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import live.lbtrip.domain.tourism.client.dto.OdiiThemeItem;
 import live.lbtrip.global.config.TourApiProperties;
+import live.lbtrip.global.util.JsonNodes;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class OdiiClient {
 
     private static final int MAX_RADIUS_METERS = 20000;
+    private static final int PAGE_SIZE = 100;
 
-    private final RestClient restClient;
-    private final String serviceKey;
-    private final String mobileOs;
-    private final String mobileApp;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public OdiiClient(TourApiProperties properties) {
-        DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(properties.odiiBaseUrl());
-        uriFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
-        ReactorClientHttpRequestFactory requestFactory = new ReactorClientHttpRequestFactory();
-        requestFactory.setReadTimeout(properties.readTimeout());
-        this.restClient = RestClient.builder()
-            .uriBuilderFactory(uriFactory)
-            .requestFactory(requestFactory)
-            .build();
-        this.serviceKey = properties.serviceKey();
-        this.mobileOs = properties.mobileOs();
-        this.mobileApp = properties.mobileApp();
-    }
+    private final PublicDataClient publicDataClient;
+    private final TourApiProperties properties;
 
     public List<OdiiThemeItem> fetchThemesNear(double longitude, double latitude) {
         try {
@@ -51,17 +34,12 @@ public class OdiiClient {
                 .queryParam("radius", MAX_RADIUS_METERS));
 
             List<OdiiThemeItem> themes = new ArrayList<>();
-            for (JsonNode item : items(body)) {
-                themes.add(new OdiiThemeItem(
-                    item.path("tid").asText(),
-                    item.path("tlid").asText(),
-                    item.path("title").asText(),
-                    parseCoordinate(item, "mapX"),
-                    parseCoordinate(item, "mapY")
-                ));
+            for (JsonNode item : publicDataClient.items(body)) {
+                themes.add(OdiiThemeItem.from(item));
             }
             return themes;
         } catch (Exception e) {
+            publicDataClient.rethrowIfQuotaExceeded(e);
             log.warn("Odii 테마 조회 실패 — 오디오 없이 진행", e);
             return List.of();
         }
@@ -73,55 +51,23 @@ public class OdiiClient {
                 .queryParam("tid", tid)
                 .queryParam("tlid", tlid));
 
-            for (JsonNode item : items(body)) {
-                String audioUrl = item.path("audioUrl").asText(null);
-                if (audioUrl != null && !audioUrl.isBlank()) {
+            for (JsonNode item : publicDataClient.items(body)) {
+                String audioUrl = JsonNodes.textOrNull(item, "audioUrl");
+                if (audioUrl != null) {
                     return audioUrl;
                 }
             }
             return null;
         } catch (Exception e) {
+            publicDataClient.rethrowIfQuotaExceeded(e);
             log.warn("Odii 스토리 조회 실패 — 오디오 없이 진행: tid={}", tid, e);
             return null;
         }
     }
 
-    private Double parseCoordinate(JsonNode item, String field) {
-        String value = item.path(field).asText("");
-        if (value.isBlank()) {
-            return null;
-        }
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private JsonNode get(String path, UnaryOperator<UriBuilder> customizer) throws Exception {
-        String raw = restClient.get()
-            .uri(uriBuilder -> customizer.apply(uriBuilder
-                    .path(path)
-                    .queryParam("serviceKey", serviceKey)
-                    .queryParam("MobileOS", mobileOs)
-                    .queryParam("MobileApp", mobileApp)
-                    .queryParam("_type", "json")
-                    .queryParam("langCode", "ko")
-                    .queryParam("numOfRows", 100)
-                    .queryParam("pageNo", 1))
-                .build())
-            .retrieve()
-            .body(String.class);
-
-        JsonNode root = objectMapper.readTree(raw);
-        return root.path("response").path("body");
-    }
-
-    private JsonNode items(JsonNode body) {
-        JsonNode item = body.path("items").path("item");
-        if (item.isArray()) {
-            return item;
-        }
-        return objectMapper.createArrayNode();
+    private JsonNode get(String path, UnaryOperator<UriBuilder> customizer) {
+        return publicDataClient.get(properties.odiiBaseUrl(), path, uri -> customizer.apply(uri
+            .queryParam("langCode", "ko")
+            .queryParam("numOfRows", PAGE_SIZE)));
     }
 }

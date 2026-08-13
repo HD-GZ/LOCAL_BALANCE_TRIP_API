@@ -3,6 +3,7 @@ package live.lbtrip.admin.tourism.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import live.lbtrip.domain.tourism.model.enums.TourSyncStep;
 import live.lbtrip.domain.tourism.service.TourDataSyncService;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -56,6 +58,29 @@ class AdminTourSyncServiceTest {
 
         service.triggerSync();
         assertThat(deferred).hasSize(2);
+    }
+
+    @Test
+    void 지정한_단계만_실행한다() {
+        AdminTourSyncService service = new AdminTourSyncService(tourDataSyncService, Runnable::run);
+
+        service.triggerSync(TourSyncStep.OVERVIEWS);
+
+        verify(tourDataSyncService).sync(TourSyncStep.OVERVIEWS);
+        verify(tourDataSyncService, never()).syncAll();
+    }
+
+    @Test
+    void 단계_실행_중에는_전체_실행도_거부한다() {
+        List<Runnable> deferred = new ArrayList<>();
+        AdminTourSyncService service = new AdminTourSyncService(tourDataSyncService, deferred::add);
+
+        service.triggerSync(TourSyncStep.OVERVIEWS);
+
+        assertThatThrownBy(service::triggerSync)
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.TOUR_SYNC_IN_PROGRESS);
     }
 
     @Test
