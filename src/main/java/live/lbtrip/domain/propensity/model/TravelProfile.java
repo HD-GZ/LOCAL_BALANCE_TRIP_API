@@ -46,8 +46,4 @@ public class TravelProfile extends BaseEntity {
     public static TravelProfile create(String code, String nickname, String description, String imageKey) {
         return new TravelProfile(code, nickname, description, imageKey);
     }
-
-    public void assignFeaturedOrder(Integer featuredOrder) {
-        this.featuredOrder = featuredOrder;
-    }
 }

@@ -59,10 +59,6 @@ public class ImageService {
         return image;
     }
 
-    public String getPublicUrl(Image image) {
-        return imageStorage.publicUrl(image.getStorageKey());
-    }
-
     public String getViewUrl(Image image) {
         return imageStorage.presignedViewUrl(image.getStorageKey());
     }
