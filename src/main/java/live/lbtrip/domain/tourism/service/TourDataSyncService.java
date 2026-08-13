@@ -23,6 +23,7 @@ import live.lbtrip.domain.tourism.model.entity.RegionVisitorStats;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
+import live.lbtrip.domain.tourism.model.vo.Centroid;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
 import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
@@ -91,43 +92,23 @@ public class TourDataSyncService {
     private void matchPlaceThemes(RegionCandidate candidate) {
         List<TourPlace> places = tourPlaceRepository
             .findAllByRegionCandidateIdOrderByContentTypeIdAscSortOrderAsc(candidate.getId());
-        if (places.isEmpty()) {
-            return;
-        }
+        Centroid.of(places, TourPlace::getLongitude, TourPlace::getLatitude)
+            .ifPresent(centroid -> assignThemes(places, findThemesNear(centroid)));
+    }
 
-        List<OdiiTheme> themes = odiiThemeRepository.findAllByLongitudeBetweenAndLatitudeBetween(
-            averagePlaceLongitude(places) - THEME_LOOKUP_LON_DELTA,
-            averagePlaceLongitude(places) + THEME_LOOKUP_LON_DELTA,
-            averagePlaceLatitude(places) - THEME_LOOKUP_LAT_DELTA,
-            averagePlaceLatitude(places) + THEME_LOOKUP_LAT_DELTA);
+    private List<OdiiTheme> findThemesNear(Centroid centroid) {
+        return odiiThemeRepository.findAllByLongitudeBetweenAndLatitudeBetween(
+            centroid.longitude() - THEME_LOOKUP_LON_DELTA,
+            centroid.longitude() + THEME_LOOKUP_LON_DELTA,
+            centroid.latitude() - THEME_LOOKUP_LAT_DELTA,
+            centroid.latitude() + THEME_LOOKUP_LAT_DELTA);
+    }
+
+    private void assignThemes(List<TourPlace> places, List<OdiiTheme> themes) {
         for (TourPlace place : places) {
             place.assignOdiiTheme(odiiThemeMatcher.match(place, themes).orElse(null));
             tourPlaceRepository.save(place);
         }
-    }
-
-    private double averagePlaceLongitude(List<TourPlace> places) {
-        double sum = 0;
-        int count = 0;
-        for (TourPlace place : places) {
-            if (place.getLongitude() != null) {
-                sum += place.getLongitude();
-                count++;
-            }
-        }
-        return count == 0 ? 0 : sum / count;
-    }
-
-    private double averagePlaceLatitude(List<TourPlace> places) {
-        double sum = 0;
-        int count = 0;
-        for (TourPlace place : places) {
-            if (place.getLatitude() != null) {
-                sum += place.getLatitude();
-                count++;
-            }
-        }
-        return count == 0 ? 0 : sum / count;
     }
 
     private void upsertStats(RegionCandidate candidate, RegionStats stats) {
@@ -158,12 +139,12 @@ public class TourDataSyncService {
     }
 
     private void upsertThemes(List<TourPlaceItem> places) {
-        if (places.isEmpty()) {
-            return;
-        }
-        List<OdiiThemeItem> themes = odiiClient.fetchThemesNear(
-            averageLongitude(places), averageLatitude(places));
-        for (OdiiThemeItem item : themes) {
+        Centroid.of(places, TourPlaceItem::longitude, TourPlaceItem::latitude)
+            .ifPresent(this::upsertThemesNear);
+    }
+
+    private void upsertThemesNear(Centroid centroid) {
+        for (OdiiThemeItem item : odiiClient.fetchThemesNear(centroid.longitude(), centroid.latitude())) {
             odiiThemeRepository.findByTidAndTlid(item.tid(), item.tlid())
                 .ifPresentOrElse(
                     existing -> {
@@ -239,16 +220,6 @@ public class TourDataSyncService {
                 },
                 () -> regionVisitorStatsRepository.save(RegionVisitorStats.create(
                     candidate, item.baseDate(), item.visitorType(), item.visitorCount())));
-    }
-
-    private double averageLongitude(List<TourPlaceItem> places) {
-        return places.stream().filter(place -> place.longitude() != null)
-            .mapToDouble(TourPlaceItem::longitude).average().orElse(0);
-    }
-
-    private double averageLatitude(List<TourPlaceItem> places) {
-        return places.stream().filter(place -> place.latitude() != null)
-            .mapToDouble(TourPlaceItem::latitude).average().orElse(0);
     }
 
     private long elapsedMillis(long startedAt) {
