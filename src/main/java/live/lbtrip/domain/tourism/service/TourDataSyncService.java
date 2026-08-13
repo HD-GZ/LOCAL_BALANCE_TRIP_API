@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
+import live.lbtrip.domain.tourism.model.enums.TourSyncStep;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +27,22 @@ public class TourDataSyncService {
 
     public void syncAll() {
         long startedAt = System.nanoTime();
-        List<RegionCandidate> candidates = regionCandidateRepository.findAll();
-        syncRegions(candidates);
-        linkPlaceThemes(candidates);
-        tourPlaceSyncer.syncOverviews();
-        odiiThemeSyncer.syncAudioUrls();
-        visitorStatsSyncer.sync();
+        for (TourSyncStep step : TourSyncStep.values()) {
+            sync(step);
+        }
         log.info("관광 데이터 적재 완료: elapsedMs={}", elapsedMillis(startedAt));
+    }
+
+    public void sync(TourSyncStep step) {
+        long startedAt = System.nanoTime();
+        switch (step) {
+            case REGIONS -> syncRegions(regionCandidateRepository.findAll());
+            case PLACE_THEMES -> linkPlaceThemes(regionCandidateRepository.findAll());
+            case OVERVIEWS -> tourPlaceSyncer.syncOverviews();
+            case AUDIO_URLS -> odiiThemeSyncer.syncAudioUrls();
+            case VISITOR_STATS -> visitorStatsSyncer.sync();
+        }
+        log.info("관광 데이터 적재 단계 종료: step={}, elapsedMs={}", step, elapsedMillis(startedAt));
     }
 
     private void syncRegions(List<RegionCandidate> candidates) {

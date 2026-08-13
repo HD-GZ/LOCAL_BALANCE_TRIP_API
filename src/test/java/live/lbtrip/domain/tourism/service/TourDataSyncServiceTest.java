@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.region.repository.RegionCandidateRepository;
+import live.lbtrip.domain.tourism.model.enums.TourSyncStep;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
@@ -114,6 +115,25 @@ class TourDataSyncServiceTest {
             verify(placeThemeLinker).link(succeeding);
             verify(tourPlaceSyncer).syncOverviews();
             verify(visitorStatsSyncer).sync();
+        }
+
+        @Test
+        void OVERVIEWS_단계만_실행하면_다른_단계는_수행하지_않는다() {
+            tourDataSyncService.sync(TourSyncStep.OVERVIEWS);
+
+            verify(tourPlaceSyncer).syncOverviews();
+            verify(odiiThemeSyncer, never()).syncAudioUrls();
+            verify(visitorStatsSyncer, never()).sync();
+            verify(regionStatsSyncer, never()).sync(any());
+        }
+
+        @Test
+        void VISITOR_STATS_단계는_외부_지역_조회_없이_방문자수만_적재한다() {
+            tourDataSyncService.sync(TourSyncStep.VISITOR_STATS);
+
+            verify(visitorStatsSyncer).sync();
+            verify(regionCandidateRepository, never()).findAll();
+            verify(tourPlaceSyncer, never()).syncOverviews();
         }
 
         @Test

@@ -7,6 +7,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -45,6 +46,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Object>> handleHttpMessageNotReadableException() {
+        return ResponseEntity.status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+            .body(ApiResponse.error(ErrorCode.INVALID_INPUT_VALUE));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMethodArgumentTypeMismatchException() {
         return ResponseEntity.status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
             .body(ApiResponse.error(ErrorCode.INVALID_INPUT_VALUE));
     }

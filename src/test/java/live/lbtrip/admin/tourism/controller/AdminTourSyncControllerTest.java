@@ -1,6 +1,7 @@
 package live.lbtrip.admin.tourism.controller;
 
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -22,6 +23,7 @@ import live.lbtrip.admin.auth.model.AdminJwtTokenSubject;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.admin.tourism.service.AdminTourSyncService;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
+import live.lbtrip.domain.tourism.model.enums.TourSyncStep;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
@@ -68,6 +70,41 @@ class AdminTourSyncControllerTest {
                 .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.result").value("ERROR"))
+            .andExpect(jsonPath("$.error.code").value("TOUR_SYNC_IN_PROGRESS"));
+    }
+
+    @Test
+    void 지정한_단계만_동기화를_시작한다() throws Exception {
+        인증된_어드민();
+
+        mockMvc.perform(post("/admin/tour-sync/OVERVIEWS")
+                .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN))
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+
+        verify(adminTourSyncService).triggerSync(TourSyncStep.OVERVIEWS);
+    }
+
+    @Test
+    void 존재하지_않는_단계를_요청하면_예외를_응답한다() throws Exception {
+        인증된_어드민();
+
+        mockMvc.perform(post("/admin/tour-sync/UNKNOWN_STEP")
+                .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.result").value("ERROR"))
+            .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"));
+    }
+
+    @Test
+    void 단계_실행도_이미_실행_중이면_예외를_응답한다() throws Exception {
+        인증된_어드민();
+        doThrow(BusinessException.of(ErrorCode.TOUR_SYNC_IN_PROGRESS))
+            .when(adminTourSyncService).triggerSync(TourSyncStep.REGIONS);
+
+        mockMvc.perform(post("/admin/tour-sync/REGIONS")
+                .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN))
+            .andExpect(status().isConflict())
             .andExpect(jsonPath("$.error.code").value("TOUR_SYNC_IN_PROGRESS"));
     }
 
