@@ -3,6 +3,7 @@ package live.lbtrip.domain.tourism.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,16 +15,20 @@ import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.domain.tourism.client.DataLabClient;
 import live.lbtrip.domain.tourism.client.OdiiClient;
 import live.lbtrip.domain.tourism.client.TourApiClient;
+import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
+import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
 import live.lbtrip.domain.tourism.client.dto.OdiiThemeItem;
-import live.lbtrip.domain.tourism.client.dto.RegionStats;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.domain.tourism.client.dto.VisitorStatItem;
 import live.lbtrip.domain.tourism.model.entity.OdiiTheme;
 import live.lbtrip.domain.tourism.model.entity.RegionVisitorStats;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
+import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
+import live.lbtrip.domain.tourism.model.vo.CategoryGroupMapping;
 import live.lbtrip.domain.tourism.model.vo.Centroid;
+import live.lbtrip.domain.tourism.model.vo.RegionStats;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
 import live.lbtrip.domain.tourism.repository.RegionVisitorStatsRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
@@ -49,6 +54,7 @@ public class TourDataSyncService {
     private final OdiiThemeRepository odiiThemeRepository;
     private final RegionVisitorStatsRepository regionVisitorStatsRepository;
     private final OdiiThemeMatcher odiiThemeMatcher;
+    private final CategoryGroupClassifier categoryGroupClassifier;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -71,8 +77,7 @@ public class TourDataSyncService {
 
     private void syncRegion(RegionCandidate candidate) {
         long startedAt = System.nanoTime();
-        RegionStats stats = tourApiClient.fetchRegionStats(candidate);
-        upsertStats(candidate, stats);
+        upsertStats(candidate, aggregate(tourApiClient.fetchAreaBasedSample(candidate)));
 
         List<TourPlaceItem> fetchedPlaces = new ArrayList<>();
         for (TourContentType contentType : TourContentType.courseCandidates()) {
@@ -109,6 +114,19 @@ public class TourDataSyncService {
             place.assignOdiiTheme(odiiThemeMatcher.match(place, themes).orElse(null));
             tourPlaceRepository.save(place);
         }
+    }
+
+    private RegionStats aggregate(AreaBasedSample sample) {
+        CategoryGroupMapping mapping = categoryGroupClassifier.load();
+        Map<Integer, Integer> typeCounts = new HashMap<>();
+        Map<CategoryGroup, Integer> groupCounts = new EnumMap<>(CategoryGroup.class);
+        for (AreaBasedItem item : sample.items()) {
+            typeCounts.merge(item.contentTypeId(), 1, Integer::sum);
+            for (CategoryGroup group : mapping.classify(item.cat1(), item.cat2(), item.cat3())) {
+                groupCounts.merge(group, 1, Integer::sum);
+            }
+        }
+        return new RegionStats(sample.totalCount(), sample.items().size(), typeCounts, groupCounts);
     }
 
     private void upsertStats(RegionCandidate candidate, RegionStats stats) {
