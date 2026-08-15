@@ -47,7 +47,7 @@ class CourseComposerTest {
     @BeforeEach
     void setUp() {
         when(chatClientBuilder.build()).thenReturn(chatClient);
-        RecommendationProperties properties = new RecommendationProperties(3, 3);
+        RecommendationProperties properties = new RecommendationProperties(3, 3, List.of(1500));
         courseComposer = new CourseComposer(
             chatClientBuilder,
             new ByteArrayResource("{regionName} {candidateLines} {maxCourses} {locality} {frugality} "
@@ -74,7 +74,7 @@ class CourseComposerTest {
         }
 
         @Test
-        void 후보의_contentId와_좌표를_LLM에_전달한다() {
+        void 클러스터별_후보의_contentId와_좌표를_LLM에_전달한다() {
             mockResponse(CourseComposition.of("추천 이유", List.of(
                 CoursePlan.of("코스", "코스 이유", List.of("100", "200", "300")))));
             ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
@@ -83,6 +83,7 @@ class CourseComposerTest {
 
             verify(requestSpec).user(promptCaptor.capture());
             assertThat(promptCaptor.getValue())
+                .contains("## 클러스터 1")
                 .contains("100 | 관광지 | 죽녹원 | 126.986 | 35.325")
                 .contains(RecommendationFixture.REGION_NAME);
         }
@@ -113,7 +114,7 @@ class CourseComposerTest {
         return courseComposer.compose(
             PropensityFixture.propensity(),
             RecommendationFixture.REGION_NAME,
-            RecommendationFixture.tourPlaces()
+            RecommendationFixture.walkableClusters()
         );
     }
 

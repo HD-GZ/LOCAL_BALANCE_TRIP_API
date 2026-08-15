@@ -1,14 +1,17 @@
 package live.lbtrip.domain.recommendation.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.global.config.RecommendationProperties;
 import live.lbtrip.global.error.BusinessException;
@@ -24,7 +27,8 @@ import lombok.extern.slf4j.Slf4j;
  * <p>검증은 세 층으로 나뉜다.
  * <ul>
  *   <li>장소: 후보 목록에 실존하는 contentId만 채택(환각 차단), 코스 내·코스 간 중복 제거,
- *       코스당 최대 5곳 절단. 정제 후 3곳 미만이면 그 코스는 탈락</li>
+ *       첫 유효 장소가 속한 도보 클러스터 밖의 장소 제거, 코스당 최대 5곳 절단.
+ *       정제 후 3곳 미만이면 그 코스는 탈락</li>
  *   <li>코스 구조: 이름·이유 필수(없으면 코스 탈락)와 길이 절단(100자/300자),
  *       이름이 지역명으로 시작하지 않으면 지역명 접두, 코스 수는 maxCourses 상한 초과분 버림</li>
  *   <li>지역 수준: 코스 없음 / 지역 추천 이유 없음 / 전 코스 탈락이면
@@ -46,7 +50,7 @@ public class CourseCompositionValidator {
 
     private final RecommendationProperties recommendationProperties;
 
-    public CourseComposition validate(CourseComposition raw, List<TourPlace> candidates, String regionName) {
+    public CourseComposition validate(CourseComposition raw, List<WalkableCluster> clusters, String regionName) {
         if (raw == null || raw.courses() == null || raw.courses().isEmpty()) {
             throw generationFailed(regionName, "LLM 응답에 코스 없음");
         }
@@ -56,9 +60,11 @@ public class CourseCompositionValidator {
             throw generationFailed(regionName, "LLM 응답에 지역 추천 이유 없음");
         }
 
-        Set<String> validIds = new HashSet<>();
-        for (TourPlace candidate : candidates) {
-            validIds.add(candidate.getContentId());
+        Map<String, String> clusterIdsByContentId = new HashMap<>();
+        for (WalkableCluster cluster : clusters) {
+            for (TourPlace place : cluster.places()) {
+                clusterIdsByContentId.put(place.getContentId(), cluster.id());
+            }
         }
 
         Set<String> usedIds = new HashSet<>();
@@ -67,7 +73,7 @@ public class CourseCompositionValidator {
             if (course == null || courses.size() == recommendationProperties.maxCourses()) {
                 continue;
             }
-            CoursePlan normalized = normalizeCourse(course, validIds, usedIds, regionName);
+            CoursePlan normalized = normalizeCourse(course, clusterIdsByContentId, usedIds, regionName);
             if (normalized != null) {
                 courses.add(normalized);
                 usedIds.addAll(normalized.placeContentIds());
@@ -85,7 +91,7 @@ public class CourseCompositionValidator {
      * null을 반환해 이 코스만 탈락시킨다.
      */
     private CoursePlan normalizeCourse(
-        CoursePlan course, Set<String> validIds, Set<String> usedIds, String regionName
+        CoursePlan course, Map<String, String> clusterIdsByContentId, Set<String> usedIds, String regionName
     ) {
         String name = normalizeRequired(course.name(), NAME_MAX_LENGTH);
         String reason = normalizeRequired(course.reason(), REASON_MAX_LENGTH);
@@ -96,7 +102,7 @@ public class CourseCompositionValidator {
             name = truncate("%s %s".formatted(regionName, name), NAME_MAX_LENGTH);
         }
 
-        List<String> placeContentIds = selectPlaceContentIds(course.placeContentIds(), validIds, usedIds);
+        List<String> placeContentIds = selectPlaceContentIds(course.placeContentIds(), clusterIdsByContentId, usedIds);
         if (placeContentIds.size() < MIN_PLACES_PER_COURSE) {
             return null;
         }
@@ -105,16 +111,18 @@ public class CourseCompositionValidator {
 
     /**
      * LLM이 낸 contentId 목록에서 채택 가능한 것만 순서대로 고른다.
-     * 후보에 없는 ID(환각)·이미 다른 코스가 쓴 ID(usedIds)·코스 안에서 반복된 ID는
-     * 건너뛰고, 5곳이 차면 멈춘다. 코스 간 중복은 앞 코스 우선으로 해소된다.
+     * 후보에 없는 ID(환각)·이미 다른 코스가 쓴 ID(usedIds)·코스 안에서 반복된 ID·
+     * 첫 유효 장소와 다른 도보 클러스터에 속한 ID는 건너뛰고, 5곳이 차면 멈춘다.
+     * 코스 간 중복은 앞 코스 우선으로 해소된다.
      */
     private List<String> selectPlaceContentIds(
-        List<String> rawIds, Set<String> validIds, Set<String> usedIds
+        List<String> rawIds, Map<String, String> clusterIdsByContentId, Set<String> usedIds
     ) {
         List<String> selected = new ArrayList<>();
         if (rawIds == null) {
             return selected;
         }
+        String courseClusterId = null;
         for (String rawId : rawIds) {
             if (selected.size() == MAX_PLACES_PER_COURSE) {
                 break;
@@ -123,7 +131,13 @@ public class CourseCompositionValidator {
                 continue;
             }
             String id = rawId.trim();
-            if (!validIds.contains(id) || usedIds.contains(id) || selected.contains(id)) {
+            String clusterId = clusterIdsByContentId.get(id);
+            if (clusterId == null || usedIds.contains(id) || selected.contains(id)) {
+                continue;
+            }
+            if (courseClusterId == null) {
+                courseClusterId = clusterId;
+            } else if (!courseClusterId.equals(clusterId)) {
                 continue;
             }
             selected.add(id);

@@ -86,3 +86,4 @@ tour-api:
 recommendation:
   max-regions: ${RECOMMENDATION_MAX_REGIONS}
   max-courses: ${RECOMMENDATION_MAX_COURSES}
+  walk-cluster-radii-meters: ${RECOMMENDATION_WALK_CLUSTER_RADII_METERS:1500,2000}

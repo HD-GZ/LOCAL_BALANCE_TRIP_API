@@ -12,6 +12,7 @@ import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan.PlannedCourse;
+import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
 import live.lbtrip.domain.tourism.service.TourPlaceFinder;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RegionPlanAssembler {
 
     private final TourPlaceFinder tourPlaceFinder;
+    private final WalkableClusterBuilder walkableClusterBuilder;
     private final CourseComposer courseComposer;
     private final CourseRoutePlanner courseRoutePlanner;
 
@@ -33,8 +35,13 @@ public class RegionPlanAssembler {
         List<RegionPlan> plans = new ArrayList<>();
         for (RegionMetrics region : regions) {
             List<TourPlace> places = tourPlaceFinder.findAllByRegionCandidateId(region.regionCandidateId());
+            List<WalkableCluster> clusters = walkableClusterBuilder.build(places);
+            if (clusters.isEmpty()) {
+                log.warn("도보권 클러스터가 없는 지역을 건너뜁니다: region={}", region.regionName());
+                continue;
+            }
             try {
-                CourseComposition composition = courseComposer.compose(propensity, region.regionName(), places);
+                CourseComposition composition = courseComposer.compose(propensity, region.regionName(), clusters);
                 plans.add(toRegionPlan(region, composition, places));
             } catch (BusinessException e) {
                 log.warn("코스 구성에 실패한 지역을 건너뜁니다: region={}", region.regionName());
