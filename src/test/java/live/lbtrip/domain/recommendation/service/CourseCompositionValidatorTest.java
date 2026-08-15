@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.global.config.RecommendationProperties;
 import live.lbtrip.global.error.BusinessException;
@@ -22,9 +23,9 @@ class CourseCompositionValidatorTest {
     private static final String REGION_NAME = RecommendationFixture.REGION_NAME;
 
     private final CourseCompositionValidator validator =
-        new CourseCompositionValidator(new RecommendationProperties(3, 2));
+        new CourseCompositionValidator(new RecommendationProperties(3, 2, List.of(1500)));
 
-    private final List<TourPlace> candidates = RecommendationFixture.tourPlaces();
+    private final List<WalkableCluster> candidates = RecommendationFixture.walkableClusters();
 
     @Nested
     class 장소_검증 {
@@ -53,7 +54,8 @@ class CourseCompositionValidatorTest {
 
         @Test
         void 코스당_장소는_5곳까지만_담는다() {
-            List<TourPlace> manyCandidates = RecommendationFixture.manyTourPlaces(7);
+            List<WalkableCluster> manyCandidates =
+                RecommendationFixture.walkableClusters(RecommendationFixture.manyTourPlaces(7));
             CourseComposition raw = composition(
                 course("코스", List.of("100", "101", "102", "103", "104", "105", "106")));
 
@@ -61,6 +63,37 @@ class CourseCompositionValidatorTest {
 
             assertThat(result.courses().getFirst().placeContentIds())
                 .containsExactly("100", "101", "102", "103", "104");
+        }
+
+        @Test
+        void 첫_유효_장소와_다른_클러스터의_장소는_제거한다() {
+            List<TourPlace> places = RecommendationFixture.manyTourPlaces(6);
+            List<WalkableCluster> clusters = List.of(
+                WalkableCluster.of("1", places.subList(0, 3)),
+                WalkableCluster.of("2", places.subList(3, 6)));
+            CourseComposition raw = composition(
+                course("코스", List.of("100", "103", "101", "104", "102")));
+
+            CourseComposition result = validator.validate(raw, clusters, REGION_NAME);
+
+            assertThat(result.courses()).singleElement().satisfies(course ->
+                assertThat(course.placeContentIds()).containsExactly("100", "101", "102"));
+        }
+
+        @Test
+        void 클러스터를_넘나들어_한_클러스터에_3곳이_안_남는_코스는_탈락한다() {
+            List<TourPlace> places = RecommendationFixture.manyTourPlaces(6);
+            List<WalkableCluster> clusters = List.of(
+                WalkableCluster.of("1", places.subList(0, 3)),
+                WalkableCluster.of("2", places.subList(3, 6)));
+            CourseComposition raw = composition(
+                course("흩어진 코스", List.of("100", "101", "103", "104")),
+                course("정상 코스", List.of("103", "104", "105")));
+
+            CourseComposition result = validator.validate(raw, clusters, REGION_NAME);
+
+            assertThat(result.courses()).singleElement().satisfies(course ->
+                assertThat(course.name()).contains("정상 코스"));
         }
 
         @Test
@@ -81,7 +114,8 @@ class CourseCompositionValidatorTest {
 
         @Test
         void 코스_수가_상한을_넘으면_초과분을_버린다() {
-            List<TourPlace> manyCandidates = RecommendationFixture.manyTourPlaces(9);
+            List<WalkableCluster> manyCandidates =
+                RecommendationFixture.walkableClusters(RecommendationFixture.manyTourPlaces(9));
             CourseComposition raw = composition(
                 course("코스1", List.of("100", "101", "102")),
                 course("코스2", List.of("103", "104", "105")),

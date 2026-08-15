@@ -11,6 +11,7 @@ import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationRespon
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.user.model.User;
@@ -64,6 +65,14 @@ public final class RecommendationFixture {
             TourPlace.create("300", candidate, 39,
                 "담양시장", IMAGE_URL, 126.979, 35.319, 3)
         );
+    }
+
+    public static List<WalkableCluster> walkableClusters() {
+        return List.of(WalkableCluster.of("1", tourPlaces()));
+    }
+
+    public static List<WalkableCluster> walkableClusters(List<TourPlace> places) {
+        return List.of(WalkableCluster.of("1", places));
     }
 
     public static List<TourPlace> manyTourPlaces(int count) {

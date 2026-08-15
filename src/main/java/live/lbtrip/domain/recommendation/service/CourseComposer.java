@@ -14,6 +14,7 @@ import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
+import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.config.RecommendationProperties;
@@ -42,21 +43,21 @@ public class CourseComposer {
         this.courseCompositionValidator = courseCompositionValidator;
     }
 
-    public CourseComposition compose(Propensity propensity, String regionName, List<TourPlace> candidates) {
+    public CourseComposition compose(Propensity propensity, String regionName, List<WalkableCluster> clusters) {
         CourseComposition raw;
         try {
             raw = chatClient.prompt()
-                .user(renderPrompt(propensity, regionName, candidates))
+                .user(renderPrompt(propensity, regionName, clusters))
                 .call()
                 .entity(CourseComposition.class);
         } catch (Exception e) {
             log.error("LLM 코스 구성 호출 실패: region={}", regionName, e);
             throw BusinessException.of(ErrorCode.RECOMMENDATION_GENERATION_FAILED);
         }
-        return courseCompositionValidator.validate(raw, candidates, regionName);
+        return courseCompositionValidator.validate(raw, clusters, regionName);
     }
 
-    private String renderPrompt(Propensity propensity, String regionName, List<TourPlace> candidates) {
+    private String renderPrompt(Propensity propensity, String regionName, List<WalkableCluster> clusters) {
         Preference preference = propensity.getPreference();
         ValueConsumption consumption = propensity.getValueConsumption();
 
@@ -72,21 +73,24 @@ public class CourseComposer {
             Map.entry("experience", consumption.getExperience()),
             Map.entry("transportation", consumption.getTransportation()),
             Map.entry("cafeExhibition", consumption.getCafeExhibition()),
-            Map.entry("candidateLines", candidateLines(candidates)),
+            Map.entry("candidateLines", candidateLines(clusters)),
             Map.entry("maxCourses", recommendationProperties.maxCourses())
         ));
     }
 
-    private String candidateLines(List<TourPlace> candidates) {
+    private String candidateLines(List<WalkableCluster> clusters) {
         StringJoiner lines = new StringJoiner("\n");
-        for (TourPlace place : candidates) {
-            lines.add("%s | %s | %s | %s | %s".formatted(
-                place.getContentId(),
-                TourContentType.koreanNameOf(place.getContentTypeId()),
-                place.getTitle(),
-                place.getLongitude(),
-                place.getLatitude()
-            ));
+        for (WalkableCluster cluster : clusters) {
+            lines.add("## 클러스터 %s".formatted(cluster.id()));
+            for (TourPlace place : cluster.places()) {
+                lines.add("%s | %s | %s | %s | %s".formatted(
+                    place.getContentId(),
+                    TourContentType.koreanNameOf(place.getContentTypeId()),
+                    place.getTitle(),
+                    place.getLongitude(),
+                    place.getLatitude()
+                ));
+            }
         }
         return lines.toString();
     }
