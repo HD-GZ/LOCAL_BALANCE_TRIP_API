@@ -19,9 +19,15 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class RecommendationService {
 
+    private final CourseRecommendationGenerator courseRecommendationGenerator;
     private final RecommendedRegionFinder recommendedRegionFinder;
     private final GeneratedCourseFinder generatedCourseFinder;
     private final IncentiveFinder incentiveFinder;
+
+    @Transactional
+    public void createRecommendations(Long userId) {
+        courseRecommendationGenerator.generate(userId);
+    }
 
     public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
         return recommendedRegionFinder.findAllByUserId(userId).stream()
@@ -39,8 +45,7 @@ public class RecommendationService {
         GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
         RecommendedRegion recommendedRegion = course.getRecommendedRegion();
         List<Incentive> incentives = incentiveFinder.findAllByRegion(
-            recommendedRegion.getLdongRegnCd(),
-            recommendedRegion.getLdongSignguCd()
+            recommendedRegion.getRegionCandidate().getId()
         );
 
         return CourseDetailResponse.of(course, incentives);

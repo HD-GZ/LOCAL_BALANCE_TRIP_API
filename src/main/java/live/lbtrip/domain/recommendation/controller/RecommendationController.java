@@ -1,7 +1,5 @@
 package live.lbtrip.domain.recommendation.controller;
 
-import static org.springframework.http.HttpStatus.CREATED;
-
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
-import live.lbtrip.domain.recommendation.service.RecommendationGenerationService;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.global.web.UserId;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +21,12 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/recommendations")
 public class RecommendationController implements RecommendationApi {
 
-    private final RecommendationGenerationService recommendationGenerationService;
     private final RecommendationService recommendationService;
 
     @PostMapping
     public ResponseEntity<Void> createRecommendations(@UserId Long userId) {
-        recommendationGenerationService.createRecommendations(userId);
-        return ResponseEntity.status(CREATED).build();
+        recommendationService.createRecommendations(userId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/regions")

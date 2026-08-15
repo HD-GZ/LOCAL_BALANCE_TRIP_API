@@ -1,5 +1,9 @@
 package live.lbtrip.domain.auth.service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +20,8 @@ import live.lbtrip.domain.user.repository.UserRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.util.StringNormalizer;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuthService {
 
@@ -28,6 +30,23 @@ public class AuthService {
     private final EmailVerificationService emailVerificationService;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final Duration withdrawalGracePeriod;
+
+    public AuthService(
+        UserRepository userRepository,
+        PasswordEncoder passwordEncoder,
+        EmailVerificationService emailVerificationService,
+        JwtTokenProvider jwtTokenProvider,
+        RefreshTokenService refreshTokenService,
+        @Value("${app.withdrawal.grace-period}") Duration withdrawalGracePeriod
+    ) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.emailVerificationService = emailVerificationService;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.refreshTokenService = refreshTokenService;
+        this.withdrawalGracePeriod = withdrawalGracePeriod;
+    }
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -59,14 +78,18 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw BusinessException.of(ErrorCode.INVALID_LOGIN_CREDENTIALS);
         }
-        if (!user.isActive()) {
-            throw BusinessException.of(ErrorCode.EMAIL_NOT_VERIFIED);
+
+        boolean reinstated = false;
+        if (user.isWithdrawn()) {
+            user.reinstate(LocalDateTime.now(), withdrawalGracePeriod);
+            reinstated = true;
         }
+        user.validateActive();
 
         String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = refreshTokenService.issue(user);
 
-        return LoginResponse.of(accessToken, refreshToken);
+        return LoginResponse.of(accessToken, refreshToken, reinstated);
     }
 
     @Transactional

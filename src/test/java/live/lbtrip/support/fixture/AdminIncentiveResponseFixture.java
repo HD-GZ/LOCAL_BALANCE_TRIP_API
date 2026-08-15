@@ -17,6 +17,8 @@ public final class AdminIncentiveResponseFixture {
             AdminIncentiveRequestFixture.TITLE,
             AdminIncentiveRequestFixture.URL,
             AdminIncentiveRequestFixture.DESCRIPTION,
+            AdminIncentiveRequestFixture.START_DATE,
+            AdminIncentiveRequestFixture.END_DATE,
             regionResponses()
         );
     }
@@ -27,13 +29,27 @@ public final class AdminIncentiveResponseFixture {
             AdminIncentiveRequestFixture.UPDATED_TITLE,
             AdminIncentiveRequestFixture.UPDATED_URL,
             AdminIncentiveRequestFixture.UPDATED_DESCRIPTION,
+            AdminIncentiveRequestFixture.UPDATED_START_DATE,
+            null,
+            regionResponses()
+        );
+    }
+
+    public static AdminIncentiveResponse legacyIncentiveResponse() {
+        return new AdminIncentiveResponse(
+            INCENTIVE_ID,
+            AdminIncentiveRequestFixture.TITLE,
+            AdminIncentiveRequestFixture.URL,
+            AdminIncentiveRequestFixture.DESCRIPTION,
+            null,
+            null,
             regionResponses()
         );
     }
 
     private static List<AdminIncentiveResponse.RegionResponse> regionResponses() {
         return List.of(new AdminIncentiveResponse.RegionResponse(
-            AdminIncentiveRequestFixture.LDONG_REGN_CD, AdminIncentiveRequestFixture.LDONG_SIGNGU_CD));
+            RegionCandidateFixture.CANDIDATE_ID, RegionCandidateFixture.NAME));
     }
 
     public static List<AdminIncentiveResponse> incentiveResponses() {

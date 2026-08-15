@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Preference {
 
+    private static final int HIGH_POLE_MIN_SCORE = 4;
+
     @Column(nullable = false)
     private int locality;
 
@@ -48,5 +50,17 @@ public class Preference {
         int sociality
     ) {
         return new Preference(locality, frugality, experientiality, vitality, sociality);
+    }
+
+    public String toTravelProfileCode() {
+        return pole(locality, "H", "L")
+            + pole(frugality, "P", "V")
+            + pole(experientiality, "S", "E")
+            + pole(vitality, "R", "A")
+            + pole(sociality, "I", "G");
+    }
+
+    private static String pole(int score, String low, String high) {
+        return score >= HIGH_POLE_MIN_SCORE ? high : low;
     }
 }

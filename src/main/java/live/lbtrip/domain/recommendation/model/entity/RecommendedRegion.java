@@ -13,7 +13,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
@@ -37,11 +39,9 @@ public class RecommendedRegion extends BaseEntity {
     @Column(name = "region_name", nullable = false, length = 50)
     private String regionName;
 
-    @Column(name = "ldong_regn_cd", length = 2)
-    private String ldongRegnCd;
-
-    @Column(name = "ldong_signgu_cd", length = 3)
-    private String ldongSignguCd;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_candidate_id", nullable = false)
+    private RegionCandidate regionCandidate;
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
@@ -53,26 +53,26 @@ public class RecommendedRegion extends BaseEntity {
     private int displayOrder;
 
     @OneToMany(mappedBy = "recommendedRegion", cascade = CascadeType.ALL)
+    @OrderBy("displayOrder asc")
     private List<GeneratedCourse> courses = new ArrayList<>();
 
     private RecommendedRegion(
-        User user, String regionName, String ldongRegnCd, String ldongSignguCd,
+        User user, String regionName, RegionCandidate regionCandidate,
         String imageUrl, String reason, int displayOrder
     ) {
         this.user = user;
         this.regionName = regionName;
-        this.ldongRegnCd = ldongRegnCd;
-        this.ldongSignguCd = ldongSignguCd;
+        this.regionCandidate = regionCandidate;
         this.imageUrl = imageUrl;
         this.reason = reason;
         this.displayOrder = displayOrder;
     }
 
     public static RecommendedRegion create(
-        User user, String regionName, String ldongRegnCd, String ldongSignguCd,
+        User user, String regionName, RegionCandidate regionCandidate,
         String imageUrl, String reason, int displayOrder
     ) {
-        return new RecommendedRegion(user, regionName, ldongRegnCd, ldongSignguCd, imageUrl, reason, displayOrder);
+        return new RecommendedRegion(user, regionName, regionCandidate, imageUrl, reason, displayOrder);
     }
 
     public void addCourse(GeneratedCourse course) {

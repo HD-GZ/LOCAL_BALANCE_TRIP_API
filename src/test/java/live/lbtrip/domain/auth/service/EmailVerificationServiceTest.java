@@ -19,11 +19,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.auth.dto.response.EmailVerificationResponse;
-import live.lbtrip.domain.auth.model.EmailVerificationToken;
-import live.lbtrip.domain.auth.repository.EmailVerificationTokenRepository;
+import live.lbtrip.domain.auth.model.SignupVerificationToken;
+import live.lbtrip.domain.auth.repository.SignupVerificationTokenRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.model.UserStatus;
-import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.fixture.AuthRequestFixture;
@@ -35,10 +35,10 @@ class EmailVerificationServiceTest {
     private static final Duration TOKEN_EXPIRATION = Duration.ofDays(1);
 
     @Mock
-    private EmailVerificationTokenRepository tokenRepository;
+    private SignupVerificationTokenRepository tokenRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private UserFinder userFinder;
 
     @Mock
     private EmailService emailService;
@@ -52,7 +52,7 @@ class EmailVerificationServiceTest {
     void setUp() {
         emailVerificationService = new EmailVerificationService(
             tokenRepository,
-            userRepository,
+            userFinder,
             emailService,
             codeGenerator,
             TOKEN_EXPIRATION
@@ -69,7 +69,7 @@ class EmailVerificationServiceTest {
 
             long expiresIn = emailVerificationService.issue(user);
 
-            ArgumentCaptor<EmailVerificationToken> tokenCaptor = ArgumentCaptor.forClass(EmailVerificationToken.class);
+            ArgumentCaptor<SignupVerificationToken> tokenCaptor = ArgumentCaptor.forClass(SignupVerificationToken.class);
             verify(tokenRepository).save(tokenCaptor.capture());
             assertThat(tokenCaptor.getValue().getCode()).isEqualTo(AuthRequestFixture.VERIFICATION_CODE);
             verify(emailService).sendVerificationEmail(UserFixture.EMAIL, AuthRequestFixture.VERIFICATION_CODE);
@@ -83,7 +83,7 @@ class EmailVerificationServiceTest {
         @Test
         void 인증_코드를_확인하면_사용자를_활성화한다() {
             User user = UserFixture.user();
-            EmailVerificationToken token = EmailVerificationToken.create(
+            SignupVerificationToken token = SignupVerificationToken.create(
                 user,
                 AuthRequestFixture.VERIFICATION_CODE,
                 LocalDateTime.now().plusMinutes(10)
@@ -119,14 +119,14 @@ class EmailVerificationServiceTest {
         @Test
         void 인증_코드를_재발송한다() {
             User user = UserFixture.user();
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
             when(codeGenerator.generate()).thenReturn(AuthRequestFixture.VERIFICATION_CODE);
 
             EmailVerificationResponse response = emailVerificationService.resend(
                 AuthRequestFixture.emailVerificationResendRequest()
             );
 
-            verify(tokenRepository).save(any(EmailVerificationToken.class));
+            verify(tokenRepository).save(any(SignupVerificationToken.class));
             verify(emailService).sendVerificationEmail(UserFixture.EMAIL, AuthRequestFixture.VERIFICATION_CODE);
             assertThat(response.email()).isEqualTo(UserFixture.EMAIL);
             assertThat(response.status()).isEqualTo(UserStatus.PENDING_EMAIL_VERIFICATION);
@@ -135,7 +135,7 @@ class EmailVerificationServiceTest {
         @Test
         void 이미_인증된_사용자면_예외를_던진다() {
             User user = UserFixture.activeUser();
-            when(userRepository.findByEmail(UserFixture.EMAIL)).thenReturn(Optional.of(user));
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
 
             assertThatThrownBy(() -> emailVerificationService.resend(
                 AuthRequestFixture.emailVerificationResendRequest()
@@ -143,6 +143,20 @@ class EmailVerificationServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.EMAIL_ALREADY_VERIFIED);
+        }
+
+        @Test
+        void 탈퇴한_회원이면_예외를_던진다() {
+            User user = UserFixture.activeUser();
+            user.withdraw(LocalDateTime.now());
+            when(userFinder.findByEmail(UserFixture.EMAIL)).thenReturn(user);
+
+            assertThatThrownBy(() -> emailVerificationService.resend(
+                AuthRequestFixture.emailVerificationResendRequest()
+            ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_WITHDRAWN);
         }
     }
 }

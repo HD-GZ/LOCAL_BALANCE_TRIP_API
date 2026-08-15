@@ -1,7 +1,10 @@
 package live.lbtrip.domain.savedcourse.model.entity;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -17,8 +20,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import live.lbtrip.domain.savedcourse.model.SavedCourseStatus;
+import live.lbtrip.domain.region.model.RegionCandidate;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.user.model.User;
+import live.lbtrip.global.error.BusinessException;
+import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -29,6 +35,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "saved_courses")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SavedCourse extends BaseEntity {
+
+    private static final double CAR_EMISSION_KG_PER_KM = 0.21;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,17 +67,34 @@ public class SavedCourse extends BaseEntity {
     @Column(name = "ldong_signgu_cd", length = 3)
     private String ldongSignguCd;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_candidate_id")
+    private RegionCandidate regionCandidate;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SavedCourseStatus status;
+
+    @Column(name = "tour_started_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime tourStartedAt;
+
+    @Column(name = "tour_ended_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime tourEndedAt;
+
+    @Column(name = "walked_distance_meters")
+    private Integer walkedDistanceMeters;
 
     @OneToMany(mappedBy = "savedCourse", cascade = CascadeType.ALL)
     @OrderBy("visitOrder asc")
     private List<SavedCoursePlace> places = new ArrayList<>();
 
+    @OneToMany(mappedBy = "savedCourse")
+    @OrderBy("id desc")
+    private List<TourReceipt> receipts = new ArrayList<>();
+
     private SavedCourse(
         User user, Long sourceCourseId, String courseName, String regionName, String reason,
-        String imageUrl, String ldongRegnCd, String ldongSignguCd
+        String imageUrl, RegionCandidate regionCandidate
     ) {
         this.user = user;
         this.sourceCourseId = sourceCourseId;
@@ -77,17 +102,22 @@ public class SavedCourse extends BaseEntity {
         this.regionName = regionName;
         this.reason = reason;
         this.imageUrl = imageUrl;
-        this.ldongRegnCd = ldongRegnCd;
-        this.ldongSignguCd = ldongSignguCd;
+        this.regionCandidate = regionCandidate;
+        this.ldongRegnCd = regionCandidate == null ? null : regionCandidate.getLdongRegnCd();
+        this.ldongSignguCd = regionCandidate == null ? null : regionCandidate.getLdongSignguCd();
         this.status = SavedCourseStatus.BEFORE_TRIP;
     }
 
     public static SavedCourse create(
         User user, Long sourceCourseId, String courseName, String regionName, String reason,
-        String imageUrl, String ldongRegnCd, String ldongSignguCd
+        String imageUrl, RegionCandidate regionCandidate
     ) {
         return new SavedCourse(user, sourceCourseId, courseName, regionName, reason,
-            imageUrl, ldongRegnCd, ldongSignguCd);
+            imageUrl, regionCandidate);
+    }
+
+    public Long regionCandidateId() {
+        return regionCandidate == null ? null : regionCandidate.getId();
     }
 
     public void changeStatus(SavedCourseStatus status) {
@@ -97,5 +127,87 @@ public class SavedCourse extends BaseEntity {
     public void addPlace(SavedCoursePlace place) {
         places.add(place);
         place.assignSavedCourse(this);
+    }
+
+    void addReceipt(TourReceipt receipt) {
+        receipts.add(receipt);
+    }
+
+    public int calculateTotalReceiptAmount() {
+        return receipts.stream()
+            .mapToInt(TourReceipt::getAmount)
+            .sum();
+    }
+
+    public TourReceipt findReceiptById(Long receiptId) {
+        return receipts.stream()
+            .filter(receipt -> Objects.equals(receipt.getId(), receiptId))
+            .findFirst()
+            .orElseThrow(() -> BusinessException.of(ErrorCode.TOUR_RECEIPT_NOT_FOUND));
+    }
+
+    public void startTour() {
+        if (status == SavedCourseStatus.COMPLETED) {
+            throw BusinessException.of(ErrorCode.TOUR_ALREADY_COMPLETED);
+        }
+        this.status = SavedCourseStatus.TRAVELING;
+        if (tourStartedAt == null) {
+            this.tourStartedAt = LocalDateTime.now();
+        }
+        this.tourEndedAt = null;
+    }
+
+    public void checkInPlace(Long placeId) {
+        validateTraveling();
+        places.stream()
+            .filter(p -> p.getId().equals(placeId))
+            .findFirst()
+            .orElseThrow(() -> BusinessException.of(ErrorCode.SAVED_COURSE_PLACE_NOT_FOUND))
+            .checkIn();
+    }
+
+    public boolean endTour(int walkedDistanceMeters) {
+        validateTraveling();
+        this.tourEndedAt = LocalDateTime.now();
+        this.walkedDistanceMeters = walkedDistanceMeters;
+        boolean completed = places.stream().allMatch(SavedCoursePlace::isVisited);
+        if (completed) {
+            this.status = SavedCourseStatus.COMPLETED;
+        }
+        return completed;
+    }
+
+    public int countVisitedPlaces() {
+        return (int) places.stream().filter(SavedCoursePlace::isVisited).count();
+    }
+
+    public long tourDurationMinutes() {
+        if (tourStartedAt == null || tourEndedAt == null) {
+            return 0;
+        }
+        return Duration.between(tourStartedAt, tourEndedAt).toMinutes();
+    }
+
+    public Double carbonReductionKg() {
+        if (walkedDistanceMeters == null) {
+            return null;
+        }
+        return roundToOneDecimal(walkedDistanceMeters / 1000.0 * CAR_EMISSION_KG_PER_KM);
+    }
+
+    private double roundToOneDecimal(double value) {
+        return Math.round(value * 10) / 10.0;
+    }
+
+    public void validateReportAvailable() {
+        if (tourEndedAt == null) {
+            throw BusinessException.of(ErrorCode.TOUR_REPORT_NOT_AVAILABLE);
+        }
+    }
+
+    private void validateTraveling() {
+        if (status != SavedCourseStatus.TRAVELING) {
+            throw BusinessException.of(ErrorCode.TOUR_NOT_IN_PROGRESS);
+        }
     }
 }

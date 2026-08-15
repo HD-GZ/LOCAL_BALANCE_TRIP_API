@@ -14,10 +14,10 @@ public final class IncentiveFixture {
         Incentive incentive = Incentive.create(
             AdminIncentiveRequestFixture.TITLE,
             AdminIncentiveRequestFixture.URL,
-            AdminIncentiveRequestFixture.DESCRIPTION);
-        incentive.replaceRegions(List.of(IncentiveRegion.create(
-            AdminIncentiveRequestFixture.LDONG_REGN_CD,
-            AdminIncentiveRequestFixture.LDONG_SIGNGU_CD)));
+            AdminIncentiveRequestFixture.DESCRIPTION,
+            AdminIncentiveRequestFixture.START_DATE,
+            AdminIncentiveRequestFixture.END_DATE);
+        incentive.replaceRegions(List.of(IncentiveRegion.create(RegionCandidateFixture.candidateWithId())));
         return incentive;
     }
 }

@@ -1,7 +1,11 @@
 spring:
   output:
     ansi:
-      enabled: ${SPRING_OUTPUT_ANSI_ENABLED:always}
+      enabled: ${SPRING_OUTPUT_ANSI_ENABLED}
+  servlet:
+    multipart:
+      max-file-size: ${MAX_IMAGE_SIZE}
+      max-request-size: ${MAX_REQUEST_SIZE}
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -20,9 +24,32 @@ spring:
         options:
           model: gpt-4o-mini
           temperature: 0.7
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 3000
+          timeout: 5000
+          writetimeout: 5000
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  storage:
+    max-image-size: ${MAX_IMAGE_SIZE}
+    s3:
+      bucket: ${S3_BUCKET}
+      region: ${S3_REGION}
+      access-key: ${S3_ACCESS_KEY}
+      secret-key: ${S3_SECRET_KEY}
+    cdn-base-url: ${CDN_BASE_URL}
+    presigned-url-ttl: ${PRESIGNED_URL_TTL}
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
@@ -31,14 +58,17 @@ app:
     admin-access-token-expiration: ${JWT_ADMIN_ACCESS_TOKEN_EXPIRATION}
   mail:
     from: ${MAIL_FROM}
+    from-name: ${MAIL_FROM_NAME}
   email-verification:
     code-expiration: ${EMAIL_VERIFICATION_CODE_EXPIRATION}
+  password-reset:
+    code-expiration: ${PASSWORD_RESET_CODE_EXPIRATION}
+    token-expiration: ${PASSWORD_RESET_TOKEN_EXPIRATION}
+  withdrawal:
+    grace-period: ${WITHDRAWAL_GRACE_PERIOD}
 
 swagger:
   server-url: ${SWAGGER_SERVER_URL}
-
-sendgrid:
-  api-key: ${SENDGRID_API_KEY}
 
 slack:
   logging:
@@ -47,7 +77,13 @@ slack:
 tour-api:
   base-url: https://apis.data.go.kr/B551011/KorService2
   odii-base-url: https://apis.data.go.kr/B551011/Odii
+  data-lab-base-url: https://apis.data.go.kr/B551011/DataLabService
   service-key: ${TOUR_API_SERVICE_KEY}
   mobile-os: ${TOUR_API_MOBILE_OS}
   mobile-app: ${TOUR_API_MOBILE_APP}
   read-timeout: ${TOUR_API_READ_TIMEOUT}
+
+recommendation:
+  max-regions: ${RECOMMENDATION_MAX_REGIONS}
+  max-courses: ${RECOMMENDATION_MAX_COURSES}
+  walk-cluster-radii-meters: ${RECOMMENDATION_WALK_CLUSTER_RADII_METERS:1500,2000}

@@ -1,0 +1,1 @@
+RENAME TABLE email_verification_tokens TO signup_verification_tokens;

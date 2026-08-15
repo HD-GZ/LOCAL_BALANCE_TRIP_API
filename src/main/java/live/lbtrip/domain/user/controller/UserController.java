@@ -1,13 +1,17 @@
 package live.lbtrip.domain.user.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import live.lbtrip.domain.user.dto.request.EmailAvailabilityRequest;
+import live.lbtrip.domain.user.dto.request.UserUpdateRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.dto.response.UserResponse;
 import live.lbtrip.domain.user.service.UserService;
@@ -35,5 +39,22 @@ public class UserController implements UserApi {
     ) {
         UserResponse response = userService.getUser(userId);
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<UserResponse> updateUser(
+        @UserId Long userId,
+        @Valid @RequestBody UserUpdateRequest request
+    ) {
+        UserResponse response = userService.updateUser(userId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdrawUser(
+        @UserId Long userId
+    ) {
+        userService.withdraw(userId);
+        return ResponseEntity.ok().build();
     }
 }

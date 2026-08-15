@@ -18,4 +18,9 @@ public class UserFinder {
         return userRepository.findById(userId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
     }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+            .orElseThrow(() -> BusinessException.of(ErrorCode.USER_NOT_FOUND));
+    }
 }

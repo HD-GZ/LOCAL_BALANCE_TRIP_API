@@ -13,32 +13,16 @@ class TravelProfileTest {
         @Test
         void 여행_프로필을_생성한다() {
             TravelProfile travelProfile = TravelProfile.create(
-                PropensityBucket.HIGH,
-                PropensityBucket.HIGH,
-                PropensityBucket.LOW,
-                PropensityBucket.LOW,
-                PropensityBucket.LOW,
-                PropensityBucket.LOW,
-                PropensityBucket.HIGH,
-                PropensityBucket.HIGH,
-                PropensityBucket.LOW,
-                PropensityBucket.NEUTRAL,
-                "실속형 로컬 감성 여행자",
-                "럭셔리보다 실속을 즐기는 여행자예요."
+                "LVEAI",
+                "찐로컬 탐험가",
+                "로컬의 구석구석을 발로 뛰며 직접 체험하는 실속파 혼행 여행자예요.",
+                "travel-profiles/lveai.png"
             );
 
-            assertThat(travelProfile.getLocalityBucket()).isEqualTo(PropensityBucket.HIGH);
-            assertThat(travelProfile.getFrugalityBucket()).isEqualTo(PropensityBucket.HIGH);
-            assertThat(travelProfile.getExperientialityBucket()).isEqualTo(PropensityBucket.LOW);
-            assertThat(travelProfile.getVitalityBucket()).isEqualTo(PropensityBucket.LOW);
-            assertThat(travelProfile.getSocialityBucket()).isEqualTo(PropensityBucket.LOW);
-            assertThat(travelProfile.getAccommodationBucket()).isEqualTo(PropensityBucket.LOW);
-            assertThat(travelProfile.getFoodBucket()).isEqualTo(PropensityBucket.HIGH);
-            assertThat(travelProfile.getExperienceBucket()).isEqualTo(PropensityBucket.HIGH);
-            assertThat(travelProfile.getTransportationBucket()).isEqualTo(PropensityBucket.LOW);
-            assertThat(travelProfile.getCafeExhibitionBucket()).isEqualTo(PropensityBucket.NEUTRAL);
-            assertThat(travelProfile.getType()).isEqualTo("실속형 로컬 감성 여행자");
-            assertThat(travelProfile.getDescription()).isEqualTo("럭셔리보다 실속을 즐기는 여행자예요.");
+            assertThat(travelProfile.getCode()).isEqualTo("LVEAI");
+            assertThat(travelProfile.getNickname()).isEqualTo("찐로컬 탐험가");
+            assertThat(travelProfile.getDescription()).isEqualTo("로컬의 구석구석을 발로 뛰며 직접 체험하는 실속파 혼행 여행자예요.");
+            assertThat(travelProfile.getImageKey()).isEqualTo("travel-profiles/lveai.png");
         }
     }
 }

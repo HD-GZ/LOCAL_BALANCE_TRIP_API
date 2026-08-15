@@ -1,4 +1,11 @@
 spring:
+  output:
+    ansi:
+      enabled: never
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
   datasource:
     url: jdbc:h2:mem:lbtrip-test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
     username: sa
@@ -12,10 +19,24 @@ spring:
   ai:
     openai:
       api-key: test-key
+  mail:
+    host: localhost
+    port: 1025
+    username: test-mail-user
+    password: test-mail-password
 app:
   cors:
     allowed-origins:
       - http://localhost:3000
+  storage:
+    max-image-size: 10MB
+    s3:
+      bucket: test-bucket
+      region: ap-northeast-2
+      access-key: test-access-key
+      secret-key: test-secret-key
+    cdn-base-url: http://localhost
+    presigned-url-ttl: 10m
   jwt:
     secret: test-secret-key-that-is-at-least-32-bytes-long
     access-token-expiration: 30m
@@ -24,14 +45,17 @@ app:
     admin-access-token-expiration: 30m
   mail:
     from: no-reply@test.local
+    from-name: 로컬밸런스 트립
   email-verification:
     code-expiration: 24h
+  password-reset:
+    code-expiration: 10m
+    token-expiration: 10m
+  withdrawal:
+    grace-period: 30d
 
 swagger:
   server-url: http://localhost
-
-sendgrid:
-  api-key: test-sendgrid-api-key
 
 slack:
   logging:
@@ -40,7 +64,13 @@ slack:
 tour-api:
   base-url: http://localhost
   odii-base-url: http://localhost
+  data-lab-base-url: http://localhost
   service-key: test-key
   mobile-os: ETC
   mobile-app: lbtrip-test
   read-timeout: 5s
+
+recommendation:
+  max-regions: 3
+  max-courses: 3
+  walk-cluster-radii-meters: 1500,2000

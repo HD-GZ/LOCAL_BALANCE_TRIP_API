@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.global.model.BaseEntity;
@@ -47,18 +48,25 @@ public class GeneratedCourse extends BaseEntity {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @OrderBy("visitOrder asc")
     private List<CoursePlace> places = new ArrayList<>();
 
-    private GeneratedCourse(User user, String name, String reason, String imageUrl) {
+    private GeneratedCourse(User user, String name, String reason, String imageUrl, int displayOrder) {
         this.user = user;
         this.name = name;
         this.reason = reason;
         this.imageUrl = imageUrl;
+        this.displayOrder = displayOrder;
     }
 
-    public static GeneratedCourse create(User user, String name, String reason, String imageUrl) {
-        return new GeneratedCourse(user, name, reason, imageUrl);
+    public static GeneratedCourse create(
+        User user, String name, String reason, String imageUrl, int displayOrder
+    ) {
+        return new GeneratedCourse(user, name, reason, imageUrl, displayOrder);
     }
 
     void assignRegion(RecommendedRegion recommendedRegion) {

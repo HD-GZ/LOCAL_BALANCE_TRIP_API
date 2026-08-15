@@ -5,12 +5,14 @@ import static live.lbtrip.global.error.ErrorCode.*;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import live.lbtrip.domain.user.dto.request.EmailAvailabilityRequest;
+import live.lbtrip.domain.user.dto.request.UserUpdateRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
 import live.lbtrip.domain.user.dto.response.UserResponse;
 import live.lbtrip.global.swagger.ApiErrorCodeResponses;
@@ -20,16 +22,53 @@ import live.lbtrip.global.web.UserId;
 @Tag(name = "User", description = "사용자 API")
 public interface UserApi {
 
-    @Operation(summary = "이메일 사용 가능 여부 확인", description = "가입 전 이메일 중복 여부를 확인합니다.")
-    @ApiSuccessResponse(description = "조회 성공")
+    @Operation(
+        summary = "이메일 사용 가능 여부 확인",
+        description = """
+            가입 전 이메일의 중복 여부를 확인합니다.
+            이메일 사용 가능 여부를 반환합니다.
+            """
+    )
+    @ApiSuccessResponse(description = "이메일 사용 가능 여부 확인 성공")
     @ApiErrorCodeResponses(INVALID_INPUT_VALUE)
     ResponseEntity<EmailAvailabilityResponse> checkEmailAvailability(
         @Valid @ParameterObject @ModelAttribute EmailAvailabilityRequest request
     );
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 프로필 정보를 조회합니다.")
-    @ApiSuccessResponse(description = "조회 성공")
+    @Operation(
+        summary = "내 정보 조회",
+        description = """
+            현재 로그인한 사용자의 프로필 정보를 조회합니다.
+            """
+    )
+    @ApiSuccessResponse(description = "내 정보 조회 성공")
     @ApiErrorCodeResponses({INVALID_ACCESS_TOKEN, USER_NOT_FOUND})
     ResponseEntity<UserResponse> getUser(@UserId Long userId);
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "내 정보 수정",
+        description = """
+            현재 로그인한 사용자의 이름, 생년월일과 성별을 수정합니다.
+            비밀번호는 요청 값이 있을 때만 변경하며, 이메일은 변경할 수 없습니다.
+            수정된 프로필 정보를 반환합니다.
+            """
+    )
+    @ApiSuccessResponse(description = "내 정보 수정 성공")
+    @ApiErrorCodeResponses({INVALID_INPUT_VALUE, INVALID_ACCESS_TOKEN, USER_NOT_FOUND})
+    ResponseEntity<UserResponse> updateUser(@UserId Long userId, @Valid @RequestBody UserUpdateRequest request);
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "회원탈퇴",
+        description = """
+            현재 로그인한 사용자를 탈퇴 처리합니다.
+            탈퇴 즉시 리프레시 토큰이 폐기되며, 30일의 유예기간 내에 다시 로그인하면 탈퇴가 철회됩니다.
+            유예기간이 지나면 개인정보가 파기되어 복구할 수 없습니다.
+            """
+    )
+    @ApiSuccessResponse(description = "회원탈퇴 성공")
+    @ApiErrorCodeResponses({INVALID_ACCESS_TOKEN, USER_NOT_FOUND, USER_WITHDRAWN})
+    ResponseEntity<Void> withdrawUser(@UserId Long userId);
 }
