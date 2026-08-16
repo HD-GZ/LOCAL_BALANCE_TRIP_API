@@ -21,7 +21,7 @@ When adding agent-specific rule files such as `CLAUDE.md`, do not duplicate thes
 - All JSON API responses must follow the `ApiResponse` wrapper structure.
 - Do not wrap normal success responses manually with `ApiResponse.success(...)` in controllers. `ApiResponseAdvice` performs wrapping automatically.
 - Throw business exceptions with `BusinessException.of(ErrorCode.X)`.
-- When a new business error is needed, add an `ErrorCode` entry first with the HTTP status and Korean message.
+- When a new business error is needed, add an `ErrorCode` entry with the HTTP status, then add `error.{CODE}` to both `src/main/resources/messages/messages.properties` (ko) and `messages_en.properties` (en). `MessageCatalogTest` fails if either is missing.
 - Avoid arbitrary `RuntimeException`s, hard-coded error responses, and controller-local exception response creation.
 - Validation failures should use the `INVALID_INPUT_VALUE` response flow in `GlobalExceptionHandler`.
 
@@ -37,7 +37,7 @@ When adding agent-specific rule files such as `CLAUDE.md`, do not duplicate thes
 ## DTO Rules
 
 - Use `record` for request and response DTOs.
-- Request DTOs should include Bean Validation annotations and Korean validation messages.
+- Request DTOs should include Bean Validation annotations with `{validation.{field}.{rule}}` message keys defined in both message files. Reuse existing keys when the meaning is the same.
 - Use `@Schema` for request body DTOs. Use `@Parameter` where appropriate for query or model attribute DTOs.
 - Response DTOs should expose only the fields needed by the API, not whole entities.
 - Create response DTOs through `from(...)` or `of(...)` static factory methods.
@@ -74,3 +74,4 @@ When adding agent-specific rule files such as `CLAUDE.md`, do not duplicate thes
 - Use Lombok consistently with the existing patterns, but do not add setters to entities.
 - Put new shared functionality under `global`; keep domain-specific logic inside the relevant `domain` package.
 - Read production configuration values from environment variables through `application.yml`, and keep test-only values in `application-test.yml`.
+- Do not hard-code user-facing strings in Java. Resolve them through `MessageResolver` (`global/i18n`) or message keys; Swagger descriptions/examples are the only exception.
