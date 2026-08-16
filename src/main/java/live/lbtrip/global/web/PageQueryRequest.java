@@ -8,12 +8,12 @@ import jakarta.validation.constraints.Min;
 
 public record PageQueryRequest(
     @Parameter(description = "페이지 번호(1부터 시작). 생략 시 1.", example = "1")
-    @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.")
+    @Min(value = 1, message = "{validation.page.min}")
     Integer page,
 
     @Parameter(description = "페이지 크기. 생략 시 10, 최대 50.", example = "10")
-    @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.")
-    @Max(value = 50, message = "페이지 크기는 50 이하여야 합니다.")
+    @Min(value = 1, message = "{validation.pageSize.min}")
+    @Max(value = 50, message = "{validation.pageSize.max}")
     Integer limit
 ) {
 

@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public record EmailAvailabilityRequest(
     @Parameter(description = "중복 확인할 이메일", example = "user@example.com", required = true)
-    @NotBlank(message = "이메일은 필수입니다.")
-    @Email(message = "이메일 형식이 올바르지 않습니다.")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.format}")
     String email
 ) {
 }
