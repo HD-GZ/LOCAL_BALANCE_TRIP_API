@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,12 +32,17 @@ import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.MessageResolver;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class ApiResponseOperationCustomizer implements OperationCustomizer {
 
     private static final String RESULT_SUCCESS = "SUCCESS";
     private static final String RESULT_ERROR = "ERROR";
+
+    private final MessageResolver messageResolver;
 
     @Override
     public Operation customize(Operation operation, HandlerMethod handlerMethod) {
@@ -185,14 +191,14 @@ public class ApiResponseOperationCustomizer implements OperationCustomizer {
 
     private String errorDescription(List<ErrorCode> errorCodes) {
         return errorCodes.stream()
-            .map(ErrorCode::name)
+            .map(errorCode -> errorCode.name() + ": " + koreanMessage(errorCode))
             .collect(Collectors.joining("<br/>"));
     }
 
     private Map<String, Object> errorExample(ErrorCode errorCode) {
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("code", errorCode.name());
-        error.put("message", errorCode.name());
+        error.put("message", koreanMessage(errorCode));
         error.put("data", errorDataExample(errorCode));
 
         Map<String, Object> example = new LinkedHashMap<>();
@@ -200,6 +206,10 @@ public class ApiResponseOperationCustomizer implements OperationCustomizer {
         example.put("data", null);
         example.put("error", error);
         return example;
+    }
+
+    private String koreanMessage(ErrorCode errorCode) {
+        return messageResolver.resolve(Locale.KOREAN, "error." + errorCode.name());
     }
 
     private Object errorDataExample(ErrorCode errorCode) {
