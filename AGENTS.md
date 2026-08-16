@@ -62,6 +62,7 @@ When adding agent-specific rule files such as `CLAUDE.md`, do not duplicate thes
 ## Tests
 
 - Use `@WebMvcTest` and `MockMvc` for controller tests.
+- Controller tests using `@WebMvcTest` must `@Import(I18nTestConfig.class)` (`src/test/java/live/lbtrip/support/config`) so `GlobalExceptionHandler` can resolve `MessageResolver`.
 - Controller tests should verify the common response format, including fields such as `$.result`, `$.data`, and `$.error.code`, in addition to HTTP status.
 - Prefer unit tests with `@ExtendWith(MockitoExtension.class)`, `@Mock`, and `@InjectMocks` for service tests.
 - Business exception tests should verify both the exception type and the `errorCode`.
