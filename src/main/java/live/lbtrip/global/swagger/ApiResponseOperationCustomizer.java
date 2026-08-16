@@ -185,14 +185,14 @@ public class ApiResponseOperationCustomizer implements OperationCustomizer {
 
     private String errorDescription(List<ErrorCode> errorCodes) {
         return errorCodes.stream()
-            .map(errorCode -> errorCode.name() + ": " + errorCode.getMessage())
+            .map(ErrorCode::name)
             .collect(Collectors.joining("<br/>"));
     }
 
     private Map<String, Object> errorExample(ErrorCode errorCode) {
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("code", errorCode.name());
-        error.put("message", errorCode.getMessage());
+        error.put("message", errorCode.name());
         error.put("data", errorDataExample(errorCode));
 
         Map<String, Object> example = new LinkedHashMap<>();

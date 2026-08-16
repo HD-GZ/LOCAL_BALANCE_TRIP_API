@@ -28,11 +28,12 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(SavedCourseController.class)
-@Import(SavedCourseControllerTest.TestCorsConfig.class)
+@Import({SavedCourseControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class SavedCourseControllerTest {
 
     private static final Long COURSE_ID = 2L;

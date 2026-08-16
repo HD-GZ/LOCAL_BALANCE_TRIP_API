@@ -25,12 +25,13 @@ import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.global.config.CorsProperties;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(RecommendationController.class)
-@Import(RecommendationControllerTest.TestCorsConfig.class)
+@Import({RecommendationControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class RecommendationControllerTest {
 
     @Autowired

@@ -32,12 +32,13 @@ import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(HomeController.class)
-@Import(HomeControllerTest.TestCorsConfig.class)
+@Import({HomeControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class HomeControllerTest {
 
     @Autowired

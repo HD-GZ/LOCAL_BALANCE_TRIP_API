@@ -36,21 +36,21 @@ class MessageResolverTest {
         @Test
         void 로케일_컨텍스트가_없으면_한국어로_해석한다() {
             assertThat(messageResolver.currentLocale()).isEqualTo(Locale.KOREAN);
-            assertThat(messageResolver.resolve("test.hello", "홍길동")).isEqualTo("안녕하세요 홍길동");
+            assertThat(messageResolver.resolve("error.USER_NOT_FOUND")).isEqualTo("사용자를 찾을 수 없습니다.");
         }
 
         @Test
         void 영어_로케일이면_영어로_해석한다() {
             LocaleContextHolder.setLocale(Locale.ENGLISH);
 
-            assertThat(messageResolver.resolve("test.hello", "Kim")).isEqualTo("Hello Kim");
+            assertThat(messageResolver.resolve("error.USER_NOT_FOUND")).isEqualTo("User not found.");
         }
 
         @Test
         void 미지원_로케일이면_한국어로_폴백한다() {
             LocaleContextHolder.setLocale(Locale.JAPANESE);
 
-            assertThat(messageResolver.resolve("test.hello", "홍길동")).isEqualTo("안녕하세요 홍길동");
+            assertThat(messageResolver.resolve("error.USER_NOT_FOUND")).isEqualTo("사용자를 찾을 수 없습니다.");
         }
     }
 
@@ -70,7 +70,7 @@ class MessageResolverTest {
 
         @Test
         void 에러코드는_error_접두사_키로_해석한다() {
-            assertThat(messageResolver.resolve(ErrorCode.USER_NOT_FOUND)).isEqualTo("error.USER_NOT_FOUND");
+            assertThat(messageResolver.resolve(ErrorCode.USER_NOT_FOUND)).isEqualTo("사용자를 찾을 수 없습니다.");
         }
 
         @Test

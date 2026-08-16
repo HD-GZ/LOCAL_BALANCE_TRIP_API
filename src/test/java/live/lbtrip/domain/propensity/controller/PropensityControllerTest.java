@@ -23,19 +23,20 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
+import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.propensity.dto.request.PropensityRequest;
 import live.lbtrip.domain.propensity.service.PropensityService;
 import live.lbtrip.global.config.CorsProperties;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.PropensityRequestFixture;
 import live.lbtrip.support.fixture.PropensityResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(PropensityController.class)
-@Import(PropensityControllerTest.TestCorsConfig.class)
+@Import({PropensityControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class PropensityControllerTest {
 
     @Autowired
