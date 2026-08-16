@@ -75,6 +75,17 @@ class MessageCatalogTest {
     }
 
     @Nested
+    class 메일 {
+
+        @Test
+        void 메일_제목과_발신자명은_ko_en_메시지를_가진다() {
+            assertKeyExistsInAllLocales("mail.fromName");
+            assertKeyExistsInAllLocales("mail.emailVerification.subject");
+            assertKeyExistsInAllLocales("mail.passwordReset.subject");
+        }
+    }
+
+    @Nested
     class 키_집합 {
 
         @Test
