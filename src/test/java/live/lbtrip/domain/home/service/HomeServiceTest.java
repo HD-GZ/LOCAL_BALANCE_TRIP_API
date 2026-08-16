@@ -51,6 +51,7 @@ import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
 import live.lbtrip.support.fixture.TravelProfileFixture;
@@ -69,6 +70,7 @@ class HomeServiceTest {
     @Mock private SavedCourseService savedCourseService;
     @Mock private RecommendationService recommendationService;
     @Mock private IncentiveFinder incentiveFinder;
+    @Mock private MessageResolver messageResolver;
     @InjectMocks private HomeService homeService;
 
     @Test
@@ -104,6 +106,8 @@ class HomeServiceTest {
         when(imageStorage.publicUrl("travel-profiles/lveai.png")).thenReturn("https://img/lveai.png");
         when(propensityFactorSelector.selectThree()).thenReturn(List.of(
             PropensityFactor.LOCALITY, PropensityFactor.VITALITY, PropensityFactor.SOCIALITY));
+        when(messageResolver.resolveEnum(PropensityFactor.LOCALITY, "min")).thenReturn("핫플·유명 명소");
+        when(messageResolver.resolveEnum(PropensityFactor.LOCALITY, "max")).thenReturn("로컬·골목 상권");
 
         ProfileSummaryResponse response = homeService.getProfileSummary(userId);
 

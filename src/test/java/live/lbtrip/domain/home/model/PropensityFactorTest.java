@@ -31,10 +31,4 @@ class PropensityFactorTest {
         assertThat(PropensityFactor.ACCOMMODATION.score(preference, vc)).isEqualTo(1);
         assertThat(PropensityFactor.CAFE_EXHIBITION.score(preference, vc)).isEqualTo(5);
     }
-
-    @Test
-    void 각_요소는_min_max_라벨을_가진다() {
-        assertThat(PropensityFactor.LOCALITY.getMinLabel()).isEqualTo("핫플·유명 명소");
-        assertThat(PropensityFactor.LOCALITY.getMaxLabel()).isEqualTo("로컬·골목 상권");
-    }
 }

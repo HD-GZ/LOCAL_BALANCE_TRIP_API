@@ -9,6 +9,7 @@ import live.lbtrip.domain.home.model.PropensityFactor;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
+import live.lbtrip.global.i18n.MessageResolver;
 
 public record ProfileSummaryResponse(
     @Schema(description = "진단 유형 라벨. \"{별칭} ({코드})\"", example = "찐로컬 탐험가 (LVEAI)")
@@ -48,13 +49,14 @@ public record ProfileSummaryResponse(
         LocalDate diagnosedAt,
         Preference preference,
         ValueConsumption valueConsumption,
-        List<PropensityFactor> factors
+        List<PropensityFactor> factors,
+        MessageResolver messageResolver
     ) {
         List<InnerSlider> sliders = factors.stream()
             .map(f -> new InnerSlider(
                 f.name(),
-                f.getMinLabel(),
-                f.getMaxLabel(),
+                messageResolver.resolveEnum(f, "min"),
+                messageResolver.resolveEnum(f, "max"),
                 f.score(preference, valueConsumption)))
             .toList();
         return new ProfileSummaryResponse(

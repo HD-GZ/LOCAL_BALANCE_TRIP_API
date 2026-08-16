@@ -15,6 +15,7 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
 
+import live.lbtrip.domain.home.model.PropensityFactor;
 import live.lbtrip.global.error.ErrorCode;
 
 class MessageCatalogTest {
@@ -57,6 +58,18 @@ class MessageCatalogTest {
         void 모든_에러코드는_ko_en_메시지를_가진다() {
             for (ErrorCode errorCode : ErrorCode.values()) {
                 assertKeyExistsInAllLocales("error." + errorCode.name());
+            }
+        }
+    }
+
+    @Nested
+    class 취향_요소_라벨 {
+
+        @Test
+        void 모든_취향_요소는_ko_en_min_max_라벨을_가진다() {
+            for (PropensityFactor factor : PropensityFactor.values()) {
+                assertKeyExistsInAllLocales("enum.PropensityFactor." + factor.name() + ".min");
+                assertKeyExistsInAllLocales("enum.PropensityFactor." + factor.name() + ".max");
             }
         }
     }

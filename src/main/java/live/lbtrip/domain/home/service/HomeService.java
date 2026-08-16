@@ -37,6 +37,7 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.global.web.PageQueryRequest;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,7 @@ public class HomeService {
     private final SavedCourseService savedCourseService;
     private final RecommendationService recommendationService;
     private final IncentiveFinder incentiveFinder;
+    private final MessageResolver messageResolver;
 
     public HeroResponse getHero(Long userId) {
         List<HeroResponse.InnerHeroItem> items = (userId == null)
@@ -99,7 +101,8 @@ public class HomeService {
             propensity.getUpdatedAt().toLocalDate(),
             preference,
             valueConsumption,
-            propensityFactorSelector.selectThree());
+            propensityFactorSelector.selectThree(),
+            messageResolver);
     }
 
     public PopularCourseListResponse getPopularCourses() {

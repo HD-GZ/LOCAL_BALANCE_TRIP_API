@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ResourceBundleMessageSource;
 
+import live.lbtrip.domain.home.model.PropensityFactor;
 import live.lbtrip.global.error.ErrorCode;
 
 class MessageResolverTest {
@@ -75,8 +76,8 @@ class MessageResolverTest {
 
         @Test
         void enum은_enum_접두사와_단순클래스명_상수명으로_해석한다() {
+            assertThat(messageResolver.resolveEnum(PropensityFactor.LOCALITY, "min")).isEqualTo("핫플·유명 명소");
             assertThat(messageResolver.resolveEnum(SampleEnum.A)).isEqualTo("enum.SampleEnum.A");
-            assertThat(messageResolver.resolveEnum(SampleEnum.A, "min")).isEqualTo("enum.SampleEnum.A.min");
         }
 
         enum SampleEnum { A }
