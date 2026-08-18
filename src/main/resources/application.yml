@@ -1,4 +1,9 @@
 spring:
+  messages:
+    basename: messages/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+    use-code-as-default-message: false
   output:
     ansi:
       enabled: ${SPRING_OUTPUT_ANSI_ENABLED}

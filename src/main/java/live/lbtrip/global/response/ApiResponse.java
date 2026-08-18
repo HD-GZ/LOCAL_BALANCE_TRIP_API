@@ -26,11 +26,11 @@ public record ApiResponse<T>(
         return new ApiResponse<>(SUCCESS, data, null);
     }
 
-    public static <S> ApiResponse<S> error(ErrorCode errorCode) {
-        return error(errorCode, null);
+    public static <S> ApiResponse<S> error(ErrorCode errorCode, String message) {
+        return error(errorCode, message, null);
     }
 
-    public static <S> ApiResponse<S> error(ErrorCode errorCode, Object errorData) {
-        return new ApiResponse<>(ERROR, null, ErrorMessage.of(errorCode, errorData));
+    public static <S> ApiResponse<S> error(ErrorCode errorCode, String message, Object errorData) {
+        return new ApiResponse<>(ERROR, null, ErrorMessage.of(errorCode, message, errorData));
     }
 }

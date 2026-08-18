@@ -24,20 +24,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.tour.dto.request.TourEndRequest;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourProgressResponse;
 import live.lbtrip.domain.savedcourse.tour.dto.response.TourSummaryResponse;
-import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
-import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.tour.service.TourService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(TourController.class)
-@Import(TourControllerTest.TestCorsConfig.class)
+@Import({TourControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class TourControllerTest {
 
     private static final Long SAVED_COURSE_ID = 1L;

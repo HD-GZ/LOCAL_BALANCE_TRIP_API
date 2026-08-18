@@ -24,10 +24,11 @@ import live.lbtrip.domain.terms.service.TermsService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.TermsFixture;
 
 @WebMvcTest(TermsController.class)
-@Import(TermsControllerTest.TestCorsConfig.class)
+@Import({TermsControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class TermsControllerTest {
 
     @Autowired

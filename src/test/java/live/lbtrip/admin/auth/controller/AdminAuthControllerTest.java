@@ -22,17 +22,18 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import live.lbtrip.domain.auth.service.JwtTokenProvider;
-import live.lbtrip.global.config.CorsProperties;
-import live.lbtrip.support.fixture.AdminFixture;
-import live.lbtrip.support.fixture.TokenFixture;
 import live.lbtrip.admin.auth.dto.request.AdminLoginRequest;
 import live.lbtrip.admin.auth.dto.response.AdminTokenResponse;
 import live.lbtrip.admin.auth.service.AdminAuthService;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
+import live.lbtrip.domain.auth.service.JwtTokenProvider;
+import live.lbtrip.global.config.CorsProperties;
+import live.lbtrip.support.config.I18nTestConfig;
+import live.lbtrip.support.fixture.AdminFixture;
+import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(AdminAuthController.class)
-@Import(AdminAuthControllerTest.TestCorsConfig.class)
+@Import({AdminAuthControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class AdminAuthControllerTest {
 
     @Autowired

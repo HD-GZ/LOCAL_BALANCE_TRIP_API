@@ -19,43 +19,43 @@ import live.lbtrip.global.error.ErrorCode;
 
 public record SignupRequest(
     @Schema(description = "사용자 이름", example = "홍길동", requiredMode = REQUIRED)
-    @NotBlank(message = "이름은 필수입니다.")
-    @Size(max = 50, message = "이름은 50자 이하여야 합니다.")
+    @NotBlank(message = "{validation.name.required}")
+    @Size(max = 50, message = "{validation.name.size}")
     String name,
 
     @Schema(description = "로그인 및 이메일 인증에 사용할 이메일", example = "user@example.com", requiredMode = REQUIRED)
-    @NotBlank(message = "이메일은 필수입니다.")
-    @Email(message = "이메일 형식이 올바르지 않습니다.")
-    @Size(max = 255, message = "이메일은 255자 이하여야 합니다.")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.format}")
+    @Size(max = 255, message = "{validation.email.size}")
     String email,
 
     @Schema(description = "영문과 숫자를 포함한 8자 이상의 비밀번호", example = "password123", requiredMode = REQUIRED)
-    @NotBlank(message = "비밀번호는 필수입니다.")
+    @NotBlank(message = "{validation.password.required}")
     @Pattern(
         regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$",
-        message = "비밀번호는 영문과 숫자를 포함해 8자 이상이어야 합니다."
+        message = "{validation.password.pattern}"
     )
     String password,
 
     @Schema(description = "비밀번호 확인값", example = "password123", requiredMode = REQUIRED)
-    @NotBlank(message = "비밀번호 확인은 필수입니다.")
+    @NotBlank(message = "{validation.passwordConfirm.required}")
     String passwordConfirm,
 
     @Schema(description = "생년월일", example = "1995-05-20", type = "string", format = "date", requiredMode = REQUIRED)
-    @NotNull(message = "생년월일은 필수입니다.")
-    @PastOrPresent(message = "생년월일은 미래 날짜일 수 없습니다.")
+    @NotNull(message = "{validation.birthDate.required}")
+    @PastOrPresent(message = "{validation.birthDate.past}")
     LocalDate birthDate,
 
     @Schema(description = "성별. MALE, FEMALE, NOT_SPECIFIED 중 하나", example = "NOT_SPECIFIED", requiredMode = REQUIRED)
-    @NotNull(message = "성별은 필수입니다.")
+    @NotNull(message = "{validation.gender.required}")
     Gender gender,
 
     @Schema(description = "서비스 이용약관 동의 여부. true여야 합니다.", example = "true", requiredMode = REQUIRED)
-    @AssertTrue(message = "서비스 이용약관 동의는 필수입니다.")
+    @AssertTrue(message = "{validation.termsAgreement.required}")
     boolean termsAgreed,
 
     @Schema(description = "개인정보 수집 및 이용 동의 여부. true여야 합니다.", example = "true", requiredMode = REQUIRED)
-    @AssertTrue(message = "개인정보 수집·이용 동의는 필수입니다.")
+    @AssertTrue(message = "{validation.privacyAgreement.required}")
     boolean privacyAgreed,
 
     @Schema(description = "마케팅 정보 수신 동의 여부. 선택값입니다.", example = "false")
