@@ -27,11 +27,12 @@ import live.lbtrip.domain.tourism.model.enums.TourSyncStep;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AdminFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(AdminTourSyncController.class)
-@Import(AdminTourSyncControllerTest.TestCorsConfig.class)
+@Import({AdminTourSyncControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class AdminTourSyncControllerTest {
 
     @Autowired

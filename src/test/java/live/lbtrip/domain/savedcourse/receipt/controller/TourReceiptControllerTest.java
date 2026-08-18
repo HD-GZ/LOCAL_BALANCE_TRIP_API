@@ -32,22 +32,23 @@ import org.springframework.test.web.servlet.MockMvc;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
+import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
+import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.ReceiptScanResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptDownloadUrlResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptListResponse;
 import live.lbtrip.domain.savedcourse.receipt.dto.response.TourReceiptResponse;
-import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
-import live.lbtrip.domain.savedcourse.model.entity.TourReceipt;
 import live.lbtrip.domain.savedcourse.receipt.service.TourReceiptService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.storage.vo.PresignedUrl;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(TourReceiptController.class)
-@Import(TourReceiptControllerTest.TestCorsConfig.class)
+@Import({TourReceiptControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class TourReceiptControllerTest {
 
     private static final Long SAVED_COURSE_ID = 1L;

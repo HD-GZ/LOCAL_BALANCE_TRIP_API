@@ -27,8 +27,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
+import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.user.dto.request.UserUpdateRequest;
 import live.lbtrip.domain.user.dto.response.EmailAvailabilityResponse;
@@ -36,6 +36,7 @@ import live.lbtrip.domain.user.service.UserService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 import live.lbtrip.support.fixture.UserFixture;
@@ -43,7 +44,7 @@ import live.lbtrip.support.fixture.UserRequestFixture;
 import live.lbtrip.support.fixture.UserResponseFixture;
 
 @WebMvcTest(UserController.class)
-@Import(UserControllerTest.TestCorsConfig.class)
+@Import({UserControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class UserControllerTest {
 
     @Autowired

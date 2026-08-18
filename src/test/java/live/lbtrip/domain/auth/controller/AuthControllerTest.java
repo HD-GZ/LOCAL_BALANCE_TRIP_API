@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.dto.request.EmailVerificationConfirmRequest;
 import live.lbtrip.domain.auth.dto.request.EmailVerificationResendRequest;
 import live.lbtrip.domain.auth.dto.request.LoginRequest;
@@ -30,15 +31,15 @@ import live.lbtrip.domain.auth.dto.request.SignupRequest;
 import live.lbtrip.domain.auth.dto.request.TokenRefreshRequest;
 import live.lbtrip.domain.auth.service.AuthService;
 import live.lbtrip.domain.auth.service.EmailVerificationService;
-import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.global.config.CorsProperties;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthRequestFixture;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(AuthController.class)
-@Import(AuthControllerTest.TestCorsConfig.class)
+@Import({AuthControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class AuthControllerTest {
 
     @Autowired

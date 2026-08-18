@@ -51,5 +51,4 @@ public class MessageResolver {
     public String resolve(ErrorCode errorCode) {
         return resolve(ERROR_PREFIX + errorCode.name());
     }
-
 }

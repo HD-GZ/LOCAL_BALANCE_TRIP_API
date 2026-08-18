@@ -27,11 +27,12 @@ import live.lbtrip.domain.savedcourse.report.service.TourReportService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(TourReportController.class)
-@Import(TourReportControllerTest.TestCorsConfig.class)
+@Import({TourReportControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class TourReportControllerTest {
 
     private static final Long SAVED_COURSE_ID = 1L;
