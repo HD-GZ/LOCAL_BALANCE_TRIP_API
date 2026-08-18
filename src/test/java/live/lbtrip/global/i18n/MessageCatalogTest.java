@@ -5,9 +5,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -57,6 +64,31 @@ class MessageCatalogTest {
         void 모든_에러코드는_ko_en_메시지를_가진다() {
             for (ErrorCode errorCode : ErrorCode.values()) {
                 assertKeyExistsInAllLocales("error." + errorCode.name());
+            }
+        }
+    }
+
+    @Nested
+    class 검증_메시지_키 {
+
+        private static final Pattern VALIDATION_KEY_PATTERN = Pattern.compile("\\{(validation\\.[A-Za-z0-9_.]+)\\}");
+
+        @Test
+        void 자바_코드에서_참조하는_모든_validation_키는_ko_en_메시지를_가진다() throws IOException {
+            Set<String> keys = new TreeSet<>();
+            try (Stream<Path> paths = Files.walk(Path.of("src/main/java"))) {
+                for (Path path : paths.filter(p -> p.toString().endsWith(".java")).collect(Collectors.toList())) {
+                    String content = Files.readString(path, StandardCharsets.UTF_8);
+                    Matcher matcher = VALIDATION_KEY_PATTERN.matcher(content);
+                    while (matcher.find()) {
+                        keys.add(matcher.group(1));
+                    }
+                }
+            }
+
+            assertThat(keys).isNotEmpty();
+            for (String key : keys) {
+                assertKeyExistsInAllLocales(key);
             }
         }
     }

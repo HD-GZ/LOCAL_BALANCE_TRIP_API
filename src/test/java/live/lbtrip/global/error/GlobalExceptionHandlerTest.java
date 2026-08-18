@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
@@ -144,6 +145,27 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.error.message").value("Invalid input value."))
                 .andExpect(jsonPath("$.error.data[0].message").value("Email is required."));
         }
+
+        @Test
+        void 애노테이션_속성이_메시지에_보간된다() throws Exception {
+            mockMvc.perform(post("/validate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"a@b.com\",\"name\":\"012345678901234567890\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.data[0].field").value("name"))
+                .andExpect(jsonPath("$.error.data[0].message").value("이름은 20자 이하여야 합니다."));
+        }
+
+        @Test
+        void 영어_메시지에도_애노테이션_속성이_보간된다() throws Exception {
+            mockMvc.perform(post("/validate")
+                    .header("Accept-Language", "en")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"a@b.com\",\"name\":\"012345678901234567890\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.data[0].field").value("name"))
+                .andExpect(jsonPath("$.error.data[0].message").value("Name must be at most 20 characters."));
+        }
     }
 
     @RestController
@@ -165,7 +187,9 @@ class GlobalExceptionHandlerTest {
         record ValidationRequest(
             @NotBlank(message = "{validation.email.required}")
             @Email(message = "{validation.email.format}")
-            String email
+            String email,
+            @Size(max = 20, message = "{validation.name.size}")
+            String name
         ) {
         }
     }
