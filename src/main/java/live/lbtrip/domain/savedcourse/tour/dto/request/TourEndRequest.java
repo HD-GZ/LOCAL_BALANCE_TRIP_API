@@ -8,8 +8,8 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 public record TourEndRequest(
     @Schema(description = "투어 중 걸은 거리(미터)", example = "8400", requiredMode = REQUIRED)
-    @NotNull(message = "걸은 거리는 필수입니다.")
-    @PositiveOrZero(message = "걸은 거리는 0 이상이어야 합니다.")
+    @NotNull(message = "{validation.walkedDistance.required}")
+    @PositiveOrZero(message = "{validation.walkedDistance.positiveOrZero}")
     Integer walkedDistanceMeters
 ) {
 

@@ -8,8 +8,8 @@ import jakarta.validation.constraints.Pattern;
 
 public record EmailVerificationConfirmRequest(
     @Schema(description = "이메일로 발송된 6자리 인증 코드", example = "123456", requiredMode = REQUIRED)
-    @NotBlank(message = "인증 코드는 필수입니다.")
-    @Pattern(regexp = "^\\d{6}$", message = "인증 코드는 6자리 숫자여야 합니다.")
+    @NotBlank(message = "{validation.verificationCode.required}")
+    @Pattern(regexp = "^\\d{6}$", message = "{validation.verificationCode.pattern}")
     String code
 ) {
 }

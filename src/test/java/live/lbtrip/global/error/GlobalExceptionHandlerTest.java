@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -15,11 +17,18 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
@@ -110,6 +119,33 @@ class GlobalExceptionHandlerTest {
         }
     }
 
+    @Nested
+    class 로케일별_검증_메시지 {
+
+        @Test
+        void 헤더가_없으면_한국어_검증_메시지를_응답한다() throws Exception {
+            mockMvc.perform(post("/validate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("INVALID_INPUT_VALUE"))
+                .andExpect(jsonPath("$.error.message").value("입력값이 올바르지 않습니다."))
+                .andExpect(jsonPath("$.error.data[0].field").value("email"))
+                .andExpect(jsonPath("$.error.data[0].message").value("이메일은 필수입니다."));
+        }
+
+        @Test
+        void Accept_Language_en이면_영어_검증_메시지를_응답한다() throws Exception {
+            mockMvc.perform(post("/validate")
+                    .header("Accept-Language", "en")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.message").value("Invalid input value."))
+                .andExpect(jsonPath("$.error.data[0].message").value("Email is required."));
+        }
+    }
+
     @RestController
     static class TestController {
 
@@ -120,6 +156,17 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/too-large")
         void tooLarge() {
             throw new MaxUploadSizeExceededException(10L * 1024 * 1024);
+        }
+
+        @PostMapping("/validate")
+        void validate(@RequestBody @Valid ValidationRequest request) {
+        }
+
+        record ValidationRequest(
+            @NotBlank(message = "{validation.email.required}")
+            @Email(message = "{validation.email.format}")
+            String email
+        ) {
         }
     }
 

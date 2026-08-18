@@ -35,42 +35,42 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "이름은 필수입니다.")
-    @Size(max = 50, message = "이름은 50자 이하여야 합니다.")
+    @NotBlank(message = "{validation.name.required}")
+    @Size(max = 50, message = "{validation.name.size}")
     @Column(nullable = false, length = 50)
     private String name;
 
-    @NotBlank(message = "이메일은 필수입니다.")
-    @Email(message = "이메일 형식이 올바르지 않습니다.")
-    @Size(max = 255, message = "이메일은 255자 이하여야 합니다.")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.format}")
+    @Size(max = 255, message = "{validation.email.size}")
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @NotBlank(message = "비밀번호는 필수입니다.")
-    @Size(max = 255, message = "비밀번호는 255자 이하여야 합니다.")
+    @NotBlank(message = "{validation.password.required}")
+    @Size(max = 255, message = "{validation.password.size}")
     @Column(nullable = false)
     private String password;
 
-    @NotNull(message = "생년월일은 필수입니다.")
-    @PastOrPresent(message = "생년월일은 미래 날짜일 수 없습니다.")
+    @NotNull(message = "{validation.birthDate.required}")
+    @PastOrPresent(message = "{validation.birthDate.past}")
     @Column(nullable = false)
     private LocalDate birthDate;
 
-    @NotNull(message = "성별은 필수입니다.")
+    @NotNull(message = "{validation.gender.required}")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Gender gender;
 
-    @NotNull(message = "사용자 상태는 필수입니다.")
+    @NotNull(message = "{validation.userStatus.required}")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
     private UserStatus status;
 
-    @AssertTrue(message = "서비스 이용약관 동의는 필수입니다.")
+    @AssertTrue(message = "{validation.termsAgreement.required}")
     @Column(nullable = false)
     private boolean termsAgreed;
 
-    @AssertTrue(message = "개인정보 수집·이용 동의는 필수입니다.")
+    @AssertTrue(message = "{validation.privacyAgreement.required}")
     @Column(nullable = false)
     private boolean privacyAgreed;
 
