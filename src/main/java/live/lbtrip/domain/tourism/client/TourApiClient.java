@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
+import live.lbtrip.domain.tourism.client.dto.EnglishPlaceItem;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.global.config.TourApiProperties;
 import live.lbtrip.global.util.JsonNodes;
@@ -23,6 +24,7 @@ public class TourApiClient {
 
     private static final int STATS_SAMPLE_SIZE = 1000;
     private static final int PLACES_PAGE_SIZE = 15;
+    private static final int ENGLISH_PLACES_PAGE_SIZE = 100;
 
     private final PublicDataClient publicDataClient;
     private final TourApiProperties properties;
@@ -58,6 +60,30 @@ public class TourApiClient {
 
     public String fetchOverview(String contentId) {
         JsonNode body = get("/detailCommon2", uri -> uri.queryParam("contentId", contentId));
+        return firstOverview(body);
+    }
+
+    public List<EnglishPlaceItem> fetchEnglishPlaces(String ldongRegnCd, String ldongSignguCd, int engContentTypeId) {
+        JsonNode body = getEnglish("/areaBasedList2", uri -> uri
+            .queryParam("numOfRows", ENGLISH_PLACES_PAGE_SIZE)
+            .queryParam("arrange", "O")
+            .queryParam("contentTypeId", engContentTypeId)
+            .queryParam("lDongRegnCd", ldongRegnCd)
+            .queryParam("lDongSignguCd", ldongSignguCd));
+
+        List<EnglishPlaceItem> places = new ArrayList<>();
+        for (JsonNode item : publicDataClient.items(body)) {
+            places.add(EnglishPlaceItem.from(item));
+        }
+        return places;
+    }
+
+    public String fetchEnglishOverview(String engContentId) {
+        JsonNode body = getEnglish("/detailCommon2", uri -> uri.queryParam("contentId", engContentId));
+        return firstOverview(body);
+    }
+
+    private String firstOverview(JsonNode body) {
         for (JsonNode item : publicDataClient.items(body)) {
             String overview = JsonNodes.textOrNull(item, "overview");
             if (overview != null) {
@@ -69,5 +95,9 @@ public class TourApiClient {
 
     private JsonNode get(String path, UnaryOperator<UriBuilder> customizer) {
         return publicDataClient.get(properties.baseUrl(), path, customizer);
+    }
+
+    private JsonNode getEnglish(String path, UnaryOperator<UriBuilder> customizer) {
+        return publicDataClient.get(properties.engBaseUrl(), path, customizer);
     }
 }
