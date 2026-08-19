@@ -2,6 +2,7 @@ package live.lbtrip.support.fixture;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -58,11 +59,11 @@ public final class RecommendationFixture {
     public static List<TourPlace> tourPlaces() {
         RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
         return List.of(
-            TourPlace.create("100", candidate, 12,
+            TourPlace.create(Locale.KOREAN, "100", candidate, 12,
                 "죽녹원", IMAGE_URL, 126.986, 35.325, 1),
-            TourPlace.create("200", candidate, 14,
+            TourPlace.create(Locale.KOREAN, "200", candidate, 14,
                 "관방제림", IMAGE_URL, 126.981, 35.321, 2),
-            TourPlace.create("300", candidate, 39,
+            TourPlace.create(Locale.KOREAN, "300", candidate, 39,
                 "담양시장", IMAGE_URL, 126.979, 35.319, 3)
         );
     }
@@ -79,7 +80,7 @@ public final class RecommendationFixture {
         RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
         List<TourPlace> places = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            places.add(TourPlace.create(String.valueOf(100 + i), candidate, 12,
+            places.add(TourPlace.create(Locale.KOREAN, String.valueOf(100 + i), candidate, 12,
                 "장소" + i, IMAGE_URL, 126.9 + i * 0.001, 35.3 + i * 0.001, i + 1));
         }
         return List.copyOf(places);

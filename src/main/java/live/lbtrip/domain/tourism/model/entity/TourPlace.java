@@ -1,5 +1,7 @@
 package live.lbtrip.domain.tourism.model.entity;
 
+import java.util.Locale;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,13 +21,16 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @Table(name = "tour_places",
-    uniqueConstraints = @UniqueConstraint(name = "uk_tour_places_content_id", columnNames = "content_id"))
+    uniqueConstraints = @UniqueConstraint(name = "uk_tour_places_locale_content_id", columnNames = {"locale", "content_id"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TourPlace extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, length = 5)
+    private Locale locale;
 
     @Column(name = "content_id", nullable = false, length = 20)
     private String contentId;
@@ -50,15 +55,6 @@ public class TourPlace extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String overview;
 
-    @Column(name = "eng_content_id", length = 20)
-    private String engContentId;
-
-    @Column(name = "title_en", length = 200)
-    private String titleEn;
-
-    @Column(name = "overview_en", columnDefinition = "TEXT")
-    private String overviewEn;
-
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
@@ -67,9 +63,10 @@ public class TourPlace extends BaseEntity {
     private OdiiTheme odiiTheme;
 
     private TourPlace(
-        String contentId, RegionCandidate regionCandidate, int contentTypeId,
+        Locale locale, String contentId, RegionCandidate regionCandidate, int contentTypeId,
         String title, String imageUrl, Double longitude, Double latitude, int sortOrder
     ) {
+        this.locale = locale;
         this.contentId = contentId;
         this.regionCandidate = regionCandidate;
         this.contentTypeId = contentTypeId;
@@ -81,11 +78,11 @@ public class TourPlace extends BaseEntity {
     }
 
     public static TourPlace create(
-        String contentId, RegionCandidate regionCandidate, int contentTypeId,
+        Locale locale, String contentId, RegionCandidate regionCandidate, int contentTypeId,
         String title, String imageUrl, Double longitude, Double latitude, int sortOrder
     ) {
         return new TourPlace(
-            contentId, regionCandidate, contentTypeId,
+            locale, contentId, regionCandidate, contentTypeId,
             title, imageUrl, longitude, latitude, sortOrder);
     }
 
@@ -99,15 +96,6 @@ public class TourPlace extends BaseEntity {
 
     public void updateOverview(String overview) {
         this.overview = overview;
-    }
-
-    public void updateEnglish(String engContentId, String titleEn) {
-        this.engContentId = engContentId;
-        this.titleEn = titleEn;
-    }
-
-    public void updateEnglishOverview(String overviewEn) {
-        this.overviewEn = overviewEn;
     }
 
     public void assignOdiiTheme(OdiiTheme odiiTheme) {

@@ -2,6 +2,7 @@ package live.lbtrip.domain.tourism.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -58,14 +60,14 @@ class QuotaExceededStopTest {
                 TourPlaceFixture.withImage("첫번째", "https://image/1"),
                 TourPlaceFixture.withImage("두번째", "https://image/2"),
                 TourPlaceFixture.withImage("세번째", "https://image/3"));
-            when(tourPlaceRepository.findAllByOverviewIsNull()).thenReturn(pending);
-            when(tourApiClient.fetchOverview(any()))
+            when(tourPlaceRepository.findAllByLocaleAndOverviewIsNull(Locale.KOREAN)).thenReturn(pending);
+            when(tourApiClient.fetchOverview(eq(Locale.KOREAN), any()))
                 .thenReturn("첫 장소 설명")
                 .thenThrow(QUOTA_EXCEEDED);
 
-            tourPlaceSyncer.syncOverviews();
+            tourPlaceSyncer.syncOverviews(Locale.KOREAN);
 
-            verify(tourApiClient, times(2)).fetchOverview(any());
+            verify(tourApiClient, times(2)).fetchOverview(eq(Locale.KOREAN), any());
             verify(tourPlaceRepository, times(1)).save(any(TourPlace.class));
         }
 
@@ -74,14 +76,14 @@ class QuotaExceededStopTest {
             List<TourPlace> pending = List.of(
                 TourPlaceFixture.withImage("첫번째", "https://image/1"),
                 TourPlaceFixture.withImage("두번째", "https://image/2"));
-            when(tourPlaceRepository.findAllByOverviewIsNull()).thenReturn(pending);
-            when(tourApiClient.fetchOverview(any()))
+            when(tourPlaceRepository.findAllByLocaleAndOverviewIsNull(Locale.KOREAN)).thenReturn(pending);
+            when(tourApiClient.fetchOverview(eq(Locale.KOREAN), any()))
                 .thenThrow(BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE))
                 .thenReturn("두번째 장소 설명");
 
-            tourPlaceSyncer.syncOverviews();
+            tourPlaceSyncer.syncOverviews(Locale.KOREAN);
 
-            verify(tourApiClient, times(2)).fetchOverview(any());
+            verify(tourApiClient, times(2)).fetchOverview(eq(Locale.KOREAN), any());
             verify(tourPlaceRepository, times(1)).save(any(TourPlace.class));
         }
     }
@@ -168,9 +170,6 @@ class QuotaExceededStopTest {
 
         @Mock
         private VisitorStatsSyncer visitorStatsSyncer;
-
-        @Mock
-        private EnglishPlaceSyncer englishPlaceSyncer;
 
         @InjectMocks
         private TourDataSyncService tourDataSyncService;

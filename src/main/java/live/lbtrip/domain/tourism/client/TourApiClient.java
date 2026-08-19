@@ -2,6 +2,7 @@ package live.lbtrip.domain.tourism.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.UnaryOperator;
 
 import org.springframework.stereotype.Component;
@@ -12,8 +13,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
-import live.lbtrip.domain.tourism.client.dto.EnglishPlaceItem;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
+import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.config.TourApiProperties;
 import live.lbtrip.global.util.JsonNodes;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,6 @@ public class TourApiClient {
 
     private static final int STATS_SAMPLE_SIZE = 1000;
     private static final int PLACES_PAGE_SIZE = 15;
-    private static final int ENGLISH_PLACES_PAGE_SIZE = 100;
 
     private final PublicDataClient publicDataClient;
     private final TourApiProperties properties;
@@ -43,43 +43,25 @@ public class TourApiClient {
         return AreaBasedSample.of(body.path("totalCount").asInt(0), items);
     }
 
-    public List<TourPlaceItem> fetchPlaces(String ldongRegnCd, String ldongSignguCd, int contentTypeId) {
-        JsonNode body = get("/areaBasedList2", uri -> uri
+    public List<TourPlaceItem> fetchPlaces(
+        Locale locale, String ldongRegnCd, String ldongSignguCd, TourContentType contentType
+    ) {
+        JsonNode body = get(locale, "/areaBasedList2", uri -> uri
             .queryParam("numOfRows", PLACES_PAGE_SIZE)
             .queryParam("arrange", "O")
-            .queryParam("contentTypeId", contentTypeId)
+            .queryParam("contentTypeId", contentType.codeFor(locale))
             .queryParam("lDongRegnCd", ldongRegnCd)
             .queryParam("lDongSignguCd", ldongSignguCd));
 
         List<TourPlaceItem> places = new ArrayList<>();
         for (JsonNode item : publicDataClient.items(body)) {
-            places.add(TourPlaceItem.from(item));
+            places.add(TourPlaceItem.from(item, contentType));
         }
         return places;
     }
 
-    public String fetchOverview(String contentId) {
-        JsonNode body = get("/detailCommon2", uri -> uri.queryParam("contentId", contentId));
-        return firstOverview(body);
-    }
-
-    public List<EnglishPlaceItem> fetchEnglishPlaces(String ldongRegnCd, String ldongSignguCd, int engContentTypeId) {
-        JsonNode body = getEnglish("/areaBasedList2", uri -> uri
-            .queryParam("numOfRows", ENGLISH_PLACES_PAGE_SIZE)
-            .queryParam("arrange", "O")
-            .queryParam("contentTypeId", engContentTypeId)
-            .queryParam("lDongRegnCd", ldongRegnCd)
-            .queryParam("lDongSignguCd", ldongSignguCd));
-
-        List<EnglishPlaceItem> places = new ArrayList<>();
-        for (JsonNode item : publicDataClient.items(body)) {
-            places.add(EnglishPlaceItem.from(item));
-        }
-        return places;
-    }
-
-    public String fetchEnglishOverview(String engContentId) {
-        JsonNode body = getEnglish("/detailCommon2", uri -> uri.queryParam("contentId", engContentId));
+    public String fetchOverview(Locale locale, String contentId) {
+        JsonNode body = get(locale, "/detailCommon2", uri -> uri.queryParam("contentId", contentId));
         return firstOverview(body);
     }
 
@@ -97,7 +79,11 @@ public class TourApiClient {
         return publicDataClient.get(properties.baseUrl(), path, customizer);
     }
 
-    private JsonNode getEnglish(String path, UnaryOperator<UriBuilder> customizer) {
-        return publicDataClient.get(properties.engBaseUrl(), path, customizer);
+    private JsonNode get(Locale locale, String path, UnaryOperator<UriBuilder> customizer) {
+        return publicDataClient.get(baseUrlFor(locale), path, customizer);
+    }
+
+    private String baseUrlFor(Locale locale) {
+        return Locale.ENGLISH.getLanguage().equals(locale.getLanguage()) ? properties.engBaseUrl() : properties.baseUrl();
     }
 }

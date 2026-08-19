@@ -37,6 +37,7 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.LocaleConfig;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.global.web.PageQueryRequest;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +66,7 @@ public class HomeService {
 
     public HeroResponse getHero(Long userId) {
         List<HeroResponse.InnerHeroItem> items = (userId == null)
-            ? tourPlaceRepository.findRandomWithImage(HERO_SIZE).stream()
+            ? tourPlaceRepository.findRandomWithImage(LocaleConfig.DEFAULT_LOCALE.toString(), HERO_SIZE).stream()
                 .map(p -> new HeroResponse.InnerHeroItem(p.getImageUrl(), p.getTitle()))
                 .toList()
             : recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()

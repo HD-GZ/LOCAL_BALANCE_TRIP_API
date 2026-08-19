@@ -3,6 +3,7 @@ package live.lbtrip.domain.tourism.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -55,7 +56,7 @@ class OdiiThemeMatcherTest {
     }
 
     private TourPlace place(String title, Double longitude, Double latitude) {
-        return TourPlace.create("100", RegionCandidateFixture.candidateWithId(), 12,
+        return TourPlace.create(Locale.KOREAN, "100", RegionCandidateFixture.candidateWithId(), 12,
             title, null, longitude, latitude, 1);
     }
 

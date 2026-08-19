@@ -2,6 +2,7 @@ package live.lbtrip.domain.tourism.model.enums;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,10 @@ public enum TourContentType {
 
     public static List<TourContentType> courseCandidates() {
         return Arrays.stream(values()).filter(TourContentType::isCourseCandidate).toList();
+    }
+
+    public int codeFor(Locale locale) {
+        return Locale.ENGLISH.getLanguage().equals(locale.getLanguage()) ? engCode : code;
     }
 
     public static String koreanNameOf(int code) {
