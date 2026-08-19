@@ -169,6 +169,9 @@ class QuotaExceededStopTest {
         @Mock
         private VisitorStatsSyncer visitorStatsSyncer;
 
+        @Mock
+        private EnglishPlaceSyncer englishPlaceSyncer;
+
         @InjectMocks
         private TourDataSyncService tourDataSyncService;
 

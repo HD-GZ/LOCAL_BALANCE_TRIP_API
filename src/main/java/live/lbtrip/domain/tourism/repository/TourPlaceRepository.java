@@ -24,6 +24,8 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, Long> {
 
     List<TourPlace> findAllByOverviewIsNull();
 
+    List<TourPlace> findAllByEngContentIdIsNotNullAndOverviewEnIsNull();
+
     @Query(
         value = "SELECT * FROM tour_places WHERE image_url IS NOT NULL ORDER BY RAND() LIMIT :limit",
         nativeQuery = true)

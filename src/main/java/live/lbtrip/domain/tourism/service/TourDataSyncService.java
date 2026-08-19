@@ -24,6 +24,7 @@ public class TourDataSyncService {
     private final OdiiThemeSyncer odiiThemeSyncer;
     private final PlaceThemeLinker placeThemeLinker;
     private final VisitorStatsSyncer visitorStatsSyncer;
+    private final EnglishPlaceSyncer englishPlaceSyncer;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -41,6 +42,8 @@ public class TourDataSyncService {
             case OVERVIEWS -> tourPlaceSyncer.syncOverviews();
             case AUDIO_URLS -> odiiThemeSyncer.syncAudioUrls();
             case VISITOR_STATS -> visitorStatsSyncer.sync();
+            case PLACES_EN -> syncEnglishPlaces(regionCandidateRepository.findAll());
+            case OVERVIEWS_EN -> englishPlaceSyncer.syncOverviews();
         }
         log.info("관광 데이터 적재 단계 종료: step={}, elapsedMs={}", step, elapsedMillis(startedAt));
     }
@@ -86,6 +89,26 @@ public class TourDataSyncService {
             }
         }
         log.info("장소-테마 매칭 완료: success={}/{}", successCount, candidates.size());
+    }
+
+    private void syncEnglishPlaces(List<RegionCandidate> candidates) {
+        int successCount = 0;
+        for (RegionCandidate candidate : candidates) {
+            try {
+                englishPlaceSyncer.sync(candidate);
+                successCount++;
+            } catch (BusinessException e) {
+                if (e.getErrorCode() != ErrorCode.TOUR_API_QUOTA_EXCEEDED) {
+                    log.error("영문 장소 적재 실패 - 다음 지역 진행: region={}", candidate.getName(), e);
+                    continue;
+                }
+                log.warn("영문 장소 적재 중단 - 일일 한도 초과: success={}/{}", successCount, candidates.size());
+                return;
+            } catch (Exception e) {
+                log.error("영문 장소 적재 실패 - 다음 지역 진행: region={}", candidate.getName(), e);
+            }
+        }
+        log.info("영문 장소 적재 완료: success={}/{}", successCount, candidates.size());
     }
 
     private long elapsedMillis(long startedAt) {
