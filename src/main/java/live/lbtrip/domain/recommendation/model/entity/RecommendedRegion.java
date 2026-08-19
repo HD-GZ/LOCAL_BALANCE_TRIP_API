@@ -2,6 +2,7 @@ package live.lbtrip.domain.recommendation.model.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -36,7 +37,10 @@ public class RecommendedRegion extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "region_name", nullable = false, length = 50)
+    @Column(nullable = false, length = 5)
+    private Locale locale;
+
+    @Column(name = "region_name", nullable = false, length = 100)
     private String regionName;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,10 +61,11 @@ public class RecommendedRegion extends BaseEntity {
     private List<GeneratedCourse> courses = new ArrayList<>();
 
     private RecommendedRegion(
-        User user, String regionName, RegionCandidate regionCandidate,
+        User user, Locale locale, String regionName, RegionCandidate regionCandidate,
         String imageUrl, String reason, int displayOrder
     ) {
         this.user = user;
+        this.locale = locale;
         this.regionName = regionName;
         this.regionCandidate = regionCandidate;
         this.imageUrl = imageUrl;
@@ -69,10 +74,10 @@ public class RecommendedRegion extends BaseEntity {
     }
 
     public static RecommendedRegion create(
-        User user, String regionName, RegionCandidate regionCandidate,
+        User user, Locale locale, String regionName, RegionCandidate regionCandidate,
         String imageUrl, String reason, int displayOrder
     ) {
-        return new RecommendedRegion(user, regionName, regionCandidate, imageUrl, reason, displayOrder);
+        return new RecommendedRegion(user, locale, regionName, regionCandidate, imageUrl, reason, displayOrder);
     }
 
     public void addCourse(GeneratedCourse course) {

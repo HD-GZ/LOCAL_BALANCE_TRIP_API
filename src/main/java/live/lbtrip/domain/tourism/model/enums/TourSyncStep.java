@@ -13,7 +13,8 @@ public enum TourSyncStep {
     AUDIO_URLS("오디오 테마 음원 URL 보강"),
     VISITOR_STATS("지역별 방문자수 적재"),
     PLACES_EN("지역별 영문 장소명 적재"),
-    OVERVIEWS_EN("영문 장소 상세 설명 보강");
+    OVERVIEWS_EN("영문 장소 상세 설명 보강"),
+    REGION_NAMES_EN("지역 영문명 적재");
 
     private final String description;
 }

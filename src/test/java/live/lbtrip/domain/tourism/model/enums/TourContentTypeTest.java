@@ -26,6 +26,14 @@ class TourContentTypeTest {
     }
 
     @Test
+    void 로케일에_맞는_유형명을_돌려준다() {
+        assertThat(TourContentType.nameOf(39, Locale.KOREAN)).isEqualTo("음식점");
+        assertThat(TourContentType.nameOf(39, Locale.ENGLISH)).isEqualTo("Restaurant");
+        assertThat(TourContentType.nameOf(99, Locale.KOREAN)).isEqualTo("기타");
+        assertThat(TourContentType.nameOf(99, Locale.ENGLISH)).isEqualTo("Other");
+    }
+
+    @Test
     void 로케일에_맞는_TourAPI_코드를_돌려준다() {
         assertThat(TourContentType.TOURIST_SPOT.codeFor(Locale.KOREAN)).isEqualTo(12);
         assertThat(TourContentType.TOURIST_SPOT.codeFor(Locale.ENGLISH)).isEqualTo(76);

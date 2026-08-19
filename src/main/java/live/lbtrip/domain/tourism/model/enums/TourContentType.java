@@ -11,18 +11,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TourContentType {
 
-    TOURIST_SPOT(12, 76, "관광지", true),
-    CULTURAL_FACILITY(14, 78, "문화시설", true),
-    LEPORTS(28, 75, "레포츠", true),
-    ACCOMMODATION(32, 80, "숙박", false),
-    SHOPPING(38, 79, "쇼핑", true),
-    RESTAURANT(39, 82, "음식점", true);
+    TOURIST_SPOT(12, 76, "관광지", "Tourist Attraction", true),
+    CULTURAL_FACILITY(14, 78, "문화시설", "Cultural Facility", true),
+    LEPORTS(28, 75, "레포츠", "Leisure Sports", true),
+    ACCOMMODATION(32, 80, "숙박", "Accommodation", false),
+    SHOPPING(38, 79, "쇼핑", "Shopping", true),
+    RESTAURANT(39, 82, "음식점", "Restaurant", true);
 
     private static final String UNKNOWN_NAME = "기타";
+    private static final String UNKNOWN_ENGLISH_NAME = "Other";
 
     private final int code;
     private final int engCode;
     private final String koreanName;
+    private final String englishName;
     private final boolean courseCandidate;
 
     public static List<TourContentType> courseCandidates() {
@@ -30,14 +32,23 @@ public enum TourContentType {
     }
 
     public int codeFor(Locale locale) {
-        return Locale.ENGLISH.getLanguage().equals(locale.getLanguage()) ? engCode : code;
+        return isEnglish(locale) ? engCode : code;
     }
 
     public static String koreanNameOf(int code) {
+        return nameOf(code, Locale.KOREAN);
+    }
+
+    public static String nameOf(int code, Locale locale) {
+        boolean english = isEnglish(locale);
         return Arrays.stream(values())
             .filter(type -> type.code == code)
             .findFirst()
-            .map(TourContentType::getKoreanName)
-            .orElse(UNKNOWN_NAME);
+            .map(type -> english ? type.englishName : type.koreanName)
+            .orElse(english ? UNKNOWN_ENGLISH_NAME : UNKNOWN_NAME);
+    }
+
+    private static boolean isEnglish(Locale locale) {
+        return Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
     }
 }

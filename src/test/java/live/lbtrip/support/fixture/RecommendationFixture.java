@@ -33,7 +33,7 @@ public final class RecommendationFixture {
     public static RecommendedRegion region() {
         User user = UserFixture.user();
         RecommendedRegion region = RecommendedRegion.create(
-            user, REGION_NAME, RegionCandidateFixture.candidateWithId(),
+            user, Locale.KOREAN, REGION_NAME, RegionCandidateFixture.candidateWithId(),
             IMAGE_URL, REGION_REASON, 1);
         ReflectionTestUtils.setField(region, "id", REGION_ID);
         region.addCourse(course(user));

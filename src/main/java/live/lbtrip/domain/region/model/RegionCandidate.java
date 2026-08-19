@@ -1,5 +1,7 @@
 package live.lbtrip.domain.region.model;
 
+import java.util.Locale;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,6 +26,9 @@ public class RegionCandidate extends BaseEntity {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(name = "name_en", length = 100)
+    private String nameEn;
+
     @Column(name = "ldong_regn_cd", nullable = false, length = 2)
     private String ldongRegnCd;
 
@@ -38,5 +43,16 @@ public class RegionCandidate extends BaseEntity {
 
     public static RegionCandidate create(String name, String ldongRegnCd, String ldongSignguCd) {
         return new RegionCandidate(name, ldongRegnCd, ldongSignguCd);
+    }
+
+    public void updateNameEn(String nameEn) {
+        this.nameEn = nameEn;
+    }
+
+    public String nameFor(Locale locale) {
+        if (Locale.ENGLISH.getLanguage().equals(locale.getLanguage()) && nameEn != null && !nameEn.isBlank()) {
+            return nameEn;
+        }
+        return name;
     }
 }
