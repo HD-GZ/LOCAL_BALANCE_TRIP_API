@@ -10,16 +10,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TourContentType {
 
-    TOURIST_SPOT(12, "관광지", true),
-    CULTURAL_FACILITY(14, "문화시설", true),
-    LEPORTS(28, "레포츠", true),
-    ACCOMMODATION(32, "숙박", false),
-    SHOPPING(38, "쇼핑", true),
-    RESTAURANT(39, "음식점", true);
+    TOURIST_SPOT(12, 76, "관광지", true),
+    CULTURAL_FACILITY(14, 78, "문화시설", true),
+    LEPORTS(28, 75, "레포츠", true),
+    ACCOMMODATION(32, 80, "숙박", false),
+    SHOPPING(38, 79, "쇼핑", true),
+    RESTAURANT(39, 82, "음식점", true);
 
     private static final String UNKNOWN_NAME = "기타";
 
     private final int code;
+    private final int engCode;
     private final String koreanName;
     private final boolean courseCandidate;
 

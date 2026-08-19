@@ -50,6 +50,15 @@ public class TourPlace extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String overview;
 
+    @Column(name = "eng_content_id", length = 20)
+    private String engContentId;
+
+    @Column(name = "title_en", length = 200)
+    private String titleEn;
+
+    @Column(name = "overview_en", columnDefinition = "TEXT")
+    private String overviewEn;
+
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
@@ -90,6 +99,15 @@ public class TourPlace extends BaseEntity {
 
     public void updateOverview(String overview) {
         this.overview = overview;
+    }
+
+    public void updateEnglish(String engContentId, String titleEn) {
+        this.engContentId = engContentId;
+        this.titleEn = titleEn;
+    }
+
+    public void updateEnglishOverview(String overviewEn) {
+        this.overviewEn = overviewEn;
     }
 
     public void assignOdiiTheme(OdiiTheme odiiTheme) {
