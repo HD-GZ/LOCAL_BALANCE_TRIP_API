@@ -26,6 +26,7 @@ public class TourDataSyncService {
     private final OdiiThemeSyncer odiiThemeSyncer;
     private final PlaceThemeLinker placeThemeLinker;
     private final VisitorStatsSyncer visitorStatsSyncer;
+    private final RegionNameSyncer regionNameSyncer;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -45,6 +46,7 @@ public class TourDataSyncService {
             case VISITOR_STATS -> visitorStatsSyncer.sync();
             case PLACES_EN -> syncPlaces(regionCandidateRepository.findAll(), Locale.ENGLISH);
             case OVERVIEWS_EN -> tourPlaceSyncer.syncOverviews(Locale.ENGLISH);
+            case REGION_NAMES_EN -> regionNameSyncer.syncEnglishNames();
         }
         log.info("관광 데이터 적재 단계 종료: step={}, elapsedMs={}", step, elapsedMillis(startedAt));
     }
