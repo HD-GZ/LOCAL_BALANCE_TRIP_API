@@ -117,7 +117,7 @@ class HomeServiceTest {
     @Test
     void 비로그인_히어로는_랜덤_투어플레이스_사진을_반환한다() {
         TourPlace place = live.lbtrip.support.fixture.TourPlaceFixture.withImage("담양 메타세쿼이아길", "https://img/damyang.jpg");
-        when(tourPlaceRepository.findRandomWithImage(HomeService.HERO_SIZE)).thenReturn(List.of(place));
+        when(tourPlaceRepository.findRandomWithImage("ko", HomeService.HERO_SIZE)).thenReturn(List.of(place));
 
         HeroResponse response = homeService.getHero(null);
 

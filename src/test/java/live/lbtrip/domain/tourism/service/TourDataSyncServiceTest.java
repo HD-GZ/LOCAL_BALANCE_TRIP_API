@@ -2,6 +2,7 @@ package live.lbtrip.domain.tourism.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -47,9 +49,6 @@ class TourDataSyncServiceTest {
     @Mock
     private VisitorStatsSyncer visitorStatsSyncer;
 
-    @Mock
-    private EnglishPlaceSyncer englishPlaceSyncer;
-
     @InjectMocks
     private TourDataSyncService tourDataSyncService;
 
@@ -60,19 +59,19 @@ class TourDataSyncServiceTest {
         void 지역별_적재를_순서대로_호출하고_마지막에_전역_보강을_수행한다() {
             RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
             when(regionCandidateRepository.findAll()).thenReturn(List.of(candidate));
-            when(tourPlaceSyncer.sync(candidate)).thenReturn(List.of());
+            when(tourPlaceSyncer.sync(candidate, Locale.KOREAN)).thenReturn(List.of());
 
             tourDataSyncService.syncAll();
 
             verify(regionStatsSyncer).sync(candidate);
-            verify(tourPlaceSyncer).sync(candidate);
+            verify(tourPlaceSyncer).sync(candidate, Locale.KOREAN);
             verify(odiiThemeSyncer).sync(List.of());
             verify(placeThemeLinker).link(candidate);
-            verify(tourPlaceSyncer).syncOverviews();
+            verify(tourPlaceSyncer).syncOverviews(Locale.KOREAN);
             verify(odiiThemeSyncer).syncAudioUrls();
             verify(visitorStatsSyncer).sync();
-            verify(englishPlaceSyncer).sync(candidate);
-            verify(englishPlaceSyncer).syncOverviews();
+            verify(tourPlaceSyncer).sync(candidate, Locale.ENGLISH);
+            verify(tourPlaceSyncer).syncOverviews(Locale.ENGLISH);
         }
 
         @Test
@@ -80,7 +79,7 @@ class TourDataSyncServiceTest {
             RegionCandidate first = RegionCandidateFixture.candidate();
             RegionCandidate second = RegionCandidateFixture.candidateWithId();
             when(regionCandidateRepository.findAll()).thenReturn(List.of(first, second));
-            when(tourPlaceSyncer.sync(any())).thenReturn(List.of());
+            when(tourPlaceSyncer.sync(any(), eq(Locale.KOREAN))).thenReturn(List.of());
 
             tourDataSyncService.syncAll();
 
@@ -97,12 +96,12 @@ class TourDataSyncServiceTest {
             when(regionCandidateRepository.findAll()).thenReturn(List.of(failing, succeeding));
             doThrow(BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE))
                 .when(regionStatsSyncer).sync(failing);
-            when(tourPlaceSyncer.sync(succeeding)).thenReturn(List.of());
+            when(tourPlaceSyncer.sync(succeeding, Locale.KOREAN)).thenReturn(List.of());
 
             tourDataSyncService.syncAll();
 
             verify(regionStatsSyncer).sync(succeeding);
-            verify(tourPlaceSyncer, never()).sync(failing);
+            verify(tourPlaceSyncer, never()).sync(failing, Locale.KOREAN);
             verify(visitorStatsSyncer).sync();
         }
 
@@ -111,14 +110,14 @@ class TourDataSyncServiceTest {
             RegionCandidate failing = RegionCandidateFixture.candidate();
             RegionCandidate succeeding = RegionCandidateFixture.candidateWithId();
             when(regionCandidateRepository.findAll()).thenReturn(List.of(failing, succeeding));
-            when(tourPlaceSyncer.sync(any())).thenReturn(List.of());
+            when(tourPlaceSyncer.sync(any(), eq(Locale.KOREAN))).thenReturn(List.of());
             doThrow(BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE))
                 .when(placeThemeLinker).link(failing);
 
             tourDataSyncService.syncAll();
 
             verify(placeThemeLinker).link(succeeding);
-            verify(tourPlaceSyncer).syncOverviews();
+            verify(tourPlaceSyncer).syncOverviews(Locale.KOREAN);
             verify(visitorStatsSyncer).sync();
         }
 
@@ -126,7 +125,8 @@ class TourDataSyncServiceTest {
         void OVERVIEWS_단계만_실행하면_다른_단계는_수행하지_않는다() {
             tourDataSyncService.sync(TourSyncStep.OVERVIEWS);
 
-            verify(tourPlaceSyncer).syncOverviews();
+            verify(tourPlaceSyncer).syncOverviews(Locale.KOREAN);
+            verify(tourPlaceSyncer, never()).syncOverviews(Locale.ENGLISH);
             verify(odiiThemeSyncer, never()).syncAudioUrls();
             verify(visitorStatsSyncer, never()).sync();
             verify(regionStatsSyncer, never()).sync(any());
@@ -138,13 +138,14 @@ class TourDataSyncServiceTest {
             RegionCandidate succeeding = RegionCandidateFixture.candidateWithId();
             when(regionCandidateRepository.findAll()).thenReturn(List.of(failing, succeeding));
             doThrow(BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE))
-                .when(englishPlaceSyncer).sync(failing);
+                .when(tourPlaceSyncer).sync(failing, Locale.ENGLISH);
 
             tourDataSyncService.sync(TourSyncStep.PLACES_EN);
 
-            verify(englishPlaceSyncer).sync(succeeding);
-            verify(englishPlaceSyncer, never()).syncOverviews();
-            verify(tourPlaceSyncer, never()).sync(any());
+            verify(tourPlaceSyncer).sync(succeeding, Locale.ENGLISH);
+            verify(tourPlaceSyncer, never()).syncOverviews(any());
+            verify(tourPlaceSyncer, never()).sync(any(), eq(Locale.KOREAN));
+            verify(regionStatsSyncer, never()).sync(any());
         }
 
         @Test
@@ -153,20 +154,20 @@ class TourDataSyncServiceTest {
             RegionCandidate second = RegionCandidateFixture.candidateWithId();
             when(regionCandidateRepository.findAll()).thenReturn(List.of(first, second));
             doThrow(BusinessException.of(ErrorCode.TOUR_API_QUOTA_EXCEEDED))
-                .when(englishPlaceSyncer).sync(first);
+                .when(tourPlaceSyncer).sync(first, Locale.ENGLISH);
 
             tourDataSyncService.sync(TourSyncStep.PLACES_EN);
 
-            verify(englishPlaceSyncer, never()).sync(second);
+            verify(tourPlaceSyncer, never()).sync(second, Locale.ENGLISH);
         }
 
         @Test
         void OVERVIEWS_EN_단계는_영문_소개만_보강한다() {
             tourDataSyncService.sync(TourSyncStep.OVERVIEWS_EN);
 
-            verify(englishPlaceSyncer).syncOverviews();
-            verify(englishPlaceSyncer, never()).sync(any());
-            verify(tourPlaceSyncer, never()).syncOverviews();
+            verify(tourPlaceSyncer).syncOverviews(Locale.ENGLISH);
+            verify(tourPlaceSyncer, never()).sync(any(), any());
+            verify(tourPlaceSyncer, never()).syncOverviews(Locale.KOREAN);
         }
 
         @Test
@@ -175,7 +176,7 @@ class TourDataSyncServiceTest {
 
             verify(visitorStatsSyncer).sync();
             verify(regionCandidateRepository, never()).findAll();
-            verify(tourPlaceSyncer, never()).syncOverviews();
+            verify(tourPlaceSyncer, never()).syncOverviews(any());
         }
 
         @Test
@@ -184,7 +185,7 @@ class TourDataSyncServiceTest {
 
             tourDataSyncService.syncAll();
 
-            verify(tourPlaceSyncer).syncOverviews();
+            verify(tourPlaceSyncer).syncOverviews(Locale.KOREAN);
             verify(odiiThemeSyncer).syncAudioUrls();
             verify(visitorStatsSyncer).sync();
             verify(regionStatsSyncer, never()).sync(any());
