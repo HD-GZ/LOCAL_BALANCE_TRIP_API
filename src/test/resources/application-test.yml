@@ -63,6 +63,7 @@ slack:
 
 tour-api:
   base-url: http://localhost
+  eng-base-url: http://localhost
   odii-base-url: http://localhost
   data-lab-base-url: http://localhost
   service-key: test-key

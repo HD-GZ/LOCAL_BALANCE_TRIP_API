@@ -47,6 +47,9 @@ class TourDataSyncServiceTest {
     @Mock
     private VisitorStatsSyncer visitorStatsSyncer;
 
+    @Mock
+    private EnglishPlaceSyncer englishPlaceSyncer;
+
     @InjectMocks
     private TourDataSyncService tourDataSyncService;
 
@@ -68,6 +71,8 @@ class TourDataSyncServiceTest {
             verify(tourPlaceSyncer).syncOverviews();
             verify(odiiThemeSyncer).syncAudioUrls();
             verify(visitorStatsSyncer).sync();
+            verify(englishPlaceSyncer).sync(candidate);
+            verify(englishPlaceSyncer).syncOverviews();
         }
 
         @Test
@@ -125,6 +130,43 @@ class TourDataSyncServiceTest {
             verify(odiiThemeSyncer, never()).syncAudioUrls();
             verify(visitorStatsSyncer, never()).sync();
             verify(regionStatsSyncer, never()).sync(any());
+        }
+
+        @Test
+        void PLACES_EN_단계는_지역별로_영문_장소를_적재하고_한_지역이_실패해도_계속_진행한다() {
+            RegionCandidate failing = RegionCandidateFixture.candidate();
+            RegionCandidate succeeding = RegionCandidateFixture.candidateWithId();
+            when(regionCandidateRepository.findAll()).thenReturn(List.of(failing, succeeding));
+            doThrow(BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE))
+                .when(englishPlaceSyncer).sync(failing);
+
+            tourDataSyncService.sync(TourSyncStep.PLACES_EN);
+
+            verify(englishPlaceSyncer).sync(succeeding);
+            verify(englishPlaceSyncer, never()).syncOverviews();
+            verify(tourPlaceSyncer, never()).sync(any());
+        }
+
+        @Test
+        void PLACES_EN_단계에서_한도_초과를_만나면_남은_지역은_적재하지_않는다() {
+            RegionCandidate first = RegionCandidateFixture.candidate();
+            RegionCandidate second = RegionCandidateFixture.candidateWithId();
+            when(regionCandidateRepository.findAll()).thenReturn(List.of(first, second));
+            doThrow(BusinessException.of(ErrorCode.TOUR_API_QUOTA_EXCEEDED))
+                .when(englishPlaceSyncer).sync(first);
+
+            tourDataSyncService.sync(TourSyncStep.PLACES_EN);
+
+            verify(englishPlaceSyncer, never()).sync(second);
+        }
+
+        @Test
+        void OVERVIEWS_EN_단계는_영문_소개만_보강한다() {
+            tourDataSyncService.sync(TourSyncStep.OVERVIEWS_EN);
+
+            verify(englishPlaceSyncer).syncOverviews();
+            verify(englishPlaceSyncer, never()).sync(any());
+            verify(tourPlaceSyncer, never()).syncOverviews();
         }
 
         @Test
