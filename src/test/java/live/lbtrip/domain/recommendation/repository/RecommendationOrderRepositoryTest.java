@@ -1,5 +1,7 @@
 package live.lbtrip.domain.recommendation.repository;
 
+import java.util.Locale;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManager;
@@ -37,6 +39,7 @@ class RecommendationOrderRepositoryTest {
         entityManager.persist(candidate);
         RecommendedRegion region = RecommendedRegion.create(
             user,
+            Locale.KOREAN,
             RecommendationFixture.REGION_NAME,
             candidate,
             RecommendationFixture.IMAGE_URL,

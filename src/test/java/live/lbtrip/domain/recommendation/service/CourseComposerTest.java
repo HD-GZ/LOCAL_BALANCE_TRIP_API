@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -50,10 +51,8 @@ class CourseComposerTest {
         RecommendationProperties properties = new RecommendationProperties(3, 3, List.of(1500));
         courseComposer = new CourseComposer(
             chatClientBuilder,
-            new ByteArrayResource("{regionName} {candidateLines} {maxCourses} {locality} {frugality} "
-                .concat("{experientiality} {vitality} {sociality} {accommodation} {food} ")
-                .concat("{experience} {transportation} {cafeExhibition}")
-                .getBytes(StandardCharsets.UTF_8)),
+            template("KO "),
+            template("EN "),
             properties,
             new CourseCompositionValidator(properties)
         );
@@ -85,7 +84,23 @@ class CourseComposerTest {
             assertThat(promptCaptor.getValue())
                 .contains("## 클러스터 1")
                 .contains("100 | 관광지 | 죽녹원 | 126.986 | 35.325")
-                .contains(RecommendationFixture.REGION_NAME);
+                .contains(RecommendationFixture.REGION_NAME)
+                .startsWith("KO ");
+        }
+
+        @Test
+        void 영문_로케일이면_영문_프롬프트와_영문_유형명을_사용한다() {
+            mockResponse(CourseComposition.of("reason", List.of(
+                CoursePlan.of("course", "course reason", List.of("100", "200", "300")))));
+            ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+
+            compose(Locale.ENGLISH);
+
+            verify(requestSpec).user(promptCaptor.capture());
+            assertThat(promptCaptor.getValue())
+                .startsWith("EN ")
+                .contains("## Cluster 1")
+                .contains("100 | Tourist Attraction | 죽녹원 | 126.986 | 35.325");
         }
 
         @Test
@@ -110,11 +125,24 @@ class CourseComposerTest {
         }
     }
 
+    private static ByteArrayResource template(String prefix) {
+        return new ByteArrayResource(prefix
+            .concat("{regionName} {candidateLines} {maxCourses} {locality} {frugality} ")
+            .concat("{experientiality} {vitality} {sociality} {accommodation} {food} ")
+            .concat("{experience} {transportation} {cafeExhibition}")
+            .getBytes(StandardCharsets.UTF_8));
+    }
+
     private CourseComposition compose() {
+        return compose(Locale.KOREAN);
+    }
+
+    private CourseComposition compose(Locale locale) {
         return courseComposer.compose(
             PropensityFixture.propensity(),
             RecommendationFixture.REGION_NAME,
-            RecommendationFixture.walkableClusters()
+            RecommendationFixture.walkableClusters(),
+            locale
         );
     }
 

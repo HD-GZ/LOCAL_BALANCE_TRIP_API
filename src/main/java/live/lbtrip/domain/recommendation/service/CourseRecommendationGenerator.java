@@ -1,6 +1,7 @@
 package live.lbtrip.domain.recommendation.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,7 @@ public class CourseRecommendationGenerator {
     private final RecommendationStore recommendationStore;
     private final RecommendationProperties recommendationProperties;
 
-    public void generate(Long userId) {
+    public void generate(Long userId, Locale locale) {
         Propensity propensity = propensityFinder.findByUserId(userId);
         List<RegionMetrics> metrics = regionMetricsFinder.findAllMetrics();
         List<RegionMetrics> selectRegionMetrics = regionSelector.selectTop(
@@ -32,7 +33,7 @@ public class CourseRecommendationGenerator {
             recommendationProperties.maxRegions()
         );
 
-        List<RegionPlan> plans = regionPlanAssembler.assemble(propensity, selectRegionMetrics);
-        recommendationStore.replace(userId, plans);
+        List<RegionPlan> plans = regionPlanAssembler.assemble(propensity, selectRegionMetrics, locale);
+        recommendationStore.replace(userId, locale, plans);
     }
 }

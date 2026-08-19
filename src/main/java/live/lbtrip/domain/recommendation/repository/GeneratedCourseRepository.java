@@ -1,6 +1,7 @@
 package live.lbtrip.domain.recommendation.repository;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,5 +14,6 @@ public interface GeneratedCourseRepository extends JpaRepository<GeneratedCourse
 
     List<GeneratedCourse> findAllByUserId(Long userId);
 
-    Optional<GeneratedCourse> findFirstByRecommendedRegionRegionCandidateIdOrderByIdAsc(Long regionCandidateId);
+    Optional<GeneratedCourse> findFirstByRecommendedRegionRegionCandidateIdAndRecommendedRegionLocaleOrderByIdAsc(
+        Long regionCandidateId, Locale locale);
 }

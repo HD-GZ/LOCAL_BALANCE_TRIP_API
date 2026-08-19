@@ -3,6 +3,7 @@ package live.lbtrip.domain.home.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -37,7 +38,7 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
-import live.lbtrip.global.i18n.LocaleConfig;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.global.web.PageQueryRequest;
 import lombok.RequiredArgsConstructor;
@@ -63,13 +64,15 @@ public class HomeService {
     private final SavedCourseService savedCourseService;
     private final RecommendationService recommendationService;
     private final IncentiveFinder incentiveFinder;
+    private final MessageResolver messageResolver;
 
     public HeroResponse getHero(Long userId) {
+        Locale locale = messageResolver.currentLocale();
         List<HeroResponse.InnerHeroItem> items = (userId == null)
-            ? tourPlaceRepository.findRandomWithImage(LocaleConfig.DEFAULT_LOCALE.toString(), HERO_SIZE).stream()
+            ? tourPlaceRepository.findRandomWithImage(locale.toString(), HERO_SIZE).stream()
                 .map(p -> new HeroResponse.InnerHeroItem(p.getImageUrl(), p.getTitle()))
                 .toList()
-            : recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
+            : recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale).stream()
                 .filter(r -> r.getImageUrl() != null)
                 .map(r -> new HeroResponse.InnerHeroItem(r.getImageUrl(), r.getRegionName()))
                 .toList();
@@ -104,10 +107,12 @@ public class HomeService {
     }
 
     public PopularCourseListResponse getPopularCourses() {
+        Locale locale = messageResolver.currentLocale();
         List<GeneratedCourse> courses = recommendedRegionRepository
-            .findPopularRegions(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+            .findPopularRegions(locale, PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
             .map(popular -> generatedCourseRepository
-                .findFirstByRecommendedRegionRegionCandidateIdOrderByIdAsc(popular.getRegionCandidateId()))
+                .findFirstByRecommendedRegionRegionCandidateIdAndRecommendedRegionLocaleOrderByIdAsc(
+                    popular.getRegionCandidateId(), locale))
             .flatMap(Optional::stream)
             .toList();
         return PopularCourseListResponse.of(courses);
@@ -153,14 +158,15 @@ public class HomeService {
 
     public HomeIncentiveResponse getIncentives(Long userId) {
         LocalDate today = LocalDate.now();
+        Locale locale = messageResolver.currentLocale();
         List<HomeIncentiveResponse.InnerRegionTab> tabs = (userId == null)
-            ? popularRegionTabs(today)
-            : myRegionTabs(userId, today);
+            ? popularRegionTabs(today, locale)
+            : myRegionTabs(userId, today, locale);
         return HomeIncentiveResponse.of(tabs);
     }
 
-    private List<HomeIncentiveResponse.InnerRegionTab> myRegionTabs(Long userId, LocalDate today) {
-        return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
+    private List<HomeIncentiveResponse.InnerRegionTab> myRegionTabs(Long userId, LocalDate today, Locale locale) {
+        return recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale).stream()
             .map(r -> HomeIncentiveResponse.tab(
                 r.getRegionName(), r.getRegionCandidate().getId(),
                 incentiveFinder.findActiveByRegion(r.getRegionCandidate().getId(), today),
@@ -169,10 +175,10 @@ public class HomeService {
             .toList();
     }
 
-    private List<HomeIncentiveResponse.InnerRegionTab> popularRegionTabs(LocalDate today) {
-        return recommendedRegionRepository.findPopularRegions(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+    private List<HomeIncentiveResponse.InnerRegionTab> popularRegionTabs(LocalDate today, Locale locale) {
+        return recommendedRegionRepository.findPopularRegions(locale, PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
             .map(popular -> recommendedRegionRepository
-                .findFirstByRegionCandidateId(popular.getRegionCandidateId())
+                .findFirstByRegionCandidateIdAndLocale(popular.getRegionCandidateId(), locale)
                 .map(region -> HomeIncentiveResponse.tab(
                     region.getRegionName(),
                     region.getRegionCandidate().getId(),
