@@ -10,6 +10,7 @@ import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.vo.Centroid;
 import live.lbtrip.domain.tourism.repository.OdiiThemeRepository;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
+import live.lbtrip.global.i18n.LocaleConfig;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -25,7 +26,8 @@ public class PlaceThemeLinker {
 
     public void link(RegionCandidate candidate) {
         List<TourPlace> places = tourPlaceRepository
-            .findAllByRegionCandidateIdOrderByContentTypeIdAscSortOrderAsc(candidate.getId());
+            .findAllByLocaleAndRegionCandidateIdOrderByContentTypeIdAscSortOrderAsc(
+                LocaleConfig.DEFAULT_LOCALE, candidate.getId());
         Centroid.of(places, TourPlace::getLongitude, TourPlace::getLatitude)
             .ifPresent(centroid -> assignThemes(places, findThemesNear(centroid)));
     }
