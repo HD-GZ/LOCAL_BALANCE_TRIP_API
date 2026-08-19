@@ -2,29 +2,21 @@ package live.lbtrip.domain.tourism.model.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.Test;
 
-import live.lbtrip.support.fixture.TourPlaceFixture;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
 
 class TourPlaceTest {
 
     @Test
-    void 영문_장소명과_영문_콘텐츠_ID를_갱신한다() {
-        TourPlace place = TourPlaceFixture.withImage("광양와인동굴", "https://image/1");
+    void 로케일과_콘텐츠_ID로_생성한다() {
+        TourPlace place = TourPlace.create(Locale.ENGLISH, "3093358", RegionCandidateFixture.candidateWithId(), 12,
+            "Gwangyang Wine Cave (광양와인동굴)", null, 127.6, 34.9, 0);
 
-        place.updateEnglish("3093358", "Gwangyang Wine Cave (광양와인동굴)");
-
-        assertThat(place.getEngContentId()).isEqualTo("3093358");
-        assertThat(place.getTitleEn()).isEqualTo("Gwangyang Wine Cave (광양와인동굴)");
-        assertThat(place.getOverviewEn()).isNull();
-    }
-
-    @Test
-    void 영문_소개를_갱신한다() {
-        TourPlace place = TourPlaceFixture.withImage("광양와인동굴", "https://image/1");
-
-        place.updateEnglishOverview("Opened in July 2017");
-
-        assertThat(place.getOverviewEn()).isEqualTo("Opened in July 2017");
+        assertThat(place.getLocale()).isEqualTo(Locale.ENGLISH);
+        assertThat(place.getContentId()).isEqualTo("3093358");
+        assertThat(place.getOverview()).isNull();
     }
 }
