@@ -52,7 +52,7 @@ public class SavedCourse extends BaseEntity {
     @Column(name = "course_name", nullable = false, length = 100)
     private String courseName;
 
-    @Column(name = "region_name", nullable = false, length = 50)
+    @Column(name = "region_name", nullable = false, length = 100)
     private String regionName;
 
     @Column(nullable = false, length = 300)

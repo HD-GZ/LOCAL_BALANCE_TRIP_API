@@ -6,12 +6,15 @@ import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
 
 public record RegionPlan(
     RegionMetrics region,
+    String regionName,
     String regionReason,
     List<PlannedCourse> courses
 ) {
 
-    public static RegionPlan of(RegionMetrics region, String regionReason, List<PlannedCourse> courses) {
-        return new RegionPlan(region, regionReason, courses);
+    public static RegionPlan of(
+        RegionMetrics region, String regionName, String regionReason, List<PlannedCourse> courses
+    ) {
+        return new RegionPlan(region, regionName, regionReason, courses);
     }
 
     public record PlannedCourse(

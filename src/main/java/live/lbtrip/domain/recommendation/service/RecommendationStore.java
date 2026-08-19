@@ -1,6 +1,7 @@
 package live.lbtrip.domain.recommendation.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,8 +29,9 @@ public class RecommendationStore {
     private final RegionCandidateRepository regionCandidateRepository;
 
     @Transactional
-    public void replace(Long userId, List<RegionPlan> plans) {
-        recommendedRegionRepository.deleteAll(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId));
+    public void replace(Long userId, Locale locale, List<RegionPlan> plans) {
+        recommendedRegionRepository.deleteAll(
+            recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale));
         recommendedRegionRepository.flush();
 
         User user = userRepository.getReferenceById(userId);
@@ -38,7 +40,8 @@ public class RecommendationStore {
             RegionCandidate regionCandidate = regionCandidateRepository.getReferenceById(plan.region().regionCandidateId());
             RecommendedRegion region = RecommendedRegion.create(
                 user,
-                plan.region().regionName(),
+                locale,
+                plan.regionName(),
                 regionCandidate,
                 firstPlaceImageUrl(plan.courses().getFirst()),
                 plan.regionReason(),

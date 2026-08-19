@@ -3,6 +3,7 @@ package live.lbtrip.domain.recommendation.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.util.Locale;
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -18,6 +19,7 @@ import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
@@ -34,6 +36,9 @@ class RecommendationServiceTest {
     @Mock
     private IncentiveFinder incentiveFinder;
 
+    @Mock
+    private MessageResolver messageResolver;
+
     @InjectMocks
     private RecommendationService recommendationService;
 
@@ -43,7 +48,8 @@ class RecommendationServiceTest {
         @Test
         void 사용자의_추천_지역을_응답한다() {
             RecommendedRegion region = RecommendationFixture.region();
-            when(recommendedRegionFinder.findAllByUserId(AuthResponseFixture.USER_ID))
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
+            when(recommendedRegionFinder.findAllByUserId(AuthResponseFixture.USER_ID, Locale.KOREAN))
                 .thenReturn(List.of(region));
 
             List<RegionRecommendationResponse> responses =

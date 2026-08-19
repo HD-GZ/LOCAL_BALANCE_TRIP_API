@@ -12,6 +12,7 @@ import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.global.i18n.MessageResolver;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,14 +24,15 @@ public class RecommendationService {
     private final RecommendedRegionFinder recommendedRegionFinder;
     private final GeneratedCourseFinder generatedCourseFinder;
     private final IncentiveFinder incentiveFinder;
+    private final MessageResolver messageResolver;
 
     @Transactional
     public void createRecommendations(Long userId) {
-        courseRecommendationGenerator.generate(userId);
+        courseRecommendationGenerator.generate(userId, messageResolver.currentLocale());
     }
 
     public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
-        return recommendedRegionFinder.findAllByUserId(userId).stream()
+        return recommendedRegionFinder.findAllByUserId(userId, messageResolver.currentLocale()).stream()
             .map(RegionRecommendationResponse::from)
             .toList();
     }

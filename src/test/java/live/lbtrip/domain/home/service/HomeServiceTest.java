@@ -5,14 +5,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -51,6 +54,7 @@ import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
 import live.lbtrip.support.fixture.TravelProfileFixture;
@@ -69,7 +73,13 @@ class HomeServiceTest {
     @Mock private SavedCourseService savedCourseService;
     @Mock private RecommendationService recommendationService;
     @Mock private IncentiveFinder incentiveFinder;
+    @Mock private MessageResolver messageResolver;
     @InjectMocks private HomeService homeService;
+
+    @BeforeEach
+    void setUpLocale() {
+        lenient().when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
+    }
 
     @Test
     void 대표_유형을_featured_order_순으로_반환한다() {
@@ -131,7 +141,7 @@ class HomeServiceTest {
         RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
         when(region.getImageUrl()).thenReturn("https://img/region.jpg");
-        when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(1L)).thenReturn(List.of(region));
+        when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(1L, Locale.KOREAN)).thenReturn(List.of(region));
 
         HeroResponse response = homeService.getHero(1L);
 
@@ -147,7 +157,7 @@ class HomeServiceTest {
         when(withImage.getImageUrl()).thenReturn("https://img/region.jpg");
         RecommendedRegion withoutImage = org.mockito.Mockito.mock(RecommendedRegion.class);
         when(withoutImage.getImageUrl()).thenReturn(null);
-        when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(1L))
+        when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(1L, Locale.KOREAN))
             .thenReturn(List.of(withImage, withoutImage));
 
         HeroResponse response = homeService.getHero(1L);
@@ -161,7 +171,7 @@ class HomeServiceTest {
     void 인기_지역의_대표_코스를_반환한다() {
         PopularRegion popular = () -> RegionCandidateFixture.CANDIDATE_ID;
         when(recommendedRegionRepository.findPopularRegions(
-            org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
+            Locale.KOREAN, org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
             .thenReturn(List.of(popular));
 
         GeneratedCourse course = org.mockito.Mockito.mock(GeneratedCourse.class);
@@ -173,7 +183,8 @@ class HomeServiceTest {
         when(course.getRecommendedRegion()).thenReturn(region);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
         when(generatedCourseRepository
-            .findFirstByRecommendedRegionRegionCandidateIdOrderByIdAsc(RegionCandidateFixture.CANDIDATE_ID))
+            .findFirstByRecommendedRegionRegionCandidateIdAndRecommendedRegionLocaleOrderByIdAsc(
+                RegionCandidateFixture.CANDIDATE_ID, Locale.KOREAN))
             .thenReturn(java.util.Optional.of(course));
 
         PopularCourseListResponse response = homeService.getPopularCourses();
@@ -210,7 +221,7 @@ class HomeServiceTest {
         RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
         when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
-        when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId)).thenReturn(List.of(region));
+        when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, Locale.KOREAN)).thenReturn(List.of(region));
 
         Incentive incentive = Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
@@ -237,7 +248,7 @@ class HomeServiceTest {
         org.springframework.test.util.ReflectionTestUtils.setField(withoutIncentiveCandidate, "id", 2L);
         when(withoutIncentive.getRegionCandidate())
             .thenReturn(withoutIncentiveCandidate);
-        when(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId))
+        when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, Locale.KOREAN))
             .thenReturn(List.of(withIncentive, withoutIncentive));
 
         Incentive incentive = Incentive.create(
@@ -257,13 +268,13 @@ class HomeServiceTest {
     void 비로그인_진행중_인센티브는_인기_지역_탭별로_반환한다() {
         PopularRegion popular = () -> RegionCandidateFixture.CANDIDATE_ID;
         when(recommendedRegionRepository.findPopularRegions(
-            org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
+            Locale.KOREAN, org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
             .thenReturn(List.of(popular));
 
         RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
         when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
-        when(recommendedRegionRepository.findFirstByRegionCandidateId(RegionCandidateFixture.CANDIDATE_ID))
+        when(recommendedRegionRepository.findFirstByRegionCandidateIdAndLocale(RegionCandidateFixture.CANDIDATE_ID, Locale.KOREAN))
             .thenReturn(java.util.Optional.of(region));
 
         Incentive incentive = Incentive.create(

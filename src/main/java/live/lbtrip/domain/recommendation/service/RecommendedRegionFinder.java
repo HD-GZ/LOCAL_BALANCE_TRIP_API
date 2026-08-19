@@ -1,6 +1,7 @@
 package live.lbtrip.domain.recommendation.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Component;
 
@@ -16,8 +17,8 @@ public class RecommendedRegionFinder {
 
     private final RecommendedRegionRepository recommendedRegionRepository;
 
-    public List<RecommendedRegion> findAllByUserId(Long userId) {
-        return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId);
+    public List<RecommendedRegion> findAllByUserId(Long userId, Locale locale) {
+        return recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale);
     }
 
     public RecommendedRegion findByIdAndUserId(Long id, Long userId) {

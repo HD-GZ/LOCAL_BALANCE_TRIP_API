@@ -95,7 +95,7 @@ class UserAnonymizationProcessorTest {
             verify(savedCourseRepository).findAllByUserId(USER_ID);
             verify(imageRepository).deleteAll(List.of(image));
             verify(generatedCourseRepository).findAllByUserId(USER_ID);
-            verify(recommendedRegionRepository).findAllByUserIdOrderByDisplayOrder(USER_ID);
+            verify(recommendedRegionRepository).findAllByUserId(USER_ID);
             verify(propensityRepository).findByUserId(USER_ID);
             verify(refreshTokenRepository).deleteByUserId(USER_ID);
             verify(signupVerificationTokenRepository).deleteByUserId(USER_ID);

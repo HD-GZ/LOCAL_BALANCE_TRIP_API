@@ -51,6 +51,7 @@ public interface AdminTourSyncApi {
             - VISITOR_STATS: 지역별 방문자수 적재 (미적재 일자당 API 1회, 최대 45회)
             - PLACES_EN: 지역별 영문 장소 적재 (지역당 API 5회)
             - OVERVIEWS_EN: 영문 장소 상세 설명 보강 (미적재 영문 장소당 API 1회)
+            - REGION_NAMES_EN: 지역 영문명 적재 (시도당 API 1회)
 
             실행 중 일일 한도를 초과하면 해당 단계를 즉시 중단합니다.
             미적재 대상만 조회하므로 다음 날 다시 실행하면 남은 분부터 이어서 진행됩니다.

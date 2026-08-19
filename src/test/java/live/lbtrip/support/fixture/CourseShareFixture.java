@@ -12,7 +12,7 @@ public final class CourseShareFixture {
     public static final Long SHARE_TOKEN_ID = 1L;
     public static final Long SAVED_COURSE_ID = 3L;
     public static final String TOKEN = "550e8400-e29b-41d4-a716-446655440000";
-    public static final LocalDateTime EXPIRES_AT = LocalDateTime.of(2026, 8, 19, 13, 0);
+    public static final LocalDateTime EXPIRES_AT = LocalDateTime.now().plusDays(7).withNano(0);
 
     private CourseShareFixture() {
     }

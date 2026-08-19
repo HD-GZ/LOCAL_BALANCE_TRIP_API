@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
+import live.lbtrip.domain.tourism.client.dto.RegionNameItem;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.config.TourApiProperties;
@@ -25,6 +26,7 @@ public class TourApiClient {
 
     private static final int STATS_SAMPLE_SIZE = 1000;
     private static final int PLACES_PAGE_SIZE = 15;
+    private static final int REGION_NAMES_PAGE_SIZE = 100;
 
     private final PublicDataClient publicDataClient;
     private final TourApiProperties properties;
@@ -63,6 +65,19 @@ public class TourApiClient {
     public String fetchOverview(Locale locale, String contentId) {
         JsonNode body = get(locale, "/detailCommon2", uri -> uri.queryParam("contentId", contentId));
         return firstOverview(body);
+    }
+
+    public List<RegionNameItem> fetchRegionNames(Locale locale, String ldongRegnCd) {
+        JsonNode body = get(locale, "/ldongCode2", uri -> uri
+            .queryParam("numOfRows", REGION_NAMES_PAGE_SIZE)
+            .queryParam("lDongRegnCd", ldongRegnCd)
+            .queryParam("lDongListYn", "Y"));
+
+        List<RegionNameItem> names = new ArrayList<>();
+        for (JsonNode item : publicDataClient.items(body)) {
+            names.add(RegionNameItem.from(item));
+        }
+        return names;
     }
 
     private String firstOverview(JsonNode body) {

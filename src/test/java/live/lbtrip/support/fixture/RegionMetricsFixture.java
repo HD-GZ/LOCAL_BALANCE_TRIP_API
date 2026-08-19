@@ -12,7 +12,7 @@ public final class RegionMetricsFixture {
     }
 
     public static RegionMetrics 로컬실속_지역() {
-        return new RegionMetrics(1L, "로컬실속", 80, 100,
+        return new RegionMetrics(1L, "로컬실속", null, 80, 100,
             Map.of(TourContentType.TOURIST_SPOT.getCode(), 5,
                 TourContentType.RESTAURANT.getCode(), 20),
             Map.of(CategoryGroup.TRADITIONAL_MARKET, 8,
@@ -21,7 +21,7 @@ public final class RegionMetricsFixture {
     }
 
     public static RegionMetrics 핫플럭셔리_지역() {
-        return new RegionMetrics(2L, "핫플럭셔리", 3000, 100,
+        return new RegionMetrics(2L, "핫플럭셔리", null, 3000, 100,
             Map.of(TourContentType.TOURIST_SPOT.getCode(), 40,
                 TourContentType.ACCOMMODATION.getCode(), 15),
             Map.of(CategoryGroup.LUXURY_SHOPPING, 12,
@@ -30,14 +30,14 @@ public final class RegionMetricsFixture {
     }
 
     public static RegionMetrics 체험활동_지역() {
-        return new RegionMetrics(3L, "체험활동", 400, 100,
+        return new RegionMetrics(3L, "체험활동", null, 400, 100,
             Map.of(TourContentType.LEPORTS.getCode(), 25),
             Map.of(CategoryGroup.EXPERIENCE_PLACE, 15),
             30_000);
     }
 
     public static RegionMetrics 관람휴식_지역() {
-        return new RegionMetrics(4L, "관람휴식", 600, 100,
+        return new RegionMetrics(4L, "관람휴식", null, 600, 100,
             Map.of(TourContentType.CULTURAL_FACILITY.getCode(), 20),
             Map.of(CategoryGroup.VIEWING_PLACE, 25,
                 CategoryGroup.NATURE_REST, 15,
