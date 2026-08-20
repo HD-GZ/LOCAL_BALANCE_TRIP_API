@@ -21,6 +21,7 @@ public class MessageResolver {
 
     public Locale currentLocale() {
         Locale locale = LocaleContextHolder.getLocale();
+        log.info("current locale: {}", locale);
         return LocaleConfig.SUPPORTED_LOCALES.stream()
             .filter(supported -> supported.getLanguage().equals(locale.getLanguage()))
             .findFirst()
