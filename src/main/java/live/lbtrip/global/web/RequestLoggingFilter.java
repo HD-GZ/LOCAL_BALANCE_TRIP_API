@@ -53,6 +53,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         MDC.put(REQUEST_ID, requestId);
         MDC.put(HTTP_METHOD, httpMethod);
         MDC.put(REQUEST_PATH, requestPath);
+        log.error("Accept-Language is null {}", request.getHeader("Accept-Language"));
         putIfPresent(LANGUAGE, request.getHeader("Accept-Language"));
 
         log.info(
