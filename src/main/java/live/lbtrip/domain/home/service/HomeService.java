@@ -19,11 +19,10 @@ import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.incentive.model.Incentive;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
+import live.lbtrip.domain.propensity.dto.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
-import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
@@ -53,7 +52,6 @@ public class HomeService {
     private static final int SAVED_FEED_PAGE_SIZE = 20;
     private static final int SAVED_PER_RECOMMENDATION = 2;
 
-    private final TravelProfileRepository travelProfileRepository;
     private final ImageStorage imageStorage;
     private final PropensityFinder propensityFinder;
     private final TravelProfileFinder travelProfileFinder;
@@ -80,13 +78,12 @@ public class HomeService {
     }
 
     public ProfileTypeListResponse getProfileTypes() {
-        List<ProfileTypeListResponse.InnerProfileType> types = travelProfileRepository
-            .findByFeaturedOrderIsNotNullOrderByFeaturedOrderAsc().stream()
+        List<ProfileTypeListResponse.InnerProfileType> types = travelProfileFinder.findFeatured().stream()
             .map(p -> new ProfileTypeListResponse.InnerProfileType(
-                p.getCode(),
-                p.getNickname(),
-                p.getDescription(),
-                imageStorage.publicUrl(p.getImageKey())))
+                p.code(),
+                p.nickname(),
+                p.description(),
+                imageStorage.publicUrl(p.imageKey())))
             .toList();
         return ProfileTypeListResponse.of(types);
     }
@@ -95,11 +92,11 @@ public class HomeService {
         Propensity propensity = propensityFinder.findByUserId(userId);
         Preference preference = propensity.getPreference();
         ValueConsumption valueConsumption = propensity.getValueConsumption();
-        TravelProfile profile = travelProfileFinder.findByPreference(preference);
+        LocalizedTravelProfile profile = travelProfileFinder.findLocalizedByPreference(preference);
 
         return ProfileSummaryResponse.of(
             profile,
-            imageStorage.publicUrl(profile.getImageKey()),
+            imageStorage.publicUrl(profile.imageKey()),
             propensity.getUpdatedAt().toLocalDate(),
             preference,
             valueConsumption,

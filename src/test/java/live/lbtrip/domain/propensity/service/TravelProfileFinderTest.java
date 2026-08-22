@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
@@ -13,10 +15,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import live.lbtrip.domain.propensity.dto.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.support.fixture.PropensityFixture;
 import live.lbtrip.support.fixture.TravelProfileFixture;
 
@@ -25,6 +29,9 @@ class TravelProfileFinderTest {
 
     @Mock
     private TravelProfileRepository travelProfileRepository;
+
+    @Mock
+    private MessageResolver messageResolver;
 
     @InjectMocks
     private TravelProfileFinder travelProfileFinder;
@@ -61,6 +68,62 @@ class TravelProfileFinderTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.TRAVEL_PROFILE_NOT_FOUND);
+        }
+    }
+
+    @Nested
+    class 로케일별_조회 {
+
+        @Test
+        void 한국어_로케일이면_한글_별칭과_설명으로_조회한다() {
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
+            when(travelProfileRepository.findByCode(TravelProfileFixture.CODE))
+                .thenReturn(Optional.of(TravelProfileFixture.travelProfileWithEnglish()));
+
+            LocalizedTravelProfile profile = travelProfileFinder.findLocalizedByPreference(PropensityFixture.preference());
+
+            assertThat(profile.nickname()).isEqualTo(TravelProfileFixture.NICKNAME);
+            assertThat(profile.description()).isEqualTo(TravelProfileFixture.DESCRIPTION);
+        }
+
+        @Test
+        void 영어_로케일이면_영문_별칭과_설명으로_조회한다() {
+            when(messageResolver.currentLocale()).thenReturn(Locale.ENGLISH);
+            when(travelProfileRepository.findByCode(TravelProfileFixture.CODE))
+                .thenReturn(Optional.of(TravelProfileFixture.travelProfileWithEnglish()));
+
+            LocalizedTravelProfile profile = travelProfileFinder.findLocalizedByPreference(PropensityFixture.preference());
+
+            assertThat(profile.nickname()).isEqualTo(TravelProfileFixture.NICKNAME_EN);
+            assertThat(profile.description()).isEqualTo(TravelProfileFixture.DESCRIPTION_EN);
+        }
+
+        @Test
+        void 영어_로케일이어도_영문_번역이_없으면_한글로_폴백한다() {
+            when(messageResolver.currentLocale()).thenReturn(Locale.ENGLISH);
+            when(travelProfileRepository.findByCode(TravelProfileFixture.CODE))
+                .thenReturn(Optional.of(TravelProfileFixture.travelProfile()));
+
+            LocalizedTravelProfile profile = travelProfileFinder.findLocalizedByPreference(PropensityFixture.preference());
+
+            assertThat(profile.nickname()).isEqualTo(TravelProfileFixture.NICKNAME);
+            assertThat(profile.description()).isEqualTo(TravelProfileFixture.DESCRIPTION);
+        }
+    }
+
+    @Nested
+    class 대표_유형_조회 {
+
+        @Test
+        void 대표_유형을_현재_로케일로_조회한다() {
+            when(messageResolver.currentLocale()).thenReturn(Locale.ENGLISH);
+            when(travelProfileRepository.findByFeaturedOrderIsNotNullOrderByFeaturedOrderAsc())
+                .thenReturn(List.of(TravelProfileFixture.travelProfileWithEnglish()));
+
+            List<LocalizedTravelProfile> profiles = travelProfileFinder.findFeatured();
+
+            assertThat(profiles).hasSize(1);
+            assertThat(profiles.get(0).nickname()).isEqualTo(TravelProfileFixture.NICKNAME_EN);
         }
     }
 }

@@ -64,8 +64,8 @@ class PropensityServiceTest {
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.empty());
             when(userFinder.findById(AuthResponseFixture.USER_ID)).thenReturn(user);
             when(propensityRepository.save(any(Propensity.class))).thenReturn(propensity);
-            when(travelProfileFinder.findByPreference(any(Preference.class)))
-                .thenReturn(TravelProfileFixture.travelProfile());
+            when(travelProfileFinder.findLocalizedByPreference(any(Preference.class)))
+                .thenReturn(TravelProfileFixture.localizedTravelProfile());
             when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.setPropensity(
@@ -88,8 +88,8 @@ class PropensityServiceTest {
         void 기존_결과가_있으면_점수를_갱신한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(travelProfileFinder.findByPreference(any(Preference.class)))
-                .thenReturn(TravelProfileFixture.travelProfile());
+            when(travelProfileFinder.findLocalizedByPreference(any(Preference.class)))
+                .thenReturn(TravelProfileFixture.localizedTravelProfile());
             when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.setPropensity(
@@ -122,8 +122,8 @@ class PropensityServiceTest {
         void 취향_진단_결과를_조회한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(travelProfileFinder.findByPreference(any(Preference.class)))
-                .thenReturn(TravelProfileFixture.travelProfile());
+            when(travelProfileFinder.findLocalizedByPreference(any(Preference.class)))
+                .thenReturn(TravelProfileFixture.localizedTravelProfile());
             when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
@@ -148,8 +148,8 @@ class PropensityServiceTest {
         void 캐릭터_이미지가_등록되어_있으면_이미지_URL을_반환한다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(travelProfileFinder.findByPreference(any(Preference.class)))
-                .thenReturn(TravelProfileFixture.travelProfile());
+            when(travelProfileFinder.findLocalizedByPreference(any(Preference.class)))
+                .thenReturn(TravelProfileFixture.localizedTravelProfile());
             when(imageStorage.publicUrl(TravelProfileFixture.IMAGE_KEY)).thenReturn(PropensityResponseFixture.IMAGE_URL);
 
             PropensityResponse response = propensityService.getPropensity(AuthResponseFixture.USER_ID);
@@ -171,7 +171,7 @@ class PropensityServiceTest {
         void 여행_프로필이_없으면_예외를_던진다() {
             Propensity propensity = PropensityFixture.propensity();
             when(propensityRepository.findByUserId(AuthResponseFixture.USER_ID)).thenReturn(Optional.of(propensity));
-            when(travelProfileFinder.findByPreference(any(Preference.class)))
+            when(travelProfileFinder.findLocalizedByPreference(any(Preference.class)))
                 .thenThrow(BusinessException.of(ErrorCode.TRAVEL_PROFILE_NOT_FOUND));
 
             assertThatThrownBy(() -> propensityService.getPropensity(AuthResponseFixture.USER_ID))
