@@ -17,6 +17,11 @@ public record AdminIncentiveRequest(
     @Size(max = 200, message = "{validation.incentiveTitle.size}")
     String title,
 
+    @Schema(description = "영문 행사 제목. 없으면 영어 응답에서 한글 제목으로 대체됩니다.", nullable = true,
+        example = "KTX Discount for Depopulation Areas")
+    @Size(max = 200, message = "{validation.incentiveTitleEn.size}")
+    String titleEn,
+
     @Schema(description = "행사 페이지 URL", example = "https://www.letskorail.com/event/discount", requiredMode = REQUIRED)
     @NotBlank(message = "{validation.incentiveUrl.required}")
     @Size(max = 500, message = "{validation.incentiveUrl.size}")
@@ -25,6 +30,11 @@ public record AdminIncentiveRequest(
     @Schema(description = "행사 부가 설명", example = "코레일 공식 채널로 이동")
     @Size(max = 200, message = "{validation.incentiveDescription.size}")
     String description,
+
+    @Schema(description = "영문 행사 부가 설명. 없으면 영어 응답에서 한글 설명으로 대체됩니다.", nullable = true,
+        example = "Opens the official Korail channel")
+    @Size(max = 200, message = "{validation.incentiveDescriptionEn.size}")
+    String descriptionEn,
 
     @Schema(description = "혜택 시작일", example = "2026-07-01", requiredMode = REQUIRED)
     @NotNull(message = "{validation.incentiveStartDate.required}")

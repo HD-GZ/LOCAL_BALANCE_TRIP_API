@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
@@ -46,7 +46,7 @@ public class RecommendationService {
     public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
         GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
         RecommendedRegion recommendedRegion = course.getRecommendedRegion();
-        List<Incentive> incentives = incentiveFinder.findAllByRegion(
+        List<LocalizedIncentive> incentives = incentiveFinder.findAllByRegion(
             recommendedRegion.getRegionCandidate().getId()
         );
 

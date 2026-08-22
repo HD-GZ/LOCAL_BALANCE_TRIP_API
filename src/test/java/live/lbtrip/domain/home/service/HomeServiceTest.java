@@ -30,6 +30,7 @@ import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
 import live.lbtrip.domain.home.model.PropensityFactor;
 import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
@@ -222,9 +223,9 @@ class HomeServiceTest {
         when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
         when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, Locale.KOREAN)).thenReturn(List.of(region));
 
-        Incentive incentive = Incentive.create(
+        LocalizedIncentive incentive = LocalizedIncentive.of(Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
-            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
+            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12)), Locale.KOREAN);
         when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
             .thenReturn(List.of(incentive));
 
@@ -250,9 +251,9 @@ class HomeServiceTest {
         when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, Locale.KOREAN))
             .thenReturn(List.of(withIncentive, withoutIncentive));
 
-        Incentive incentive = Incentive.create(
+        LocalizedIncentive incentive = LocalizedIncentive.of(Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
-            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
+            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12)), Locale.KOREAN);
         when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
             .thenReturn(List.of(incentive));
         when(incentiveFinder.findActiveByRegion(eq(2L), any())).thenReturn(List.of());
@@ -276,9 +277,9 @@ class HomeServiceTest {
         when(recommendedRegionRepository.findFirstByRegionCandidateIdAndLocale(RegionCandidateFixture.CANDIDATE_ID, Locale.KOREAN))
             .thenReturn(java.util.Optional.of(region));
 
-        Incentive incentive = Incentive.create(
+        LocalizedIncentive incentive = LocalizedIncentive.of(Incentive.create(
             "담양 로컬 여행 지원", "https://event.example.com/damyang", "설명",
-            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12));
+            LocalDate.now().minusDays(1), LocalDate.now().plusDays(12)), Locale.KOREAN);
         when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
             .thenReturn(List.of(incentive));
 

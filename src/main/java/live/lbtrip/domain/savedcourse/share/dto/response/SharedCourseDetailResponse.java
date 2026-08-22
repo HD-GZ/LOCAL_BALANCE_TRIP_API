@@ -3,7 +3,7 @@ package live.lbtrip.domain.savedcourse.share.dto.response;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse.InnerBenefitResponse;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse.InnerPlaceResponse;
@@ -36,7 +36,7 @@ public record SharedCourseDetailResponse(
     List<InnerBenefitResponse> benefits
 ) {
 
-    public static SharedCourseDetailResponse of(SavedCourse savedCourse, List<Incentive> incentives) {
+    public static SharedCourseDetailResponse of(SavedCourse savedCourse, List<LocalizedIncentive> incentives) {
         SavedCourseDetailResponse courseDetail = SavedCourseDetailResponse.of(savedCourse, incentives);
 
         return new SharedCourseDetailResponse(

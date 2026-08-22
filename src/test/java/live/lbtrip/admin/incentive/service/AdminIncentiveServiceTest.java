@@ -56,7 +56,9 @@ class AdminIncentiveServiceTest {
             );
 
             assertThat(response.title()).isEqualTo(AdminIncentiveRequestFixture.TITLE);
+            assertThat(response.titleEn()).isEqualTo(AdminIncentiveRequestFixture.TITLE_EN);
             assertThat(response.url()).isEqualTo(AdminIncentiveRequestFixture.URL);
+            assertThat(response.descriptionEn()).isEqualTo(AdminIncentiveRequestFixture.DESCRIPTION_EN);
             assertThat(response.startDate()).isEqualTo(AdminIncentiveRequestFixture.START_DATE);
             assertThat(response.endDate()).isEqualTo(AdminIncentiveRequestFixture.END_DATE);
         }
@@ -68,8 +70,10 @@ class AdminIncentiveServiceTest {
 
             assertThatThrownBy(() -> adminIncentiveService.createIncentive(new AdminIncentiveRequest(
                 AdminIncentiveRequestFixture.TITLE,
+                AdminIncentiveRequestFixture.TITLE_EN,
                 AdminIncentiveRequestFixture.URL,
                 AdminIncentiveRequestFixture.DESCRIPTION,
+                AdminIncentiveRequestFixture.DESCRIPTION_EN,
                 AdminIncentiveRequestFixture.START_DATE,
                 AdminIncentiveRequestFixture.START_DATE.minusDays(1),
                 AdminIncentiveRequestFixture.regionCandidateIds()
