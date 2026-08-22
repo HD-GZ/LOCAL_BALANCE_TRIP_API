@@ -1,5 +1,7 @@
 package live.lbtrip.domain.propensity.model;
 
+import java.util.Locale;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -27,8 +29,14 @@ public class TravelProfile extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String nickname;
 
+    @Column(name = "nickname_en", length = 100)
+    private String nicknameEn;
+
     @Column(nullable = false, length = 1000)
     private String description;
+
+    @Column(name = "description_en", length = 1000)
+    private String descriptionEn;
 
     @Column(nullable = false, length = 255)
     private String imageKey;
@@ -45,5 +53,23 @@ public class TravelProfile extends BaseEntity {
 
     public static TravelProfile create(String code, String nickname, String description, String imageKey) {
         return new TravelProfile(code, nickname, description, imageKey);
+    }
+
+    public String nicknameFor(Locale locale) {
+        if (isEnglish(locale) && nicknameEn != null && !nicknameEn.isBlank()) {
+            return nicknameEn;
+        }
+        return nickname;
+    }
+
+    public String descriptionFor(Locale locale) {
+        if (isEnglish(locale) && descriptionEn != null && !descriptionEn.isBlank()) {
+            return descriptionEn;
+        }
+        return description;
+    }
+
+    private boolean isEnglish(Locale locale) {
+        return Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
     }
 }

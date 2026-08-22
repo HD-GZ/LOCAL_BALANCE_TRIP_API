@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import live.lbtrip.domain.home.model.PropensityFactor;
 import live.lbtrip.domain.propensity.model.Preference;
-import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 
 public record ProfileSummaryResponse(
     @Schema(description = "진단 유형 라벨. \"{별칭} ({코드})\"", example = "찐로컬 탐험가 (LVEAI)")
@@ -43,7 +43,7 @@ public record ProfileSummaryResponse(
     }
 
     public static ProfileSummaryResponse of(
-        TravelProfile profile,
+        LocalizedTravelProfile profile,
         String imageUrl,
         LocalDate diagnosedAt,
         Preference preference,
@@ -58,8 +58,8 @@ public record ProfileSummaryResponse(
                 f.score(preference, valueConsumption)))
             .toList();
         return new ProfileSummaryResponse(
-            "%s (%s)".formatted(profile.getNickname(), profile.getCode()),
-            profile.getDescription(),
+            "%s (%s)".formatted(profile.nickname(), profile.code()),
+            profile.description(),
             imageUrl,
             diagnosedAt,
             sliders);

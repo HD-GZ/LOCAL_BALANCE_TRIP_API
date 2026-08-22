@@ -33,9 +33,8 @@ import live.lbtrip.domain.incentive.model.Incentive;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
-import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
@@ -62,7 +61,6 @@ import live.lbtrip.support.fixture.TravelProfileFixture;
 @ExtendWith(MockitoExtension.class)
 class HomeServiceTest {
 
-    @Mock private TravelProfileRepository travelProfileRepository;
     @Mock private ImageStorage imageStorage;
     @Mock private PropensityFinder propensityFinder;
     @Mock private TravelProfileFinder travelProfileFinder;
@@ -83,11 +81,10 @@ class HomeServiceTest {
 
     @Test
     void 대표_유형을_featured_order_순으로_반환한다() {
-        List<TravelProfile> profiles = List.of(
-            TravelProfileFixture.featured("LVEAI", "찐로컬 탐험가", 1),
-            TravelProfileFixture.featured("HVEAG", "미식 수집가", 2));
-        when(travelProfileRepository.findByFeaturedOrderIsNotNullOrderByFeaturedOrderAsc())
-            .thenReturn(profiles);
+        List<LocalizedTravelProfile> profiles = List.of(
+            LocalizedTravelProfile.of(TravelProfileFixture.featured("LVEAI", "찐로컬 탐험가", 1), Locale.KOREAN),
+            LocalizedTravelProfile.of(TravelProfileFixture.featured("HVEAG", "미식 수집가", 2), Locale.KOREAN));
+        when(travelProfileFinder.findFeatured()).thenReturn(profiles);
         when(imageStorage.publicUrl("travel-profiles/lveai.png")).thenReturn("https://img/lveai.png");
         when(imageStorage.publicUrl("travel-profiles/hveag.png")).thenReturn("https://img/hveag.png");
 
@@ -104,13 +101,14 @@ class HomeServiceTest {
         Propensity propensity = mock(Propensity.class);
         Preference preference = Preference.of(4, 5, 4, 2, 4);
         ValueConsumption vc = ValueConsumption.of(2, 4, 5, 2, 4);
-        TravelProfile profile = TravelProfileFixture.featured("LVEAI", "찐로컬 탐험가", 1);
+        LocalizedTravelProfile profile =
+            LocalizedTravelProfile.of(TravelProfileFixture.featured("LVEAI", "찐로컬 탐험가", 1), Locale.KOREAN);
 
         when(propensityFinder.findByUserId(userId)).thenReturn(propensity);
         when(propensity.getPreference()).thenReturn(preference);
         when(propensity.getValueConsumption()).thenReturn(vc);
         when(propensity.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 7, 20, 9, 0));
-        when(travelProfileFinder.findByPreference(preference)).thenReturn(profile);
+        when(travelProfileFinder.findLocalizedByPreference(preference)).thenReturn(profile);
         when(imageStorage.publicUrl("travel-profiles/lveai.png")).thenReturn("https://img/lveai.png");
         when(propensityFactorSelector.selectThree()).thenReturn(List.of(
             PropensityFactor.LOCALITY, PropensityFactor.VITALITY, PropensityFactor.SOCIALITY));
