@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCoursePlace;
@@ -84,12 +84,12 @@ public record SavedCourseDetailResponse(
         String url
     ) {
 
-        private static InnerBenefitResponse from(Incentive incentive) {
-            return new InnerBenefitResponse(incentive.getTitle(), incentive.getDescription(), incentive.getUrl());
+        private static InnerBenefitResponse from(LocalizedIncentive incentive) {
+            return new InnerBenefitResponse(incentive.title(), incentive.description(), incentive.url());
         }
     }
 
-    public static SavedCourseDetailResponse of(SavedCourse savedCourse, List<Incentive> incentives) {
+    public static SavedCourseDetailResponse of(SavedCourse savedCourse, List<LocalizedIncentive> incentives) {
         return new SavedCourseDetailResponse(
             savedCourse.getId(),
             savedCourse.getRegionName(),

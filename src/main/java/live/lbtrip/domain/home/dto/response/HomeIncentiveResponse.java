@@ -6,7 +6,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 
 public record HomeIncentiveResponse(
     @Schema(description = "추천/인기 지역별 진행중 인센티브 탭 목록")
@@ -42,21 +42,21 @@ public record HomeIncentiveResponse(
         Long dday
     ) {
 
-        public static InnerIncentive of(Incentive incentive, LocalDate today) {
-            Long dday = incentive.getEndDate() == null
+        public static InnerIncentive of(LocalizedIncentive incentive, LocalDate today) {
+            Long dday = incentive.endDate() == null
                 ? null
-                : ChronoUnit.DAYS.between(today, incentive.getEndDate());
+                : ChronoUnit.DAYS.between(today, incentive.endDate());
             return new InnerIncentive(
-                incentive.getTitle(),
-                incentive.getDescription(),
-                incentive.getUrl(),
-                incentive.getEndDate(),
+                incentive.title(),
+                incentive.description(),
+                incentive.url(),
+                incentive.endDate(),
                 dday);
         }
     }
 
     public static InnerRegionTab tab(String regionName, Long regionCandidateId,
-        List<Incentive> incentives, LocalDate today) {
+        List<LocalizedIncentive> incentives, LocalDate today) {
         return new InnerRegionTab(regionName, regionCandidateId,
             incentives.stream().map(i -> InnerIncentive.of(i, today)).toList());
     }

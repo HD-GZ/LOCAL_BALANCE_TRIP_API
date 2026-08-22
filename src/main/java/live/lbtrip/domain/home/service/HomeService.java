@@ -17,7 +17,7 @@ import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
@@ -125,7 +125,7 @@ public class HomeService {
         GeneratedCourse course = generatedCourseRepository.findById(courseId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
         RecommendedRegion region = course.getRecommendedRegion();
-        List<Incentive> incentives = incentiveFinder.findActiveByRegion(
+        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(
             region.getRegionCandidate().getId(), LocalDate.now());
         return CourseDetailResponse.of(course, incentives);
     }
