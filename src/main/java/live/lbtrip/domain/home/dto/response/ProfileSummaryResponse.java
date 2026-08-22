@@ -6,9 +6,9 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import live.lbtrip.domain.home.model.PropensityFactor;
-import live.lbtrip.domain.propensity.dto.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 
 public record ProfileSummaryResponse(
     @Schema(description = "진단 유형 라벨. \"{별칭} ({코드})\"", example = "찐로컬 탐험가 (LVEAI)")

@@ -4,8 +4,8 @@ import java.util.Locale;
 
 import org.springframework.test.util.ReflectionTestUtils;
 
-import live.lbtrip.domain.propensity.dto.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.model.TravelProfile;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 
 public final class TravelProfileFixture {
 

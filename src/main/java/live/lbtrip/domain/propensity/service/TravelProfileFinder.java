@@ -5,9 +5,9 @@ import java.util.Locale;
 
 import org.springframework.stereotype.Component;
 
-import live.lbtrip.domain.propensity.dto.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.TravelProfile;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;

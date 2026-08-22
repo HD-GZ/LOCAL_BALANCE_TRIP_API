@@ -15,8 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import live.lbtrip.domain.propensity.dto.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.model.TravelProfile;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;

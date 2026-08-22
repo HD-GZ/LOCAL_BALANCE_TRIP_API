@@ -1,10 +1,10 @@
 package live.lbtrip.domain.propensity.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import live.lbtrip.domain.propensity.dto.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 
 public record PropensityResponse(
     @Schema(description = "취향 결과(별칭 + 코드 + 설명)")

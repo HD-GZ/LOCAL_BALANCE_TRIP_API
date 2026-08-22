@@ -1,4 +1,4 @@
-package live.lbtrip.domain.propensity.dto;
+package live.lbtrip.domain.propensity.model.vo;
 
 import java.util.Locale;
 
