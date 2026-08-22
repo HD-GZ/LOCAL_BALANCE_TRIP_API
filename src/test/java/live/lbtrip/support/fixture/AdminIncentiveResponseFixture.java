@@ -15,8 +15,10 @@ public final class AdminIncentiveResponseFixture {
         return new AdminIncentiveResponse(
             INCENTIVE_ID,
             AdminIncentiveRequestFixture.TITLE,
+            AdminIncentiveRequestFixture.TITLE_EN,
             AdminIncentiveRequestFixture.URL,
             AdminIncentiveRequestFixture.DESCRIPTION,
+            AdminIncentiveRequestFixture.DESCRIPTION_EN,
             AdminIncentiveRequestFixture.START_DATE,
             AdminIncentiveRequestFixture.END_DATE,
             regionResponses()
@@ -27,8 +29,10 @@ public final class AdminIncentiveResponseFixture {
         return new AdminIncentiveResponse(
             INCENTIVE_ID,
             AdminIncentiveRequestFixture.UPDATED_TITLE,
+            AdminIncentiveRequestFixture.UPDATED_TITLE_EN,
             AdminIncentiveRequestFixture.UPDATED_URL,
             AdminIncentiveRequestFixture.UPDATED_DESCRIPTION,
+            AdminIncentiveRequestFixture.UPDATED_DESCRIPTION_EN,
             AdminIncentiveRequestFixture.UPDATED_START_DATE,
             null,
             regionResponses()
@@ -39,8 +43,10 @@ public final class AdminIncentiveResponseFixture {
         return new AdminIncentiveResponse(
             INCENTIVE_ID,
             AdminIncentiveRequestFixture.TITLE,
+            null,
             AdminIncentiveRequestFixture.URL,
             AdminIncentiveRequestFixture.DESCRIPTION,
+            null,
             null,
             null,
             regionResponses()

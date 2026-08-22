@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -79,6 +80,36 @@ class IncentiveTest {
             assertThat(incentive.getDescription()).isEqualTo("기존 설명");
             assertThat(incentive.getStartDate()).isEqualTo(START_DATE);
             assertThat(incentive.getEndDate()).isEqualTo(END_DATE);
+        }
+    }
+
+    @Nested
+    class 로케일별_텍스트_조회 {
+
+        @Test
+        void 영어_로케일이면_영문_제목과_설명을_반환한다() {
+            Incentive incentive = Incentive.create("반값여행", "https://example.com", "국내 설명", START_DATE, END_DATE);
+            incentive.updateTranslations("Half-Price Travel", "English description");
+
+            assertThat(incentive.titleFor(Locale.ENGLISH)).isEqualTo("Half-Price Travel");
+            assertThat(incentive.descriptionFor(Locale.ENGLISH)).isEqualTo("English description");
+        }
+
+        @Test
+        void 한국어_로케일이면_한글_제목과_설명을_반환한다() {
+            Incentive incentive = Incentive.create("반값여행", "https://example.com", "국내 설명", START_DATE, END_DATE);
+            incentive.updateTranslations("Half-Price Travel", "English description");
+
+            assertThat(incentive.titleFor(Locale.KOREAN)).isEqualTo("반값여행");
+            assertThat(incentive.descriptionFor(Locale.KOREAN)).isEqualTo("국내 설명");
+        }
+
+        @Test
+        void 영문_번역이_없으면_한글로_폴백한다() {
+            Incentive incentive = Incentive.create("반값여행", "https://example.com", "국내 설명", START_DATE, END_DATE);
+
+            assertThat(incentive.titleFor(Locale.ENGLISH)).isEqualTo("반값여행");
+            assertThat(incentive.descriptionFor(Locale.ENGLISH)).isEqualTo("국내 설명");
         }
     }
 }

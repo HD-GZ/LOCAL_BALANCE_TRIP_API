@@ -32,10 +32,11 @@ public class AdminIncentiveService {
         Incentive incentive = Incentive.create(
             StringNormalizer.trim(request.title()),
             StringNormalizer.trim(request.url()),
-            normalizeDescription(request.description()),
+            normalizeOptional(request.description()),
             request.startDate(),
             request.endDate()
         );
+        incentive.updateTranslations(normalizeOptional(request.titleEn()), normalizeOptional(request.descriptionEn()));
         incentive.replaceRegions(toIncentiveRegions(candidates));
         return AdminIncentiveResponse.from(adminIncentiveRepository.save(incentive));
     }
@@ -54,10 +55,11 @@ public class AdminIncentiveService {
         incentive.update(
             StringNormalizer.trim(request.title()),
             StringNormalizer.trim(request.url()),
-            normalizeDescription(request.description()),
+            normalizeOptional(request.description()),
             request.startDate(),
             request.endDate()
         );
+        incentive.updateTranslations(normalizeOptional(request.titleEn()), normalizeOptional(request.descriptionEn()));
         incentive.replaceRegions(toIncentiveRegions(candidates));
         return AdminIncentiveResponse.from(incentive);
     }
@@ -88,7 +90,7 @@ public class AdminIncentiveService {
             .toList();
     }
 
-    private String normalizeDescription(String description) {
-        return description == null ? null : StringNormalizer.trim(description);
+    private String normalizeOptional(String value) {
+        return value == null ? null : StringNormalizer.trim(value);
     }
 }

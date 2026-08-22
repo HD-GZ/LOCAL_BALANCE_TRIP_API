@@ -95,8 +95,8 @@ class AdminIncentiveControllerTest {
                     .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN)
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
-                        " ", AdminIncentiveRequestFixture.URL, AdminIncentiveRequestFixture.DESCRIPTION,
-                        AdminIncentiveRequestFixture.START_DATE, AdminIncentiveRequestFixture.END_DATE,
+                        " ", null, AdminIncentiveRequestFixture.URL, AdminIncentiveRequestFixture.DESCRIPTION,
+                        null, AdminIncentiveRequestFixture.START_DATE, AdminIncentiveRequestFixture.END_DATE,
                         AdminIncentiveRequestFixture.regionCandidateIds()))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("ERROR"))
@@ -112,8 +112,10 @@ class AdminIncentiveControllerTest {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
                         AdminIncentiveRequestFixture.TITLE,
+                        null,
                         AdminIncentiveRequestFixture.URL,
                         AdminIncentiveRequestFixture.DESCRIPTION,
+                        null,
                         null,
                         AdminIncentiveRequestFixture.END_DATE,
                         AdminIncentiveRequestFixture.regionCandidateIds()
@@ -233,8 +235,10 @@ class AdminIncentiveControllerTest {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
                         AdminIncentiveRequestFixture.TITLE,
+                        null,
                         AdminIncentiveRequestFixture.URL,
                         AdminIncentiveRequestFixture.DESCRIPTION,
+                        null,
                         null,
                         AdminIncentiveRequestFixture.END_DATE,
                         AdminIncentiveRequestFixture.regionCandidateIds()
