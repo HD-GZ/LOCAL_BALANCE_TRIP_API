@@ -1,0 +1,10 @@
+Local Balance Trip Email Verification
+
+Enter the number below in the verification code field on the sign-up screen.
+
+Verification code: {{verificationCode}}
+
+If you did not request this, please ignore this email.
+For your security, do not share the verification code with anyone.
+
+This is a no-reply email.
