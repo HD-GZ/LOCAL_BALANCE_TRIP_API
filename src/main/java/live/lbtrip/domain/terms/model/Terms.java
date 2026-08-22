@@ -1,6 +1,7 @@
 package live.lbtrip.domain.terms.model;
 
 import java.time.LocalDate;
+import java.util.Locale;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,11 +33,17 @@ public class Terms extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @Column(name = "title_en", length = 100)
+    private String titleEn;
+
     @Column(nullable = false, length = 20)
     private String version;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    @Column(name = "content_en", columnDefinition = "TEXT")
+    private String contentEn;
 
     @Column(nullable = false)
     private LocalDate effectiveDate;
@@ -57,5 +64,23 @@ public class Terms extends BaseEntity {
         LocalDate effectiveDate
     ) {
         return new Terms(type, title, version, content, effectiveDate);
+    }
+
+    public String titleFor(Locale locale) {
+        if (isEnglish(locale) && titleEn != null && !titleEn.isBlank()) {
+            return titleEn;
+        }
+        return title;
+    }
+
+    public String contentFor(Locale locale) {
+        if (isEnglish(locale) && contentEn != null && !contentEn.isBlank()) {
+            return contentEn;
+        }
+        return content;
+    }
+
+    private boolean isEnglish(Locale locale) {
+        return Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
     }
 }
