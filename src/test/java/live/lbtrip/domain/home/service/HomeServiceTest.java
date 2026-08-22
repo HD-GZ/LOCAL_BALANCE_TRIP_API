@@ -112,6 +112,7 @@ class HomeServiceTest {
         when(imageStorage.publicUrl("travel-profiles/lveai.png")).thenReturn("https://img/lveai.png");
         when(propensityFactorSelector.selectThree()).thenReturn(List.of(
             PropensityFactor.LOCALITY, PropensityFactor.VITALITY, PropensityFactor.SOCIALITY));
+        when(messageResolver.resolve("propensityFactor.LOCALITY.min")).thenReturn("핫플·유명 명소");
 
         ProfileSummaryResponse response = homeService.getProfileSummary(userId);
 

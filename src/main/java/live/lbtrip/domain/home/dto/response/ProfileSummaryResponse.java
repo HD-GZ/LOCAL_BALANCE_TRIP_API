@@ -5,9 +5,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.home.model.PropensityFactor;
-import live.lbtrip.domain.propensity.model.Preference;
-import live.lbtrip.domain.propensity.model.ValueConsumption;
 import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 
 public record ProfileSummaryResponse(
@@ -46,17 +43,8 @@ public record ProfileSummaryResponse(
         LocalizedTravelProfile profile,
         String imageUrl,
         LocalDate diagnosedAt,
-        Preference preference,
-        ValueConsumption valueConsumption,
-        List<PropensityFactor> factors
+        List<InnerSlider> sliders
     ) {
-        List<InnerSlider> sliders = factors.stream()
-            .map(f -> new InnerSlider(
-                f.name(),
-                f.getMinLabel(),
-                f.getMaxLabel(),
-                f.score(preference, valueConsumption)))
-            .toList();
         return new ProfileSummaryResponse(
             "%s (%s)".formatted(profile.nickname(), profile.code()),
             profile.description(),

@@ -94,13 +94,19 @@ public class HomeService {
         ValueConsumption valueConsumption = propensity.getValueConsumption();
         LocalizedTravelProfile profile = travelProfileFinder.findLocalizedByPreference(preference);
 
+        List<ProfileSummaryResponse.InnerSlider> sliders = propensityFactorSelector.selectThree().stream()
+            .map(factor -> new ProfileSummaryResponse.InnerSlider(
+                factor.name(),
+                messageResolver.resolve(factor.minLabelKey()),
+                messageResolver.resolve(factor.maxLabelKey()),
+                factor.score(preference, valueConsumption)))
+            .toList();
+
         return ProfileSummaryResponse.of(
             profile,
             imageStorage.publicUrl(profile.imageKey()),
             propensity.getUpdatedAt().toLocalDate(),
-            preference,
-            valueConsumption,
-            propensityFactorSelector.selectThree());
+            sliders);
     }
 
     public PopularCourseListResponse getPopularCourses() {
