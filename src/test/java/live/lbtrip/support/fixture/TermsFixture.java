@@ -1,12 +1,14 @@
 package live.lbtrip.support.fixture;
 
 import java.time.LocalDate;
+import java.util.Locale;
 
 import org.springframework.test.util.ReflectionTestUtils;
 
 import live.lbtrip.domain.terms.dto.response.TermsResponse;
 import live.lbtrip.domain.terms.model.Terms;
 import live.lbtrip.domain.terms.model.TermsType;
+import live.lbtrip.domain.terms.model.vo.LocalizedTerms;
 
 public final class TermsFixture {
 
@@ -38,7 +40,11 @@ public final class TermsFixture {
         return terms;
     }
 
+    public static LocalizedTerms localizedTerms() {
+        return LocalizedTerms.of(terms(), Locale.KOREAN);
+    }
+
     public static TermsResponse termsResponse() {
-        return TermsResponse.from(terms());
+        return TermsResponse.from(localizedTerms());
     }
 }

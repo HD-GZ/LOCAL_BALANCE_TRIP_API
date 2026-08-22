@@ -36,8 +36,8 @@ class TermsServiceTest {
 
         @Test
         void 약관_전문을_조회한다() {
-            when(termsFinder.findEffective(any(TermsType.class), any(LocalDate.class)))
-                .thenReturn(TermsFixture.terms());
+            when(termsFinder.findEffectiveLocalized(any(TermsType.class), any(LocalDate.class)))
+                .thenReturn(TermsFixture.localizedTerms());
 
             TermsResponse response = termsService.getTerms(TermsFixture.TYPE_PATH);
 
@@ -50,12 +50,12 @@ class TermsServiceTest {
 
         @Test
         void 오늘_날짜를_기준으로_시행_중인_약관을_조회한다() {
-            when(termsFinder.findEffective(TermsType.SERVICE, LocalDate.now()))
-                .thenReturn(TermsFixture.terms());
+            when(termsFinder.findEffectiveLocalized(TermsType.SERVICE, LocalDate.now()))
+                .thenReturn(TermsFixture.localizedTerms());
 
             termsService.getTerms(TermsFixture.TYPE_PATH);
 
-            verify(termsFinder).findEffective(TermsType.SERVICE, LocalDate.now());
+            verify(termsFinder).findEffectiveLocalized(TermsType.SERVICE, LocalDate.now());
         }
 
         @Test
@@ -65,7 +65,7 @@ class TermsServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.TERMS_NOT_FOUND);
 
-            verify(termsFinder, never()).findEffective(any(TermsType.class), any(LocalDate.class));
+            verify(termsFinder, never()).findEffectiveLocalized(any(TermsType.class), any(LocalDate.class));
         }
     }
 }
