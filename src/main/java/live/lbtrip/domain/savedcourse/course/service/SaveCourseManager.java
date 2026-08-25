@@ -39,7 +39,8 @@ public class SaveCourseManager {
                 place.getLongitude(),
                 place.getWalkMinutes(),
                 place.isHasAudio(),
-                place.getAudioUrl()
+                place.getAudioUrl(),
+                place.getReason()
                 )
             );
         }

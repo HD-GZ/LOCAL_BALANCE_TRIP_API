@@ -55,12 +55,15 @@ public class SavedCoursePlace extends BaseEntity {
     @Column(name = "audio_url", length = 500)
     private String audioUrl;
 
+    @Column(length = 150)
+    private String reason;
+
     @Column(name = "visited_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime visitedAt;
 
     private SavedCoursePlace(
         int visitOrder, String name, String overview, String imageUrl,
-        Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl
+        Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl, String reason
     ) {
         this.visitOrder = visitOrder;
         this.name = name;
@@ -71,14 +74,15 @@ public class SavedCoursePlace extends BaseEntity {
         this.walkMinutes = walkMinutes;
         this.hasAudio = hasAudio;
         this.audioUrl = audioUrl;
+        this.reason = reason;
     }
 
     public static SavedCoursePlace create(
         int visitOrder, String name, String overview, String imageUrl,
-        Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl
+        Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl, String reason
     ) {
         return new SavedCoursePlace(visitOrder, name, overview, imageUrl,
-            latitude, longitude, walkMinutes, hasAudio, audioUrl);
+            latitude, longitude, walkMinutes, hasAudio, audioUrl, reason);
     }
 
     void assignSavedCourse(SavedCourse savedCourse) {

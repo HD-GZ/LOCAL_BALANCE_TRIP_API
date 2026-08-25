@@ -110,7 +110,9 @@ class RecommendationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.courseId").value(RecommendationFixture.COURSE_ID))
-                .andExpect(jsonPath("$.data.places[0].order").value(1));
+                .andExpect(jsonPath("$.data.places[0].order").value(1))
+                .andExpect(jsonPath("$.data.places[0].reason").value(RecommendationFixture.PLACE_REASON))
+                .andExpect(jsonPath("$.data.places[1].reason").isEmpty());
         }
 
         @Test
