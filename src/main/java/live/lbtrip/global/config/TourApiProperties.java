@@ -10,6 +10,7 @@ public record TourApiProperties(
     String engBaseUrl,
     String odiiBaseUrl,
     String dataLabBaseUrl,
+    String durunubiBaseUrl,
     String serviceKey,
     String mobileOs,
     String mobileApp,
