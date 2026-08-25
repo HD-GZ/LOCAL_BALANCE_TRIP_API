@@ -1,5 +1,6 @@
 package live.lbtrip.domain.recommendation.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -46,8 +47,9 @@ public class RecommendationService {
     public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
         GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
         RecommendedRegion recommendedRegion = course.getRecommendedRegion();
-        List<LocalizedIncentive> incentives = incentiveFinder.findAllByRegion(
-            recommendedRegion.getRegionCandidate().getId()
+        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(
+            recommendedRegion.getRegionCandidate().getId(),
+            LocalDate.now()
         );
 
         return CourseDetailResponse.of(course, incentives);
