@@ -1,5 +1,6 @@
 package live.lbtrip.domain.tourism.model.entity;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 import jakarta.persistence.Column;
@@ -62,6 +63,12 @@ public class TourPlace extends BaseEntity {
     @JoinColumn(name = "odii_theme_id")
     private OdiiTheme odiiTheme;
 
+    @Column(name = "tts_audio_key", length = 500)
+    private String ttsAudioKey;
+
+    @Column(name = "tts_synced_at")
+    private LocalDateTime ttsSyncedAt;
+
     private TourPlace(
         Locale locale, String contentId, RegionCandidate regionCandidate, int contentTypeId,
         String title, String imageUrl, Double longitude, Double latitude, int sortOrder
@@ -100,5 +107,14 @@ public class TourPlace extends BaseEntity {
 
     public void assignOdiiTheme(OdiiTheme odiiTheme) {
         this.odiiTheme = odiiTheme;
+    }
+
+    public void updateTtsAudio(String ttsAudioKey, LocalDateTime syncedAt) {
+        this.ttsAudioKey = ttsAudioKey;
+        this.ttsSyncedAt = syncedAt;
+    }
+
+    public void markTtsAudioUnavailable(LocalDateTime syncedAt) {
+        updateTtsAudio(null, syncedAt);
     }
 }
