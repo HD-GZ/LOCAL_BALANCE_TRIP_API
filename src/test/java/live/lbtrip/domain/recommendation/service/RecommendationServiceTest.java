@@ -1,8 +1,11 @@
 package live.lbtrip.domain.recommendation.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.Locale;
 import java.util.List;
 
@@ -80,12 +83,12 @@ class RecommendationServiceTest {
     class 코스_상세_조회 {
 
         @Test
-        void 사용자와_코스_ID로_상세와_혜택을_조회한다() {
+        void 사용자와_코스_ID로_상세와_기간_내_혜택을_조회한다() {
             RecommendedRegion region = RecommendationFixture.region();
             GeneratedCourse course = region.getCourses().getFirst();
             when(generatedCourseFinder.findByIdAndUserId(
                 RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID)).thenReturn(course);
-            when(incentiveFinder.findAllByRegion(RegionCandidateFixture.CANDIDATE_ID))
+            when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
                 .thenReturn(List.of());
 
             CourseDetailResponse response = recommendationService.getCourseDetail(
