@@ -18,6 +18,7 @@ import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.global.storage.service.AudioStorage;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -27,6 +28,7 @@ public class RecommendationStore {
     private final RecommendedRegionRepository recommendedRegionRepository;
     private final UserRepository userRepository;
     private final RegionCandidateRepository regionCandidateRepository;
+    private final AudioStorage audioStorage;
 
     @Transactional
     public void replace(Long userId, Locale locale, List<RegionPlan> plans) {
@@ -62,7 +64,7 @@ public class RecommendationStore {
                 int visitOrder = 1;
                 for (RoutedPlace routedPlace : plannedCourse.places()) {
                     TourPlace place = routedPlace.place();
-                    String audioUrl = place.getOdiiTheme() == null ? null : place.getOdiiTheme().getAudioUrl();
+                    String audioUrl = audioUrlOf(place);
                     course.addPlace(CoursePlace.create(
                         visitOrder++,
                         place.getTitle(),
@@ -79,6 +81,13 @@ public class RecommendationStore {
             }
             recommendedRegionRepository.save(region);
         }
+    }
+
+    private String audioUrlOf(TourPlace place) {
+        if (place.getOdiiTheme() != null) {
+            return place.getOdiiTheme().getAudioUrl();
+        }
+        return place.getTtsAudioKey() == null ? null : audioStorage.publicUrl(place.getTtsAudioKey());
     }
 
     private String firstPlaceImageUrl(PlannedCourse course) {
