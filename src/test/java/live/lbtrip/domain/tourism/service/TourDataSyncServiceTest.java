@@ -52,6 +52,9 @@ class TourDataSyncServiceTest {
     @Mock
     private RegionNameSyncer regionNameSyncer;
 
+    @Mock
+    private TourEventSyncer tourEventSyncer;
+
     @InjectMocks
     private TourDataSyncService tourDataSyncService;
 
@@ -75,6 +78,33 @@ class TourDataSyncServiceTest {
             verify(visitorStatsSyncer).sync();
             verify(tourPlaceSyncer).sync(candidate, Locale.ENGLISH);
             verify(tourPlaceSyncer).syncOverviews(Locale.ENGLISH);
+            verify(tourEventSyncer).sync(candidate, Locale.KOREAN);
+            verify(tourEventSyncer).sync(candidate, Locale.ENGLISH);
+        }
+
+        @Test
+        void EVENTS_단계는_지역별_국문_행사만_적재한다() {
+            RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
+            when(regionCandidateRepository.findAll()).thenReturn(List.of(candidate));
+
+            tourDataSyncService.sync(TourSyncStep.EVENTS);
+
+            verify(tourEventSyncer).sync(candidate, Locale.KOREAN);
+            verify(tourEventSyncer, never()).sync(candidate, Locale.ENGLISH);
+            verify(regionStatsSyncer, never()).sync(any());
+        }
+
+        @Test
+        void EVENTS_EN_단계는_한_지역이_실패해도_다음_지역을_진행한다() {
+            RegionCandidate first = RegionCandidateFixture.candidateWithId();
+            RegionCandidate second = RegionCandidate.create("전라남도 곡성군", "46", "720");
+            when(regionCandidateRepository.findAll()).thenReturn(List.of(first, second));
+            doThrow(BusinessException.of(ErrorCode.TOUR_API_UNAVAILABLE))
+                .when(tourEventSyncer).sync(first, Locale.ENGLISH);
+
+            tourDataSyncService.sync(TourSyncStep.EVENTS_EN);
+
+            verify(tourEventSyncer).sync(second, Locale.ENGLISH);
         }
 
         @Test

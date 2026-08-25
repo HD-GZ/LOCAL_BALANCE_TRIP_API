@@ -14,7 +14,9 @@ public enum TourSyncStep {
     VISITOR_STATS("지역별 방문자수 적재"),
     PLACES_EN("지역별 영문 장소명 적재"),
     OVERVIEWS_EN("영문 장소 상세 설명 보강"),
-    REGION_NAMES_EN("지역 영문명 적재");
+    REGION_NAMES_EN("지역 영문명 적재"),
+    EVENTS("행사·축제 수집"),
+    EVENTS_EN("영문 행사·축제 수집");
 
     private final String description;
 }
