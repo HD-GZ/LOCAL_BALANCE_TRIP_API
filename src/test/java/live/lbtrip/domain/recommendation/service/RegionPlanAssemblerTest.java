@@ -56,7 +56,7 @@ class RegionPlanAssemblerTest {
         RegionMetrics region = RegionMetricsFixture.로컬실속_지역();
         List<TourPlace> places = RecommendationFixture.tourPlaces();
         CourseComposition composition = CourseComposition.of("추천 이유", List.of(
-            CoursePlan.of("코스", "코스 이유", List.of("300", "100", "200"))));
+            CoursePlan.of("코스", "코스 이유", RecommendationFixture.placePlans("300", "100", "200"))));
         List<TourPlace> selectedInOrder = List.of(places.get(2), places.get(0), places.get(1));
         List<RoutedPlace> routed = List.of(
             RoutedPlace.of(places.get(0), null),
@@ -88,7 +88,7 @@ class RegionPlanAssemblerTest {
         RegionMetrics succeeding = RegionMetricsFixture.로컬실속_지역();
         List<TourPlace> places = RecommendationFixture.tourPlaces();
         CourseComposition composition = CourseComposition.of("추천 이유", List.of(
-            CoursePlan.of("코스", "코스 이유", List.of("100", "200", "300"))));
+            CoursePlan.of("코스", "코스 이유", RecommendationFixture.placePlans("100", "200", "300"))));
         List<WalkableCluster> clusters = RecommendationFixture.walkableClusters(places);
         when(tourPlaceFinder.findAllByRegionCandidateId(failing.regionCandidateId(), Locale.KOREAN)).thenReturn(places);
         when(tourPlaceFinder.findAllByRegionCandidateId(succeeding.regionCandidateId(), Locale.KOREAN)).thenReturn(places);
@@ -129,7 +129,7 @@ class RegionPlanAssemblerTest {
         List<TourPlace> scatteredPlaces = RecommendationFixture.manyTourPlaces(2);
         List<WalkableCluster> clusters = RecommendationFixture.walkableClusters(places);
         CourseComposition composition = CourseComposition.of("추천 이유", List.of(
-            CoursePlan.of("코스", "코스 이유", List.of("100", "200", "300"))));
+            CoursePlan.of("코스", "코스 이유", RecommendationFixture.placePlans("100", "200", "300"))));
         when(tourPlaceFinder.findAllByRegionCandidateId(scattered.regionCandidateId(), Locale.KOREAN)).thenReturn(scatteredPlaces);
         when(tourPlaceFinder.findAllByRegionCandidateId(succeeding.regionCandidateId(), Locale.KOREAN)).thenReturn(places);
         when(walkableClusterBuilder.build(scatteredPlaces)).thenReturn(List.of());

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.vo.CourseComposition.PlacePlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan.PlannedCourse;
 import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
@@ -66,8 +67,8 @@ public class RegionPlanAssembler {
         List<PlannedCourse> courses = new ArrayList<>();
         for (CoursePlan coursePlan : composition.courses()) {
             List<TourPlace> selected = new ArrayList<>();
-            for (String contentId : coursePlan.placeContentIds()) {
-                selected.add(placesById.get(contentId));
+            for (PlacePlan placePlan : coursePlan.places()) {
+                selected.add(placesById.get(placePlan.contentId()));
             }
             courses.add(PlannedCourse.of(
                 coursePlan.name(),
