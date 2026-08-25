@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeEventResponse;
 import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
@@ -102,4 +103,15 @@ public interface HomeApi {
         INTERNAL_SERVER_ERROR
     })
     ResponseEntity<HomeIncentiveResponse> getIncentives(@UserId(required = false) Long userId);
+
+    @Operation(
+        summary = "진행 중·예정 행사(지역 탭별)",
+        description = "비로그인: 인기 지역, 로그인: 내 추천 지역의 진행 중이거나 예정된 행사·축제를 지역 탭별로 조회합니다. "
+            + "행사가 없는 지역 탭은 제외됩니다."
+    )
+    @ApiSuccessResponse(description = "진행 중 행사 조회 성공")
+    @ApiErrorCodeResponses({
+        INTERNAL_SERVER_ERROR
+    })
+    ResponseEntity<HomeEventResponse> getEvents(@UserId(required = false) Long userId);
 }

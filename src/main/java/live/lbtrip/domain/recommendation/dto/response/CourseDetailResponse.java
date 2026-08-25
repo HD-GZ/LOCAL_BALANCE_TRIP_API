@@ -1,5 +1,6 @@
 package live.lbtrip.domain.recommendation.dto.response;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -7,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
+import live.lbtrip.domain.tourism.model.vo.LocalizedTourEvent;
 
 public record CourseDetailResponse(
     @Schema(description = "코스 식별자(서비스 생성 코스 ID)", example = "1")
@@ -22,8 +24,34 @@ public record CourseDetailResponse(
     List<InnerPlaceResponse> places,
 
     @Schema(description = "이 코스에 적용 가능한 혜택 목록")
-    List<InnerBenefitResponse> benefits
+    List<InnerBenefitResponse> benefits,
+
+    @Schema(description = "이 코스 지역에서 진행 중이거나 예정된 행사·축제 목록")
+    List<InnerEventResponse> events
 ) {
+
+    public record InnerEventResponse(
+        @Schema(description = "행사명", example = "담양 대나무축제")
+        String title,
+
+        @Schema(description = "대표 이미지 URL", nullable = true)
+        String imageUrl,
+
+        @Schema(description = "행사 시작일", example = "2026-09-01")
+        LocalDate startDate,
+
+        @Schema(description = "행사 종료일", example = "2026-09-05")
+        LocalDate endDate,
+
+        @Schema(description = "행사 장소 주소", nullable = true, example = "전라남도 담양군 죽녹원로 119")
+        String address
+    ) {
+
+        private static InnerEventResponse from(LocalizedTourEvent event) {
+            return new InnerEventResponse(
+                event.title(), event.imageUrl(), event.startDate(), event.endDate(), event.address());
+        }
+    }
 
     public record InnerPlaceResponse(
         @Schema(description = "방문 순서", example = "1")
@@ -85,13 +113,16 @@ public record CourseDetailResponse(
         }
     }
 
-    public static CourseDetailResponse of(GeneratedCourse course, List<LocalizedIncentive> incentives) {
+    public static CourseDetailResponse of(
+        GeneratedCourse course, List<LocalizedIncentive> incentives, List<LocalizedTourEvent> events
+    ) {
         return new CourseDetailResponse(
             course.getId(),
             course.getRecommendedRegion().getRegionName(),
             course.getName(),
             course.getPlaces().stream().map(InnerPlaceResponse::from).toList(),
-            incentives.stream().map(InnerBenefitResponse::from).toList()
+            incentives.stream().map(InnerBenefitResponse::from).toList(),
+            events.stream().map(InnerEventResponse::from).toList()
         );
     }
 }
