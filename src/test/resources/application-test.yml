@@ -19,6 +19,13 @@ spring:
   ai:
     openai:
       api-key: test-key
+      audio:
+        speech:
+          options:
+            model: gpt-4o-mini-tts
+            voice: alloy
+            response-format: mp3
+            speed: 1.0
   mail:
     host: localhost
     port: 1025
