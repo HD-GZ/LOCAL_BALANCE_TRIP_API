@@ -36,4 +36,19 @@ class RegionGreenMetricsTest {
             assertThat(metrics.greenScore()).isEqualTo(5);
         }
     }
+
+    @Nested
+    class gpx_인접_갱신 {
+
+        @Test
+        void gpx_인접_여부를_갱신하면_그린_점수에_반영된다() {
+            RegionGreenMetrics metrics = RegionGreenMetrics.create(
+                RegionCandidateFixture.candidate(), false, false, false, false, true);
+
+            metrics.updateGpxAdjacent(true);
+
+            assertThat(metrics.isGpxAdjacent()).isTrue();
+            assertThat(metrics.greenScore()).isEqualTo(2);
+        }
+    }
 }

@@ -174,6 +174,9 @@ class QuotaExceededStopTest {
         @Mock
         private RegionNameSyncer regionNameSyncer;
 
+        @Mock
+        private TrailCourseSyncer trailCourseSyncer;
+
         @InjectMocks
         private TourDataSyncService tourDataSyncService;
 
