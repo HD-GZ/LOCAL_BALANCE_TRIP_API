@@ -15,4 +15,10 @@ public final class TourPlaceFixture {
         return TourPlace.create(Locale.KOREAN, "content-" + title.hashCode(), candidate, 12,
             title, imageUrl, 126.9, 35.3, 0);
     }
+
+    public static TourPlace withOverview(String title, String overview) {
+        TourPlace place = withImage(title, null);
+        place.updateOverview(overview);
+        return place;
+    }
 }

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,6 +28,14 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, Long> {
         @Param("locale") Locale locale, @Param("regionCandidateId") Long regionCandidateId);
 
     List<TourPlace> findAllByLocaleAndOverviewIsNull(Locale locale);
+
+    @Query("""
+        SELECT p FROM TourPlace p
+        WHERE p.locale = :locale AND p.odiiTheme IS NULL AND p.ttsSyncedAt IS NULL
+          AND p.overview IS NOT NULL AND TRIM(p.overview) <> ''
+        ORDER BY p.id ASC
+        """)
+    Page<TourPlace> findTtsPending(@Param("locale") Locale locale, Pageable pageable);
 
     @Query(
         value = "SELECT * FROM tour_places WHERE locale = :locale AND image_url IS NOT NULL ORDER BY RAND() LIMIT :limit",

@@ -27,6 +27,7 @@ public class TourDataSyncService {
     private final PlaceThemeLinker placeThemeLinker;
     private final VisitorStatsSyncer visitorStatsSyncer;
     private final RegionNameSyncer regionNameSyncer;
+    private final TtsAudioSyncer ttsAudioSyncer;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -46,6 +47,7 @@ public class TourDataSyncService {
             case VISITOR_STATS -> visitorStatsSyncer.sync();
             case PLACES_EN -> syncPlaces(regionCandidateRepository.findAll(), Locale.ENGLISH);
             case OVERVIEWS_EN -> tourPlaceSyncer.syncOverviews(Locale.ENGLISH);
+            case TTS_AUDIO -> syncTtsAudio();
             case REGION_NAMES_EN -> regionNameSyncer.syncEnglishNames();
         }
         log.info("관광 데이터 적재 단계 종료: step={}, elapsedMs={}", step, elapsedMillis(startedAt));
@@ -112,6 +114,11 @@ public class TourDataSyncService {
             }
         }
         log.info("장소 적재 완료: locale={}, success={}/{}", locale, successCount, candidates.size());
+    }
+
+    private void syncTtsAudio() {
+        ttsAudioSyncer.sync(LocaleConfig.DEFAULT_LOCALE);
+        ttsAudioSyncer.sync(Locale.ENGLISH);
     }
 
     private long elapsedMillis(long startedAt) {
