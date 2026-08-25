@@ -172,7 +172,7 @@ class RegionSelectorTest {
 
         @Test
         void 샘플이_없는_지역은_비율_지표가_0으로_처리된다() {
-            RegionMetrics empty = new RegionMetrics(99L, "무샘플", null, 0, 0, Map.of(), Map.of(), 0);
+            RegionMetrics empty = new RegionMetrics(99L, "무샘플", null, 0, 0, Map.of(), Map.of(), 0, 0);
             RegionMetrics normal = metrics("정상", 100, Map.of(),
                 Map.of(CategoryGroup.TRADITIONAL_MARKET, 10), 0);
 
@@ -247,6 +247,6 @@ class RegionSelectorTest {
         Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts,
         double recentOutsiderVisitors
     ) {
-        return new RegionMetrics(1L, name, null, totalCount, 100, typeCounts, groupCounts, recentOutsiderVisitors);
+        return new RegionMetrics(1L, name, null, totalCount, 100, typeCounts, groupCounts, recentOutsiderVisitors, 0);
     }
 }

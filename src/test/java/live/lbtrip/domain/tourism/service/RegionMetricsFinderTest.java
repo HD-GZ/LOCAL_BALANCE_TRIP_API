@@ -17,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.region.model.RegionCandidate;
+import live.lbtrip.domain.region.model.RegionGreenMetrics;
+import live.lbtrip.domain.region.repository.RegionGreenMetricsRepository;
 import live.lbtrip.domain.tourism.model.entity.RegionVisitorStats;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.model.enums.VisitorType;
@@ -38,6 +40,9 @@ class RegionMetricsFinderTest {
 
     @Mock
     private RegionVisitorStatsRepository regionVisitorStatsRepository;
+
+    @Mock
+    private RegionGreenMetricsRepository regionGreenMetricsRepository;
 
     @Mock
     private TourRegionStats tourRegionStats;
@@ -93,6 +98,33 @@ class RegionMetricsFinderTest {
 
         assertThat(result).singleElement()
             .satisfies(regionMetrics -> assertThat(regionMetrics.recentOutsiderVisitors()).isZero());
+    }
+
+    @Test
+    void 그린_지표가_있는_지역은_그린_점수를_채운다() {
+        RegionCandidate regionCandidate = RegionCandidateFixture.candidateWithId();
+        통계_조회됨(regionCandidate);
+        when(regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc()).thenReturn(Optional.empty());
+        when(regionGreenMetricsRepository.findAllWithRegionCandidate())
+            .thenReturn(List.of(RegionGreenMetrics.create(regionCandidate, true, true, false, false, true)));
+
+        List<RegionMetrics> result = regionMetricsFinder.findAllMetrics();
+
+        assertThat(result).singleElement()
+            .satisfies(regionMetrics -> assertThat(regionMetrics.greenScore()).isEqualTo(3));
+    }
+
+    @Test
+    void 그린_지표가_없는_지역은_그린_점수가_0이다() {
+        RegionCandidate regionCandidate = RegionCandidateFixture.candidateWithId();
+        통계_조회됨(regionCandidate);
+        when(regionVisitorStatsRepository.findFirstByOrderByBaseDateDesc()).thenReturn(Optional.empty());
+        when(regionGreenMetricsRepository.findAllWithRegionCandidate()).thenReturn(List.of());
+
+        List<RegionMetrics> result = regionMetricsFinder.findAllMetrics();
+
+        assertThat(result).singleElement()
+            .satisfies(regionMetrics -> assertThat(regionMetrics.greenScore()).isZero());
     }
 
     @Test

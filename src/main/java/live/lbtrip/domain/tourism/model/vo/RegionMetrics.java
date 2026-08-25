@@ -15,11 +15,12 @@ public record RegionMetrics(
     int sampleSize,
     Map<Integer, Integer> typeCounts,
     Map<CategoryGroup, Integer> groupCounts,
-    double recentOutsiderVisitors
+    double recentOutsiderVisitors,
+    int greenScore
 ) {
 
     public static RegionMetrics of(
-        TourRegionStats stats, RegionCandidate candidate, double recentOutsiderVisitors
+        TourRegionStats stats, RegionCandidate candidate, double recentOutsiderVisitors, int greenScore
     ) {
         return new RegionMetrics(
             candidate.getId(),
@@ -29,7 +30,8 @@ public record RegionMetrics(
             stats.getSampleSize(),
             stats.toTypeCounts(),
             stats.toGroupCounts(),
-            recentOutsiderVisitors
+            recentOutsiderVisitors,
+            greenScore
         );
     }
 
