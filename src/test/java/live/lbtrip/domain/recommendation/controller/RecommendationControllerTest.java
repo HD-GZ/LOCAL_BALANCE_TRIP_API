@@ -29,6 +29,7 @@ import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.TokenFixture;
+import live.lbtrip.support.fixture.TrailCourseFixture;
 
 @WebMvcTest(RecommendationController.class)
 @Import({RecommendationControllerTest.TestCorsConfig.class, I18nTestConfig.class})
@@ -110,7 +111,8 @@ class RecommendationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.courseId").value(RecommendationFixture.COURSE_ID))
-                .andExpect(jsonPath("$.data.places[0].order").value(1));
+                .andExpect(jsonPath("$.data.places[0].order").value(1))
+                .andExpect(jsonPath("$.data.trails[0].name").value(TrailCourseFixture.NAME));
         }
 
         @Test

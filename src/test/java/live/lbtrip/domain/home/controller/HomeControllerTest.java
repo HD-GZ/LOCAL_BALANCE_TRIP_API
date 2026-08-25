@@ -35,6 +35,7 @@ import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
+import live.lbtrip.support.fixture.TrailCourseFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(HomeController.class)
@@ -182,13 +183,20 @@ class HomeControllerTest {
     @Test
     void 공개_인기_코스_상세를_조회한다() throws Exception {
         when(homeService.getPopularCourseDetail(10L)).thenReturn(new CourseDetailResponse(
-            10L, "전라남도 담양군", "담양 골목 미식 코스", List.of(), List.of()));
+            10L, "전라남도 담양군", "담양 골목 미식 코스", List.of(), List.of(),
+            List.of(new CourseDetailResponse.InnerTrailResponse(
+                TrailCourseFixture.NAME, TrailCourseFixture.DISTANCE_KM,
+                TrailCourseFixture.REQUIRED_MINUTES, TrailCourseFixture.LEVEL))));
 
         mockMvc.perform(get("/home/popular-courses/{courseId}", 10))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"))
             .andExpect(jsonPath("$.data.courseId").value(10))
-            .andExpect(jsonPath("$.data.title").value("담양 골목 미식 코스"));
+            .andExpect(jsonPath("$.data.title").value("담양 골목 미식 코스"))
+            .andExpect(jsonPath("$.data.trails[0].name").value(TrailCourseFixture.NAME))
+            .andExpect(jsonPath("$.data.trails[0].distanceKm").value(12.5))
+            .andExpect(jsonPath("$.data.trails[0].requiredMinutes").value(TrailCourseFixture.REQUIRED_MINUTES))
+            .andExpect(jsonPath("$.data.trails[0].level").value(TrailCourseFixture.LEVEL));
     }
 
     @Test

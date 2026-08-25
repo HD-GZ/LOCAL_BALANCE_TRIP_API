@@ -37,6 +37,7 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.domain.tourism.service.TrailCourseFinder;
 import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.global.web.PageQueryRequest;
@@ -63,6 +64,7 @@ public class HomeService {
     private final RecommendationService recommendationService;
     private final IncentiveFinder incentiveFinder;
     private final MessageResolver messageResolver;
+    private final TrailCourseFinder trailCourseFinder;
 
     public HeroResponse getHero(Long userId) {
         Locale locale = messageResolver.currentLocale();
@@ -125,9 +127,9 @@ public class HomeService {
         GeneratedCourse course = generatedCourseRepository.findById(courseId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
         RecommendedRegion region = course.getRecommendedRegion();
-        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(
-            region.getRegionCandidate().getId(), LocalDate.now());
-        return CourseDetailResponse.of(course, incentives);
+        Long regionCandidateId = region.getRegionCandidate().getId();
+        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(regionCandidateId, LocalDate.now());
+        return CourseDetailResponse.of(course, incentives, trailCourseFinder.findByRegion(regionCandidateId));
     }
 
     public HomeFeedResponse getSavedCourseFeed(Long userId) {

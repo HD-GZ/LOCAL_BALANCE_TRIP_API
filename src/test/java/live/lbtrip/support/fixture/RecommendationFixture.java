@@ -95,6 +95,7 @@ public final class RecommendationFixture {
     }
 
     public static CourseDetailResponse courseDetailResponse() {
-        return CourseDetailResponse.of(region().getCourses().getFirst(), List.of());
+        return CourseDetailResponse.of(region().getCourses().getFirst(), List.of(),
+            List.of(TrailCourseFixture.trailCourse()));
     }
 }

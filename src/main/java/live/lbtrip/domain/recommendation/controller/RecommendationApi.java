@@ -87,6 +87,7 @@ public interface RecommendationApi {
         description = """
             저장된 장소 스냅샷으로 코스의 장소 타임라인을 조회합니다.
             장소별 소개·이미지·좌표·도보 시간·오디오와 코스 지역에 적용 가능한 혜택 목록을 반환합니다.
+            코스 지역의 근처 둘레길(두루누비) 목록(trails)을 거리 오름차순 최대 5개 함께 반환합니다.
             """
     )
     @ApiSuccessResponse(description = "코스 상세 조회 성공")

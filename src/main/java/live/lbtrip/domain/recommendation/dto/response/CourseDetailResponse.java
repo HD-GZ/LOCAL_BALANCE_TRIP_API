@@ -1,5 +1,6 @@
 package live.lbtrip.domain.recommendation.dto.response;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -7,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
+import live.lbtrip.domain.tourism.model.entity.TrailCourse;
 
 public record CourseDetailResponse(
     @Schema(description = "코스 식별자(서비스 생성 코스 ID)", example = "1")
@@ -22,7 +24,10 @@ public record CourseDetailResponse(
     List<InnerPlaceResponse> places,
 
     @Schema(description = "이 코스에 적용 가능한 혜택 목록")
-    List<InnerBenefitResponse> benefits
+    List<InnerBenefitResponse> benefits,
+
+    @Schema(description = "코스 지역의 근처 둘레길(두루누비) 목록. 거리 오름차순 최대 5개")
+    List<InnerTrailResponse> trails
 ) {
 
     public record InnerPlaceResponse(
@@ -85,13 +90,37 @@ public record CourseDetailResponse(
         }
     }
 
-    public static CourseDetailResponse of(GeneratedCourse course, List<LocalizedIncentive> incentives) {
+
+    public record InnerTrailResponse(
+        @Schema(description = "둘레길(두루누비) 코스명", example = "담양 메타세쿼이아길")
+        String name,
+
+        @Schema(description = "코스 거리(km). 없으면 null.", nullable = true, example = "12.50")
+        BigDecimal distanceKm,
+
+        @Schema(description = "소요 시간(분). 없으면 null.", nullable = true, example = "240")
+        Integer requiredMinutes,
+
+        @Schema(description = "난이도(1: 쉬움 ~ 3: 어려움). 없으면 null.", nullable = true, example = "2")
+        Integer level
+    ) {
+
+        private static InnerTrailResponse from(TrailCourse trail) {
+            return new InnerTrailResponse(
+                trail.getName(), trail.getDistanceKm(), trail.getRequiredMinutes(), trail.getLevel());
+        }
+    }
+
+    public static CourseDetailResponse of(
+        GeneratedCourse course, List<LocalizedIncentive> incentives, List<TrailCourse> trails
+    ) {
         return new CourseDetailResponse(
             course.getId(),
             course.getRecommendedRegion().getRegionName(),
             course.getName(),
             course.getPlaces().stream().map(InnerPlaceResponse::from).toList(),
-            incentives.stream().map(InnerBenefitResponse::from).toList()
+            incentives.stream().map(InnerBenefitResponse::from).toList(),
+            trails.stream().map(InnerTrailResponse::from).toList()
         );
     }
 }

@@ -13,6 +13,7 @@ import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.tourism.service.TrailCourseFinder;
 import live.lbtrip.global.i18n.MessageResolver;
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +27,7 @@ public class RecommendationService {
     private final GeneratedCourseFinder generatedCourseFinder;
     private final IncentiveFinder incentiveFinder;
     private final MessageResolver messageResolver;
+    private final TrailCourseFinder trailCourseFinder;
 
     @Transactional
     public void createRecommendations(Long userId) {
@@ -47,11 +49,9 @@ public class RecommendationService {
     public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
         GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
         RecommendedRegion recommendedRegion = course.getRecommendedRegion();
-        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(
-            recommendedRegion.getRegionCandidate().getId(),
-            LocalDate.now()
-        );
+        Long regionCandidateId = recommendedRegion.getRegionCandidate().getId();
+        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(regionCandidateId, LocalDate.now());
 
-        return CourseDetailResponse.of(course, incentives);
+        return CourseDetailResponse.of(course, incentives, trailCourseFinder.findByRegion(regionCandidateId));
     }
 }

@@ -111,6 +111,7 @@ class CourseShareControllerTest {
                     RecommendationFixture.COURSE_NAME,
                     SavedCourseStatus.BEFORE_TRIP,
                     List.of(),
+                    List.of(),
                     List.of()));
 
             mockMvc.perform(get("/shared-courses/{token}", CourseShareFixture.TOKEN))
@@ -119,7 +120,8 @@ class CourseShareControllerTest {
                 .andExpect(jsonPath("$.data.savedCourseId").value(SAVED_COURSE_ID))
                 .andExpect(jsonPath("$.data.sharedByName").value(UserFixture.NAME))
                 .andExpect(jsonPath("$.data.imageUrl").value(RecommendationFixture.IMAGE_URL))
-                .andExpect(jsonPath("$.data.title").value(RecommendationFixture.COURSE_NAME));
+                .andExpect(jsonPath("$.data.title").value(RecommendationFixture.COURSE_NAME))
+                .andExpect(jsonPath("$.data.trails").isArray());
         }
 
         @Test

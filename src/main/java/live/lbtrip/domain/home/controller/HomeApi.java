@@ -72,7 +72,7 @@ public interface HomeApi {
 
     @Operation(
         summary = "공개 인기 코스 상세",
-        description = "비로그인도 조회 가능한 코스 상세입니다. 장소 타임라인과 현재 진행중 혜택을 반환합니다."
+        description = "비로그인도 조회 가능한 코스 상세입니다. 장소 타임라인, 현재 진행중 혜택, 근처 둘레길(trails) 목록을 반환합니다."
     )
     @ApiSuccessResponse(description = "코스 상세 조회 성공")
     @ApiErrorCodeResponses({
