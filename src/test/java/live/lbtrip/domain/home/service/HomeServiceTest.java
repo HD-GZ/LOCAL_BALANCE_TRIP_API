@@ -24,7 +24,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeEventResponse;
 import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
+import live.lbtrip.domain.tourism.service.TourEventFinder;
+import live.lbtrip.support.fixture.TourEventFixture;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -73,6 +76,7 @@ class HomeServiceTest {
     @Mock private RecommendationService recommendationService;
     @Mock private IncentiveFinder incentiveFinder;
     @Mock private MessageResolver messageResolver;
+    @Mock private TourEventFinder tourEventFinder;
     @InjectMocks private HomeService homeService;
 
     @BeforeEach
@@ -304,6 +308,8 @@ class HomeServiceTest {
         when(generatedCourseRepository.findById(10L)).thenReturn(Optional.of(course));
         when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
             .thenReturn(List.of());
+        when(tourEventFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
+            .thenReturn(List.of(TourEventFixture.localized(LocalDate.now(), LocalDate.now().plusDays(3))));
 
         CourseDetailResponse response = homeService.getPopularCourseDetail(10L);
 
@@ -311,6 +317,54 @@ class HomeServiceTest {
         assertThat(response.title()).isEqualTo("담양 골목 미식 코스");
         assertThat(response.regionName()).isEqualTo("전라남도 담양군");
         assertThat(response.benefits()).isEmpty();
+        assertThat(response.events()).singleElement()
+            .extracting(CourseDetailResponse.InnerEventResponse::title).isEqualTo(TourEventFixture.TITLE);
+    }
+
+    @Test
+    void 로그인_진행중_행사는_내_추천지역_탭별로_반환하고_행사가_없는_탭은_제외한다() {
+        Long userId = 1L;
+        RecommendedRegion withEvent = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(withEvent.getRegionName()).thenReturn("전라남도 담양군");
+        when(withEvent.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
+        RecommendedRegion withoutEvent = org.mockito.Mockito.mock(RecommendedRegion.class);
+        RegionCandidate withoutEventCandidate = RegionCandidate.create("충청남도 홍성군", "44", "150");
+        org.springframework.test.util.ReflectionTestUtils.setField(withoutEventCandidate, "id", 2L);
+        when(withoutEvent.getRegionCandidate()).thenReturn(withoutEventCandidate);
+        when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, Locale.KOREAN))
+            .thenReturn(List.of(withEvent, withoutEvent));
+        when(tourEventFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
+            .thenReturn(List.of(TourEventFixture.localized(LocalDate.now(), LocalDate.now().plusDays(3))));
+        when(tourEventFinder.findActiveByRegion(eq(2L), any())).thenReturn(List.of());
+
+        HomeEventResponse response = homeService.getEvents(userId);
+
+        assertThat(response.regions()).hasSize(1);
+        assertThat(response.regions().get(0).regionName()).isEqualTo("전라남도 담양군");
+        assertThat(response.regions().get(0).regionCandidateId()).isEqualTo(RegionCandidateFixture.CANDIDATE_ID);
+        assertThat(response.regions().get(0).events().get(0).title()).isEqualTo(TourEventFixture.TITLE);
+        assertThat(response.regions().get(0).events().get(0).address()).isEqualTo(TourEventFixture.ADDRESS);
+    }
+
+    @Test
+    void 비로그인_진행중_행사는_인기_지역_탭별로_반환한다() {
+        PopularRegion popular = () -> RegionCandidateFixture.CANDIDATE_ID;
+        when(recommendedRegionRepository.findPopularRegions(
+            Locale.KOREAN, org.springframework.data.domain.PageRequest.of(0, HomeService.POPULAR_REGION_SIZE)))
+            .thenReturn(List.of(popular));
+        RecommendedRegion region = org.mockito.Mockito.mock(RecommendedRegion.class);
+        when(region.getRegionName()).thenReturn("전라남도 담양군");
+        when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
+        when(recommendedRegionRepository.findFirstByRegionCandidateIdAndLocale(RegionCandidateFixture.CANDIDATE_ID, Locale.KOREAN))
+            .thenReturn(java.util.Optional.of(region));
+        when(tourEventFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any()))
+            .thenReturn(List.of(TourEventFixture.localized(LocalDate.now(), LocalDate.now().plusDays(3))));
+
+        HomeEventResponse response = homeService.getEvents(null);
+
+        assertThat(response.regions()).hasSize(1);
+        assertThat(response.regions().get(0).regionCandidateId()).isEqualTo(RegionCandidateFixture.CANDIDATE_ID);
+        assertThat(response.regions().get(0).events()).hasSize(1);
     }
 
     @Test

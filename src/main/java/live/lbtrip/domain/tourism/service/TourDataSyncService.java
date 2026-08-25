@@ -27,6 +27,7 @@ public class TourDataSyncService {
     private final PlaceThemeLinker placeThemeLinker;
     private final VisitorStatsSyncer visitorStatsSyncer;
     private final RegionNameSyncer regionNameSyncer;
+    private final TourEventSyncer tourEventSyncer;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -47,6 +48,8 @@ public class TourDataSyncService {
             case PLACES_EN -> syncPlaces(regionCandidateRepository.findAll(), Locale.ENGLISH);
             case OVERVIEWS_EN -> tourPlaceSyncer.syncOverviews(Locale.ENGLISH);
             case REGION_NAMES_EN -> regionNameSyncer.syncEnglishNames();
+            case EVENTS -> syncEvents(regionCandidateRepository.findAll(), LocaleConfig.DEFAULT_LOCALE);
+            case EVENTS_EN -> syncEvents(regionCandidateRepository.findAll(), Locale.ENGLISH);
         }
         log.info("관광 데이터 적재 단계 종료: step={}, elapsedMs={}", step, elapsedMillis(startedAt));
     }
@@ -112,6 +115,26 @@ public class TourDataSyncService {
             }
         }
         log.info("장소 적재 완료: locale={}, success={}/{}", locale, successCount, candidates.size());
+    }
+
+    private void syncEvents(List<RegionCandidate> candidates, Locale locale) {
+        int successCount = 0;
+        for (RegionCandidate candidate : candidates) {
+            try {
+                tourEventSyncer.sync(candidate, locale);
+                successCount++;
+            } catch (BusinessException e) {
+                if (e.getErrorCode() != ErrorCode.TOUR_API_QUOTA_EXCEEDED) {
+                    log.error("행사 적재 실패 - 다음 지역 진행: locale={}, region={}", locale, candidate.getName(), e);
+                    continue;
+                }
+                log.warn("행사 적재 중단 - 일일 한도 초과: locale={}, success={}/{}", locale, successCount, candidates.size());
+                return;
+            } catch (Exception e) {
+                log.error("행사 적재 실패 - 다음 지역 진행: locale={}, region={}", locale, candidate.getName(), e);
+            }
+        }
+        log.info("행사 적재 완료: locale={}, success={}/{}", locale, successCount, candidates.size());
     }
 
     private long elapsedMillis(long startedAt) {

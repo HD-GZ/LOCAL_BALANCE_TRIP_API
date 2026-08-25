@@ -23,7 +23,9 @@ import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeEventResponse;
 import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
+import live.lbtrip.support.fixture.TourEventFixture;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
@@ -182,13 +184,44 @@ class HomeControllerTest {
     @Test
     void 공개_인기_코스_상세를_조회한다() throws Exception {
         when(homeService.getPopularCourseDetail(10L)).thenReturn(new CourseDetailResponse(
-            10L, "전라남도 담양군", "담양 골목 미식 코스", List.of(), List.of()));
+            10L, "전라남도 담양군", "담양 골목 미식 코스", List.of(), List.of(),
+            List.of(new CourseDetailResponse.InnerEventResponse(
+                "담양 대나무축제", "https://img/f.jpg", LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 5), "담양군"))));
 
         mockMvc.perform(get("/home/popular-courses/{courseId}", 10))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"))
             .andExpect(jsonPath("$.data.courseId").value(10))
-            .andExpect(jsonPath("$.data.title").value("담양 골목 미식 코스"));
+            .andExpect(jsonPath("$.data.title").value("담양 골목 미식 코스"))
+            .andExpect(jsonPath("$.data.events[0].title").value("담양 대나무축제"))
+            .andExpect(jsonPath("$.data.events[0].endDate").value("2026-09-05"));
+    }
+
+    @Test
+    void 비로그인_진행중_행사를_지역_탭별로_조회한다() throws Exception {
+        when(homeService.getEvents(null)).thenReturn(HomeEventResponse.of(List.of(
+            HomeEventResponse.tab("전라남도 담양군", RegionCandidateFixture.CANDIDATE_ID,
+                List.of(TourEventFixture.localized(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 5)))))));
+
+        mockMvc.perform(get("/home/events"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.regions[0].regionName").value("전라남도 담양군"))
+            .andExpect(jsonPath("$.data.regions[0].events[0].title").value(TourEventFixture.TITLE))
+            .andExpect(jsonPath("$.data.regions[0].events[0].startDate").value("2026-09-01"))
+            .andExpect(jsonPath("$.data.regions[0].events[0].address").value(TourEventFixture.ADDRESS));
+    }
+
+    @Test
+    void 로그인_진행중_행사를_조회한다() throws Exception {
+        인증된_사용자();
+        when(homeService.getEvents(AuthResponseFixture.USER_ID)).thenReturn(HomeEventResponse.of(List.of()));
+
+        mockMvc.perform(get("/home/events")
+                .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.regions").isEmpty());
     }
 
     @Test

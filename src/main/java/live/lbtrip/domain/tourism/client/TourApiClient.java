@@ -1,5 +1,6 @@
 package live.lbtrip.domain.tourism.client;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -14,6 +15,7 @@ import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
 import live.lbtrip.domain.tourism.client.dto.RegionNameItem;
+import live.lbtrip.domain.tourism.client.dto.TourEventItem;
 import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.global.config.TourApiProperties;
@@ -27,6 +29,7 @@ public class TourApiClient {
     private static final int STATS_SAMPLE_SIZE = 1000;
     private static final int PLACES_PAGE_SIZE = 15;
     private static final int REGION_NAMES_PAGE_SIZE = 100;
+    private static final int FESTIVALS_PAGE_SIZE = 100;
 
     private final PublicDataClient publicDataClient;
     private final TourApiProperties properties;
@@ -60,6 +63,27 @@ public class TourApiClient {
             places.add(TourPlaceItem.from(item, contentType));
         }
         return places;
+    }
+
+    public List<TourEventItem> fetchFestivals(
+        String ldongRegnCd, String ldongSignguCd, LocalDate from, LocalDate to, Locale locale
+    ) {
+        JsonNode body = get(locale, "/searchFestival2", uri -> uri
+            .queryParam("numOfRows", FESTIVALS_PAGE_SIZE)
+            .queryParam("arrange", "O")
+            .queryParam("eventStartDate", from.format(TourEventItem.DATE_FORMAT))
+            .queryParam("eventEndDate", to.format(TourEventItem.DATE_FORMAT))
+            .queryParam("lDongRegnCd", ldongRegnCd)
+            .queryParam("lDongSignguCd", ldongSignguCd));
+
+        List<TourEventItem> events = new ArrayList<>();
+        for (JsonNode item : publicDataClient.items(body)) {
+            TourEventItem event = TourEventItem.from(item);
+            if (event != null) {
+                events.add(event);
+            }
+        }
+        return events;
     }
 
     public String fetchOverview(Locale locale, String contentId) {

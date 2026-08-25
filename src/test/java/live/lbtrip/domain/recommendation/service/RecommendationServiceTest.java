@@ -22,10 +22,12 @@ import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.tourism.service.TourEventFinder;
 import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
+import live.lbtrip.support.fixture.TourEventFixture;
 
 @ExtendWith(MockitoExtension.class)
 class RecommendationServiceTest {
@@ -41,6 +43,9 @@ class RecommendationServiceTest {
 
     @Mock
     private MessageResolver messageResolver;
+
+    @Mock
+    private TourEventFinder tourEventFinder;
 
     @InjectMocks
     private RecommendationService recommendationService;
@@ -90,6 +95,8 @@ class RecommendationServiceTest {
                 RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID)).thenReturn(course);
             when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
                 .thenReturn(List.of());
+            when(tourEventFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
+                .thenReturn(List.of(TourEventFixture.localized(LocalDate.now(), LocalDate.now().plusDays(3))));
 
             CourseDetailResponse response = recommendationService.getCourseDetail(
                 AuthResponseFixture.USER_ID, RecommendationFixture.COURSE_ID);
@@ -98,6 +105,12 @@ class RecommendationServiceTest {
             assertThat(response.regionName()).isEqualTo(RecommendationFixture.REGION_NAME);
             assertThat(response.places()).hasSize(2);
             assertThat(response.benefits()).isEmpty();
+            assertThat(response.events()).singleElement().satisfies(event -> {
+                assertThat(event.title()).isEqualTo(TourEventFixture.TITLE);
+                assertThat(event.imageUrl()).isEqualTo(TourEventFixture.IMAGE_URL);
+                assertThat(event.address()).isEqualTo(TourEventFixture.ADDRESS);
+                assertThat(event.endDate()).isEqualTo(LocalDate.now().plusDays(3));
+            });
         }
     }
 }

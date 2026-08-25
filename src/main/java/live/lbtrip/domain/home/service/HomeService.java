@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import live.lbtrip.domain.home.dto.response.HeroResponse;
 import live.lbtrip.domain.home.dto.response.HomeFeedResponse;
+import live.lbtrip.domain.home.dto.response.HomeEventResponse;
 import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
@@ -34,7 +36,9 @@ import live.lbtrip.domain.recommendation.repository.RecommendedRegionRepository;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseListResponse;
 import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
+import live.lbtrip.domain.tourism.model.vo.LocalizedTourEvent;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
+import live.lbtrip.domain.tourism.service.TourEventFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
 import live.lbtrip.global.i18n.MessageResolver;
@@ -63,6 +67,7 @@ public class HomeService {
     private final RecommendationService recommendationService;
     private final IncentiveFinder incentiveFinder;
     private final MessageResolver messageResolver;
+    private final TourEventFinder tourEventFinder;
 
     public HeroResponse getHero(Long userId) {
         Locale locale = messageResolver.currentLocale();
@@ -124,10 +129,37 @@ public class HomeService {
     public CourseDetailResponse getPopularCourseDetail(Long courseId) {
         GeneratedCourse course = generatedCourseRepository.findById(courseId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
-        RecommendedRegion region = course.getRecommendedRegion();
-        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(
-            region.getRegionCandidate().getId(), LocalDate.now());
-        return CourseDetailResponse.of(course, incentives);
+        LocalDate today = LocalDate.now();
+        Long regionCandidateId = course.getRecommendedRegion().getRegionCandidate().getId();
+        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(regionCandidateId, today);
+        List<LocalizedTourEvent> events = tourEventFinder.findActiveByRegion(regionCandidateId, today);
+        return CourseDetailResponse.of(course, incentives, events);
+    }
+
+    public HomeEventResponse getEvents(Long userId) {
+        LocalDate today = LocalDate.now();
+        Locale locale = messageResolver.currentLocale();
+        List<HomeEventResponse.InnerRegionTab> tabs = (userId == null)
+            ? popularRegions(locale).map(region -> eventTab(region, today)).toList()
+            : myRegions(userId, locale).map(region -> eventTab(region, today)).toList();
+        return HomeEventResponse.of(tabs.stream().filter(tab -> !tab.events().isEmpty()).toList());
+    }
+
+    private HomeEventResponse.InnerRegionTab eventTab(RecommendedRegion region, LocalDate today) {
+        Long regionCandidateId = region.getRegionCandidate().getId();
+        return HomeEventResponse.tab(
+            region.getRegionName(), regionCandidateId, tourEventFinder.findActiveByRegion(regionCandidateId, today));
+    }
+
+    private Stream<RecommendedRegion> myRegions(Long userId, Locale locale) {
+        return recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale).stream();
+    }
+
+    private Stream<RecommendedRegion> popularRegions(Locale locale) {
+        return recommendedRegionRepository.findPopularRegions(locale, PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+            .map(popular -> recommendedRegionRepository
+                .findFirstByRegionCandidateIdAndLocale(popular.getRegionCandidateId(), locale))
+            .flatMap(Optional::stream);
     }
 
     public HomeFeedResponse getSavedCourseFeed(Long userId) {
