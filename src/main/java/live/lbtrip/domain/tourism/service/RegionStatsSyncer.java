@@ -2,6 +2,7 @@ package live.lbtrip.domain.tourism.service;
 
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import live.lbtrip.domain.tourism.client.dto.AreaBasedItem;
 import live.lbtrip.domain.tourism.client.dto.AreaBasedSample;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
+import live.lbtrip.domain.tourism.model.enums.TourContentType;
 import live.lbtrip.domain.tourism.model.vo.RegionStats;
 import live.lbtrip.domain.tourism.repository.TourRegionStatsRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,14 +32,17 @@ public class RegionStatsSyncer {
     private RegionStats aggregate(AreaBasedSample sample) {
         Map<Integer, Integer> typeCounts = new HashMap<>();
         Map<CategoryGroup, Integer> groupCounts = new EnumMap<>(CategoryGroup.class);
-        for (AreaBasedItem item : sample.items()) {
+        List<AreaBasedItem> items = sample.items().stream()
+            .filter(item -> item.contentTypeId() != TourContentType.FESTIVAL.getCode())
+            .toList();
+        for (AreaBasedItem item : items) {
             int contentTypeId = item.contentTypeId();
             typeCounts.put(contentTypeId, typeCounts.getOrDefault(contentTypeId, 0) + 1);
             for (CategoryGroup group : CategoryGroup.classify(item.cat1(), item.cat2(), item.cat3())) {
                 groupCounts.put(group, groupCounts.getOrDefault(group, 0) + 1);
             }
         }
-        return RegionStats.of(sample.totalCount(), sample.items().size(), typeCounts, groupCounts);
+        return RegionStats.of(sample.totalCount(), items.size(), typeCounts, groupCounts);
     }
 
     private void upsert(RegionCandidate candidate, RegionStats stats) {

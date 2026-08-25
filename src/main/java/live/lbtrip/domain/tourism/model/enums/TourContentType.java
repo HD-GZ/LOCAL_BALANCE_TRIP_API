@@ -16,7 +16,8 @@ public enum TourContentType {
     LEPORTS(28, 75, "레포츠", "Leisure Sports", true),
     ACCOMMODATION(32, 80, "숙박", "Accommodation", false),
     SHOPPING(38, 79, "쇼핑", "Shopping", true),
-    RESTAURANT(39, 82, "음식점", "Restaurant", true);
+    RESTAURANT(39, 82, "음식점", "Restaurant", true),
+    FESTIVAL(15, 85, "축제공연행사", "Festival", false);
 
     private static final String UNKNOWN_NAME = "기타";
     private static final String UNKNOWN_ENGLISH_NAME = "Other";
