@@ -22,10 +22,12 @@ import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.tourism.service.TrailCourseFinder;
 import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
+import live.lbtrip.support.fixture.TrailCourseFixture;
 
 @ExtendWith(MockitoExtension.class)
 class RecommendationServiceTest {
@@ -41,6 +43,9 @@ class RecommendationServiceTest {
 
     @Mock
     private MessageResolver messageResolver;
+
+    @Mock
+    private TrailCourseFinder trailCourseFinder;
 
     @InjectMocks
     private RecommendationService recommendationService;
@@ -90,6 +95,8 @@ class RecommendationServiceTest {
                 RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID)).thenReturn(course);
             when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
                 .thenReturn(List.of());
+            when(trailCourseFinder.findByRegion(RegionCandidateFixture.CANDIDATE_ID))
+                .thenReturn(List.of(TrailCourseFixture.trailCourse()));
 
             CourseDetailResponse response = recommendationService.getCourseDetail(
                 AuthResponseFixture.USER_ID, RecommendationFixture.COURSE_ID);
@@ -98,6 +105,11 @@ class RecommendationServiceTest {
             assertThat(response.regionName()).isEqualTo(RecommendationFixture.REGION_NAME);
             assertThat(response.places()).hasSize(2);
             assertThat(response.benefits()).isEmpty();
+            assertThat(response.trails()).hasSize(1);
+            assertThat(response.trails().getFirst().name()).isEqualTo(TrailCourseFixture.NAME);
+            assertThat(response.trails().getFirst().distanceKm()).isEqualByComparingTo(TrailCourseFixture.DISTANCE_KM);
+            assertThat(response.trails().getFirst().requiredMinutes()).isEqualTo(TrailCourseFixture.REQUIRED_MINUTES);
+            assertThat(response.trails().getFirst().level()).isEqualTo(TrailCourseFixture.LEVEL);
         }
     }
 }

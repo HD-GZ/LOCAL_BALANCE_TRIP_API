@@ -84,6 +84,7 @@ tour-api:
   eng-base-url: https://apis.data.go.kr/B551011/EngService2
   odii-base-url: https://apis.data.go.kr/B551011/Odii
   data-lab-base-url: https://apis.data.go.kr/B551011/DataLabService
+  durunubi-base-url: ${TOUR_API_DURUNUBI_BASE_URL:https://apis.data.go.kr/B551011/Durunubi}
   service-key: ${TOUR_API_SERVICE_KEY}
   mobile-os: ${TOUR_API_MOBILE_OS}
   mobile-app: ${TOUR_API_MOBILE_APP}

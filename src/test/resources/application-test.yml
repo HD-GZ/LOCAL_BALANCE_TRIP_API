@@ -66,6 +66,7 @@ tour-api:
   eng-base-url: http://localhost
   odii-base-url: http://localhost
   data-lab-base-url: http://localhost
+  durunubi-base-url: http://localhost
   service-key: test-key
   mobile-os: ETC
   mobile-app: lbtrip-test

@@ -8,6 +8,7 @@ import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.service.GeneratedCourseFinder;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse;
+import live.lbtrip.domain.tourism.service.TrailCourseFinder;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseListResponse;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
@@ -27,6 +28,7 @@ public class SavedCourseService {
     private final SaveCourseValidator saveCourseValidator;
     private final GeneratedCourseFinder generatedCourseFinder;
     private final UserFinder userFinder;
+    private final TrailCourseFinder trailCourseFinder;
 
     @Transactional
     public void saveCourse(Long userId, Long courseId) {
@@ -58,7 +60,10 @@ public class SavedCourseService {
     public SavedCourseDetailResponse getSavedCourseDetail(Long userId, Long savedCourseId) {
         SavedCourse savedCourse = savedCourseFinder.findByIdAndUserId(savedCourseId, userId);
 
+        Long regionCandidateId = savedCourse.regionCandidateId();
+
         return SavedCourseDetailResponse.of(savedCourse,
-            incentiveFinder.findAllByRegion(savedCourse.regionCandidateId()));
+            incentiveFinder.findAllByRegion(regionCandidateId),
+            trailCourseFinder.findByRegion(regionCandidateId));
     }
 }

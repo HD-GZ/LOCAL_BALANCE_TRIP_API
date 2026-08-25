@@ -27,6 +27,7 @@ public class TourDataSyncService {
     private final PlaceThemeLinker placeThemeLinker;
     private final VisitorStatsSyncer visitorStatsSyncer;
     private final RegionNameSyncer regionNameSyncer;
+    private final TrailCourseSyncer trailCourseSyncer;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -47,6 +48,7 @@ public class TourDataSyncService {
             case PLACES_EN -> syncPlaces(regionCandidateRepository.findAll(), Locale.ENGLISH);
             case OVERVIEWS_EN -> tourPlaceSyncer.syncOverviews(Locale.ENGLISH);
             case REGION_NAMES_EN -> regionNameSyncer.syncEnglishNames();
+            case TRAIL_COURSES -> trailCourseSyncer.sync();
         }
         log.info("관광 데이터 적재 단계 종료: step={}, elapsedMs={}", step, elapsedMillis(startedAt));
     }

@@ -7,6 +7,8 @@ import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse.InnerBenefitResponse;
 import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse.InnerPlaceResponse;
+import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse.InnerTrailResponse;
+import live.lbtrip.domain.tourism.model.entity.TrailCourse;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 
@@ -33,11 +35,16 @@ public record SharedCourseDetailResponse(
     List<InnerPlaceResponse> places,
 
     @Schema(description = "이 코스에 적용 가능한 혜택 목록")
-    List<InnerBenefitResponse> benefits
+    List<InnerBenefitResponse> benefits,
+
+    @Schema(description = "코스 지역의 근처 둘레길(두루누비) 목록. 거리 오름차순 최대 5개")
+    List<InnerTrailResponse> trails
 ) {
 
-    public static SharedCourseDetailResponse of(SavedCourse savedCourse, List<LocalizedIncentive> incentives) {
-        SavedCourseDetailResponse courseDetail = SavedCourseDetailResponse.of(savedCourse, incentives);
+    public static SharedCourseDetailResponse of(
+        SavedCourse savedCourse, List<LocalizedIncentive> incentives, List<TrailCourse> trails
+    ) {
+        SavedCourseDetailResponse courseDetail = SavedCourseDetailResponse.of(savedCourse, incentives, trails);
 
         return new SharedCourseDetailResponse(
             courseDetail.savedCourseId(),
@@ -47,7 +54,8 @@ public record SharedCourseDetailResponse(
             courseDetail.title(),
             courseDetail.status(),
             courseDetail.places(),
-            courseDetail.benefits()
+            courseDetail.benefits(),
+            courseDetail.trails()
         );
     }
 }

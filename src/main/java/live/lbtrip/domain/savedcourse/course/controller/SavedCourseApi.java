@@ -70,7 +70,7 @@ public interface SavedCourseApi {
         summary = "저장 코스 상세 조회",
         description = """
             저장한 코스의 장소 타임라인을 조회합니다.
-            코스 지역에 적용 가능한 혜택 목록을 함께 반환합니다.
+            코스 지역에 적용 가능한 혜택 목록과 근처 둘레길(두루누비) 목록(trails)을 함께 반환합니다.
             """
     )
     @ApiSuccessResponse(description = "저장 코스 상세 조회 성공")

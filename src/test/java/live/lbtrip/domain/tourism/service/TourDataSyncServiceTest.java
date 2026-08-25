@@ -52,6 +52,9 @@ class TourDataSyncServiceTest {
     @Mock
     private RegionNameSyncer regionNameSyncer;
 
+    @Mock
+    private TrailCourseSyncer trailCourseSyncer;
+
     @InjectMocks
     private TourDataSyncService tourDataSyncService;
 
@@ -75,6 +78,8 @@ class TourDataSyncServiceTest {
             verify(visitorStatsSyncer).sync();
             verify(tourPlaceSyncer).sync(candidate, Locale.ENGLISH);
             verify(tourPlaceSyncer).syncOverviews(Locale.ENGLISH);
+            verify(regionNameSyncer).syncEnglishNames();
+            verify(trailCourseSyncer).sync();
         }
 
         @Test
@@ -179,6 +184,15 @@ class TourDataSyncServiceTest {
 
             verify(visitorStatsSyncer).sync();
             verify(regionCandidateRepository, never()).findAll();
+            verify(tourPlaceSyncer, never()).syncOverviews(any());
+        }
+
+        @Test
+        void TRAIL_COURSES_단계는_두루누비_코스만_적재한다() {
+            tourDataSyncService.sync(TourSyncStep.TRAIL_COURSES);
+
+            verify(trailCourseSyncer).sync();
+            verify(visitorStatsSyncer, never()).sync();
             verify(tourPlaceSyncer, never()).syncOverviews(any());
         }
 

@@ -1,5 +1,6 @@
 package live.lbtrip.domain.savedcourse.course.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -13,14 +14,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.service.GeneratedCourseFinder;
+import live.lbtrip.domain.savedcourse.course.dto.response.SavedCourseDetailResponse;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
+import live.lbtrip.domain.tourism.service.TrailCourseFinder;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.fixture.CourseShareFixture;
+import live.lbtrip.support.fixture.RegionCandidateFixture;
+import live.lbtrip.support.fixture.TrailCourseFixture;
 
 @ExtendWith(MockitoExtension.class)
 class SavedCourseServiceTest {
@@ -46,6 +54,9 @@ class SavedCourseServiceTest {
 
     @Mock
     private UserFinder userFinder;
+
+    @Mock
+    private TrailCourseFinder trailCourseFinder;
 
     @Mock
     private GeneratedCourse generatedCourse;
@@ -115,6 +126,27 @@ class SavedCourseServiceTest {
                 .isEqualTo(ErrorCode.USER_NOT_FOUND);
 
             verify(saveCourseManager, never()).add(generatedCourse, user);
+        }
+    }
+
+    @Nested
+    class 상세_조회 {
+
+        @Test
+        void 저장_코스_상세와_지역_둘레길을_조회한다() {
+            SavedCourse saved = CourseShareFixture.savedCourse();
+            when(savedCourseFinder.findByIdAndUserId(CourseShareFixture.SAVED_COURSE_ID, USER_ID)).thenReturn(saved);
+            when(incentiveFinder.findAllByRegion(RegionCandidateFixture.CANDIDATE_ID)).thenReturn(List.of());
+            when(trailCourseFinder.findByRegion(RegionCandidateFixture.CANDIDATE_ID))
+                .thenReturn(List.of(TrailCourseFixture.trailCourse()));
+
+            SavedCourseDetailResponse response =
+                savedCourseService.getSavedCourseDetail(USER_ID, CourseShareFixture.SAVED_COURSE_ID);
+
+            assertThat(response.savedCourseId()).isEqualTo(CourseShareFixture.SAVED_COURSE_ID);
+            assertThat(response.benefits()).isEmpty();
+            assertThat(response.trails()).extracting(SavedCourseDetailResponse.InnerTrailResponse::name)
+                .containsExactly(TrailCourseFixture.NAME);
         }
     }
 

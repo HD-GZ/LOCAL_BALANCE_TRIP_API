@@ -11,6 +11,7 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseFinder;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.share.dto.response.ShareTokenResponse;
 import live.lbtrip.domain.savedcourse.share.dto.response.SharedCourseDetailResponse;
+import live.lbtrip.domain.tourism.service.TrailCourseFinder;
 import live.lbtrip.domain.savedcourse.share.model.entity.CourseShareToken;
 import live.lbtrip.domain.savedcourse.share.repository.CourseShareTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class CourseShareService {
     private final IncentiveFinder incentiveFinder;
     private final CourseShareTokenFinder courseShareTokenFinder;
     private final CourseShareTokenRepository courseShareTokenRepository;
+    private final TrailCourseFinder trailCourseFinder;
 
     @Transactional
     public ShareTokenResponse issueShareToken(Long userId, Long savedCourseId) {
@@ -45,8 +47,11 @@ public class CourseShareService {
         shareToken.validateUsable(LocalDateTime.now());
         SavedCourse savedCourse = shareToken.getSavedCourse();
 
+        Long regionCandidateId = savedCourse.regionCandidateId();
+
         return SharedCourseDetailResponse.of(savedCourse,
-            incentiveFinder.findAllByRegion(savedCourse.regionCandidateId()));
+            incentiveFinder.findAllByRegion(regionCandidateId),
+            trailCourseFinder.findByRegion(regionCandidateId));
     }
 
     @Transactional

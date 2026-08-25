@@ -54,9 +54,11 @@ import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.domain.tourism.service.TrailCourseFinder;
 import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
+import live.lbtrip.support.fixture.TrailCourseFixture;
 import live.lbtrip.support.fixture.TravelProfileFixture;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,6 +75,7 @@ class HomeServiceTest {
     @Mock private RecommendationService recommendationService;
     @Mock private IncentiveFinder incentiveFinder;
     @Mock private MessageResolver messageResolver;
+    @Mock private TrailCourseFinder trailCourseFinder;
     @InjectMocks private HomeService homeService;
 
     @BeforeEach
@@ -305,12 +308,17 @@ class HomeServiceTest {
         when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
             .thenReturn(List.of());
 
+        when(trailCourseFinder.findByRegion(RegionCandidateFixture.CANDIDATE_ID))
+            .thenReturn(List.of(TrailCourseFixture.trailCourse()));
+
         CourseDetailResponse response = homeService.getPopularCourseDetail(10L);
 
         assertThat(response.courseId()).isEqualTo(10L);
         assertThat(response.title()).isEqualTo("담양 골목 미식 코스");
         assertThat(response.regionName()).isEqualTo("전라남도 담양군");
         assertThat(response.benefits()).isEmpty();
+        assertThat(response.trails()).extracting(CourseDetailResponse.InnerTrailResponse::name)
+            .containsExactly(TrailCourseFixture.NAME);
     }
 
     @Test

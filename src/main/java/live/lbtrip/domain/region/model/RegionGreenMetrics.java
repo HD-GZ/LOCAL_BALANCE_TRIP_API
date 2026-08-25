@@ -63,6 +63,10 @@ public class RegionGreenMetrics extends BaseEntity {
             localCommerce, tourismCardMerchant, populationDecline);
     }
 
+    public void updateGpxAdjacent(boolean gpxAdjacent) {
+        this.gpxAdjacent = gpxAdjacent;
+    }
+
     public int greenScore() {
         int score = 0;
         for (boolean signal : new boolean[] {
