@@ -51,10 +51,10 @@ public final class RecommendationFixture {
         ReflectionTestUtils.setField(course, "id", COURSE_ID);
         course.addPlace(CoursePlace.create(
             1, "죽녹원", "대나무 숲", IMAGE_URL,
-            35.325, 126.986, null, false, null));
+            35.325, 126.986, null, false, null, PLACE_REASON));
         course.addPlace(CoursePlace.create(
             2, "관방제림", "천연기념물 숲길", IMAGE_URL,
-            35.321, 126.981, 10, true, "https://audio.example.com/guide.mp3"));
+            35.321, 126.981, 10, true, "https://audio.example.com/guide.mp3", null));
         return course;
     }
 

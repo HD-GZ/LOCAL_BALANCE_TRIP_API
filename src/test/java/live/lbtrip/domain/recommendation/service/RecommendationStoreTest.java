@@ -63,9 +63,9 @@ class RecommendationStoreTest {
         RegionPlan plan = RegionPlan.of(
             RegionMetricsFixture.로컬실속_지역(), RegionMetricsFixture.로컬실속_지역().regionName(), "지역 추천 이유",
             List.of(PlannedCourse.of("담양 산책 코스", "코스 이유", List.of(
-                RoutedPlace.of(places.get(0), null),
-                RoutedPlace.of(places.get(1), 6),
-                RoutedPlace.of(places.get(2), 10)))));
+                RoutedPlace.of(places.get(0), null, RecommendationFixture.PLACE_REASON),
+                RoutedPlace.of(places.get(1), 6, null),
+                RoutedPlace.of(places.get(2), 10, "시장 이유")))));
         RecommendedRegion existing = RecommendationFixture.region();
         when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(USER_ID, Locale.KOREAN))
             .thenReturn(List.of(existing));
@@ -99,6 +99,8 @@ class RecommendationStoreTest {
                 .containsExactly("죽녹원", "관방제림", "담양시장");
             assertThat(course.getPlaces()).extracting(CoursePlace::isHasAudio)
                 .containsOnly(false);
+            assertThat(course.getPlaces()).extracting(CoursePlace::getReason)
+                .containsExactly(RecommendationFixture.PLACE_REASON, null, "시장 이유");
         });
     }
 

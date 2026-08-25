@@ -2,6 +2,7 @@ package live.lbtrip.domain.recommendation.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -20,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import live.lbtrip.domain.propensity.model.Propensity;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.vo.CourseComposition.PlacePlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.recommendation.model.vo.RoutedPlace;
 import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
@@ -56,7 +58,10 @@ class RegionPlanAssemblerTest {
         RegionMetrics region = RegionMetricsFixture.로컬실속_지역();
         List<TourPlace> places = RecommendationFixture.tourPlaces();
         CourseComposition composition = CourseComposition.of("추천 이유", List.of(
-            CoursePlan.of("코스", "코스 이유", RecommendationFixture.placePlans("300", "100", "200"))));
+            CoursePlan.of("코스", "코스 이유", List.of(
+                PlacePlan.of("300", "시장 이유"),
+                PlacePlan.of("100", null),
+                PlacePlan.of("200", "숲길 이유")))));
         List<TourPlace> selectedInOrder = List.of(places.get(2), places.get(0), places.get(1));
         List<RoutedPlace> routed = List.of(
             RoutedPlace.of(places.get(0), null),
@@ -76,7 +81,11 @@ class RegionPlanAssemblerTest {
             assertThat(plan.courses()).singleElement().satisfies(course -> {
                 assertThat(course.name()).isEqualTo("코스");
                 assertThat(course.reason()).isEqualTo("코스 이유");
-                assertThat(course.places()).isEqualTo(routed);
+                assertThat(course.places()).extracting(RoutedPlace::place, RoutedPlace::walkMinutes, RoutedPlace::reason)
+                    .containsExactly(
+                        tuple(places.get(0), null, null),
+                        tuple(places.get(1), 5, "숲길 이유"),
+                        tuple(places.get(2), 7, "시장 이유"));
             });
         });
     }

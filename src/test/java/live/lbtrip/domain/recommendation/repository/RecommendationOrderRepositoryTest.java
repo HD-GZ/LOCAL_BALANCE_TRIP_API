@@ -74,6 +74,6 @@ class RecommendationOrderRepositoryTest {
     private CoursePlace place(int visitOrder) {
         return CoursePlace.create(
             visitOrder, "장소 " + visitOrder, null, RecommendationFixture.IMAGE_URL,
-            35.0, 127.0, visitOrder == 1 ? null : 10, false, null);
+            35.0, 127.0, visitOrder == 1 ? null : 10, false, null, null);
     }
 }

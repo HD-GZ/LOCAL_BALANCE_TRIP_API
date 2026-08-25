@@ -14,6 +14,7 @@ import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.PlacePlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan;
 import live.lbtrip.domain.recommendation.model.vo.RegionPlan.PlannedCourse;
+import live.lbtrip.domain.recommendation.model.vo.RoutedPlace;
 import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
@@ -67,14 +68,19 @@ public class RegionPlanAssembler {
         List<PlannedCourse> courses = new ArrayList<>();
         for (CoursePlan coursePlan : composition.courses()) {
             List<TourPlace> selected = new ArrayList<>();
+            Map<String, String> reasonsByContentId = new HashMap<>();
             for (PlacePlan placePlan : coursePlan.places()) {
                 selected.add(placesById.get(placePlan.contentId()));
+                reasonsByContentId.put(placePlan.contentId(), placePlan.reason());
             }
-            courses.add(PlannedCourse.of(
-                coursePlan.name(),
-                coursePlan.reason(),
-                courseRoutePlanner.plan(selected))
-            );
+            List<RoutedPlace> routed = new ArrayList<>();
+            for (RoutedPlace routedPlace : courseRoutePlanner.plan(selected)) {
+                routed.add(RoutedPlace.of(
+                    routedPlace.place(),
+                    routedPlace.walkMinutes(),
+                    reasonsByContentId.get(routedPlace.place().getContentId())));
+            }
+            courses.add(PlannedCourse.of(coursePlan.name(), coursePlan.reason(), routed));
         }
         return RegionPlan.of(region, regionName, composition.regionReason(), courses);
     }
