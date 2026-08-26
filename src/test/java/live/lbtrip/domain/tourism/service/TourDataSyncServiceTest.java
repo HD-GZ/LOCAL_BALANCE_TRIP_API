@@ -52,6 +52,9 @@ class TourDataSyncServiceTest {
     @Mock
     private RegionNameSyncer regionNameSyncer;
 
+    @Mock
+    private TtsAudioSyncer ttsAudioSyncer;
+
     @InjectMocks
     private TourDataSyncService tourDataSyncService;
 
@@ -75,6 +78,9 @@ class TourDataSyncServiceTest {
             verify(visitorStatsSyncer).sync();
             verify(tourPlaceSyncer).sync(candidate, Locale.ENGLISH);
             verify(tourPlaceSyncer).syncOverviews(Locale.ENGLISH);
+            verify(ttsAudioSyncer).sync(Locale.KOREAN);
+            verify(ttsAudioSyncer).sync(Locale.ENGLISH);
+            verify(regionNameSyncer).syncEnglishNames();
         }
 
         @Test
@@ -171,6 +177,16 @@ class TourDataSyncServiceTest {
             verify(tourPlaceSyncer).syncOverviews(Locale.ENGLISH);
             verify(tourPlaceSyncer, never()).sync(any(), any());
             verify(tourPlaceSyncer, never()).syncOverviews(Locale.KOREAN);
+        }
+
+        @Test
+        void TTS_AUDIO_단계는_한글과_영문_장소의_TTS_음원만_생성한다() {
+            tourDataSyncService.sync(TourSyncStep.TTS_AUDIO);
+
+            verify(ttsAudioSyncer).sync(Locale.KOREAN);
+            verify(ttsAudioSyncer).sync(Locale.ENGLISH);
+            verify(tourPlaceSyncer, never()).syncOverviews(any());
+            verify(regionCandidateRepository, never()).findAll();
         }
 
         @Test

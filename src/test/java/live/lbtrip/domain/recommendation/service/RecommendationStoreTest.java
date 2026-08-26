@@ -1,6 +1,7 @@
 package live.lbtrip.domain.recommendation.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
@@ -32,6 +33,7 @@ import live.lbtrip.domain.tourism.model.entity.OdiiTheme;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.global.storage.service.AudioStorage;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
@@ -51,6 +53,9 @@ class RecommendationStoreTest {
 
     @Mock
     private RegionCandidateRepository regionCandidateRepository;
+
+    @Mock
+    private AudioStorage audioStorage;
 
     @InjectMocks
     private RecommendationStore recommendationStore;
@@ -158,6 +163,62 @@ class RecommendationStoreTest {
         List<CoursePlace> savedPlaces = regionCaptor.getValue().getCourses().getFirst().getPlaces();
         assertThat(savedPlaces).extracting(CoursePlace::isHasAudio).containsExactly(true, false, false);
         assertThat(savedPlaces.getFirst().getAudioUrl()).isEqualTo("https://audio.example.com/guide.mp3");
+    }
+
+    @Test
+    void 오디오_테마가_없는_장소는_TTS_음원_공개_URL을_스냅샷에_복사한다() {
+        User user = UserFixture.user();
+        RegionCandidate regionCandidate = RegionCandidateFixture.candidateWithId();
+        List<TourPlace> places = RecommendationFixture.tourPlaces();
+        places.getFirst().updateTtsAudio("tts/ko/abc.mp3", LocalDateTime.now());
+        RegionPlan plan = RegionPlan.of(
+            RegionMetricsFixture.로컬실속_지역(), RegionMetricsFixture.로컬실속_지역().regionName(), "지역 추천 이유",
+            List.of(PlannedCourse.of("담양 산책 코스", "코스 이유", List.of(
+                RoutedPlace.of(places.get(0), null),
+                RoutedPlace.of(places.get(1), 6),
+                RoutedPlace.of(places.get(2), 10)))));
+        when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(USER_ID, Locale.KOREAN)).thenReturn(List.of());
+        when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
+        when(regionCandidateRepository.getReferenceById(
+            RegionMetricsFixture.로컬실속_지역().regionCandidateId())).thenReturn(regionCandidate);
+        when(audioStorage.publicUrl("tts/ko/abc.mp3")).thenReturn("https://cdn.example.com/tts/ko/abc.mp3");
+
+        recommendationStore.replace(USER_ID, Locale.KOREAN, List.of(plan));
+
+        ArgumentCaptor<RecommendedRegion> regionCaptor = ArgumentCaptor.forClass(RecommendedRegion.class);
+        verify(recommendedRegionRepository).save(regionCaptor.capture());
+        List<CoursePlace> savedPlaces = regionCaptor.getValue().getCourses().getFirst().getPlaces();
+        assertThat(savedPlaces).extracting(CoursePlace::isHasAudio).containsExactly(true, false, false);
+        assertThat(savedPlaces.getFirst().getAudioUrl()).isEqualTo("https://cdn.example.com/tts/ko/abc.mp3");
+    }
+
+    @Test
+    void 오디오_테마가_있으면_TTS_음원보다_오디오_테마_URL을_우선한다() {
+        User user = UserFixture.user();
+        RegionCandidate regionCandidate = RegionCandidateFixture.candidateWithId();
+        List<TourPlace> places = RecommendationFixture.tourPlaces();
+        OdiiTheme theme = OdiiTheme.create("t1", "l1", "죽녹원", 126.986, 35.325);
+        theme.updateAudio("https://audio.example.com/guide.mp3", LocalDateTime.now());
+        places.getFirst().assignOdiiTheme(theme);
+        places.getFirst().updateTtsAudio("tts/ko/abc.mp3", LocalDateTime.now());
+        RegionPlan plan = RegionPlan.of(
+            RegionMetricsFixture.로컬실속_지역(), RegionMetricsFixture.로컬실속_지역().regionName(), "지역 추천 이유",
+            List.of(PlannedCourse.of("담양 산책 코스", "코스 이유", List.of(
+                RoutedPlace.of(places.get(0), null),
+                RoutedPlace.of(places.get(1), 6),
+                RoutedPlace.of(places.get(2), 10)))));
+        when(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(USER_ID, Locale.KOREAN)).thenReturn(List.of());
+        when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
+        when(regionCandidateRepository.getReferenceById(
+            RegionMetricsFixture.로컬실속_지역().regionCandidateId())).thenReturn(regionCandidate);
+
+        recommendationStore.replace(USER_ID, Locale.KOREAN, List.of(plan));
+
+        ArgumentCaptor<RecommendedRegion> regionCaptor = ArgumentCaptor.forClass(RecommendedRegion.class);
+        verify(recommendedRegionRepository).save(regionCaptor.capture());
+        List<CoursePlace> savedPlaces = regionCaptor.getValue().getCourses().getFirst().getPlaces();
+        assertThat(savedPlaces.getFirst().getAudioUrl()).isEqualTo("https://audio.example.com/guide.mp3");
+        verify(audioStorage, never()).publicUrl(any());
     }
 
     @Test
