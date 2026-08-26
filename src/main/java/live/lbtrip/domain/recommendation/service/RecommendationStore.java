@@ -72,7 +72,8 @@ public class RecommendationStore {
                         place.getLongitude(),
                         routedPlace.walkMinutes(),
                         audioUrl != null,
-                        audioUrl
+                        audioUrl,
+                        routedPlace.reason()
                         )
                     );
                 }

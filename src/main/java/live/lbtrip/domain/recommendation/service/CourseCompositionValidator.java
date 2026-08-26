@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.vo.CourseComposition.PlacePlan;
 import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.global.config.RecommendationProperties;
@@ -28,7 +29,8 @@ import lombok.extern.slf4j.Slf4j;
  * <ul>
  *   <li>장소: 후보 목록에 실존하는 contentId만 채택(환각 차단), 코스 내·코스 간 중복 제거,
  *       첫 유효 장소가 속한 도보 클러스터 밖의 장소 제거, 코스당 최대 5곳 절단.
- *       정제 후 3곳 미만이면 그 코스는 탈락</li>
+ *       정제 후 3곳 미만이면 그 코스는 탈락. 장소별 추천 이유는 120자로 절단하되
+ *       비어 있어도 장소를 버리지 않고 이유만 null로 둔다</li>
  *   <li>코스 구조: 이름·이유 필수(없으면 코스 탈락)와 길이 절단(100자/300자),
  *       이름이 지역명으로 시작하지 않으면 지역명 접두, 코스 수는 maxCourses 상한 초과분 버림</li>
  *   <li>지역 수준: 코스 없음 / 지역 추천 이유 없음 / 전 코스 탈락이면
@@ -47,6 +49,7 @@ public class CourseCompositionValidator {
     private static final int MAX_PLACES_PER_COURSE = 5;
     private static final int NAME_MAX_LENGTH = 100;
     private static final int REASON_MAX_LENGTH = 300;
+    private static final int PLACE_REASON_MAX_LENGTH = 120;
 
     private final RecommendationProperties recommendationProperties;
 
@@ -76,7 +79,9 @@ public class CourseCompositionValidator {
             CoursePlan normalized = normalizeCourse(course, clusterIdsByContentId, usedIds, regionName);
             if (normalized != null) {
                 courses.add(normalized);
-                usedIds.addAll(normalized.placeContentIds());
+                for (PlacePlan place : normalized.places()) {
+                    usedIds.add(place.contentId());
+                }
             }
         }
 
@@ -102,37 +107,39 @@ public class CourseCompositionValidator {
             name = truncate("%s %s".formatted(regionName, name), NAME_MAX_LENGTH);
         }
 
-        List<String> placeContentIds = selectPlaceContentIds(course.placeContentIds(), clusterIdsByContentId, usedIds);
-        if (placeContentIds.size() < MIN_PLACES_PER_COURSE) {
+        List<PlacePlan> places = selectPlaces(course.places(), clusterIdsByContentId, usedIds);
+        if (places.size() < MIN_PLACES_PER_COURSE) {
             return null;
         }
-        return CoursePlan.of(name, reason, placeContentIds);
+        return CoursePlan.of(name, reason, places);
     }
 
     /**
-     * LLM이 낸 contentId 목록에서 채택 가능한 것만 순서대로 고른다.
+     * LLM이 낸 장소 목록에서 채택 가능한 것만 순서대로 고른다.
      * 후보에 없는 ID(환각)·이미 다른 코스가 쓴 ID(usedIds)·코스 안에서 반복된 ID·
      * 첫 유효 장소와 다른 도보 클러스터에 속한 ID는 건너뛰고, 5곳이 차면 멈춘다.
-     * 코스 간 중복은 앞 코스 우선으로 해소된다.
+     * 코스 간 중복은 앞 코스 우선으로 해소된다. 장소별 이유는 채택 여부에 영향을 주지 않고
+     * 120자로 절단만 하며, 비어 있으면 null로 둔다.
      */
-    private List<String> selectPlaceContentIds(
-        List<String> rawIds, Map<String, String> clusterIdsByContentId, Set<String> usedIds
+    private List<PlacePlan> selectPlaces(
+        List<PlacePlan> rawPlaces, Map<String, String> clusterIdsByContentId, Set<String> usedIds
     ) {
-        List<String> selected = new ArrayList<>();
-        if (rawIds == null) {
+        List<PlacePlan> selected = new ArrayList<>();
+        if (rawPlaces == null) {
             return selected;
         }
+        Set<String> selectedIds = new HashSet<>();
         String courseClusterId = null;
-        for (String rawId : rawIds) {
+        for (PlacePlan rawPlace : rawPlaces) {
             if (selected.size() == MAX_PLACES_PER_COURSE) {
                 break;
             }
-            if (rawId == null) {
+            if (rawPlace == null || rawPlace.contentId() == null) {
                 continue;
             }
-            String id = rawId.trim();
+            String id = rawPlace.contentId().trim();
             String clusterId = clusterIdsByContentId.get(id);
-            if (clusterId == null || usedIds.contains(id) || selected.contains(id)) {
+            if (clusterId == null || usedIds.contains(id) || selectedIds.contains(id)) {
                 continue;
             }
             if (courseClusterId == null) {
@@ -140,7 +147,8 @@ public class CourseCompositionValidator {
             } else if (!courseClusterId.equals(clusterId)) {
                 continue;
             }
-            selected.add(id);
+            selectedIds.add(id);
+            selected.add(PlacePlan.of(id, normalizeRequired(rawPlace.reason(), PLACE_REASON_MAX_LENGTH)));
         }
         return List.copyOf(selected);
     }

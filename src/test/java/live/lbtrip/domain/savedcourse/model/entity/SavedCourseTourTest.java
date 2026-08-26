@@ -182,6 +182,7 @@ class SavedCourseTourTest {
             127.0,
             null,
             false,
+            null,
             null
         );
         ReflectionTestUtils.setField(place, "id", id);

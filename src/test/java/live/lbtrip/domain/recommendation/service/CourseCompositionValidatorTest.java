@@ -2,7 +2,9 @@ package live.lbtrip.domain.recommendation.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition;
 import live.lbtrip.domain.recommendation.model.vo.CourseComposition.CoursePlan;
+import live.lbtrip.domain.recommendation.model.vo.CourseComposition.PlacePlan;
 import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.global.config.RecommendationProperties;
@@ -38,7 +41,7 @@ class CourseCompositionValidatorTest {
             CourseComposition result = validator.validate(raw, candidates, REGION_NAME);
 
             assertThat(result.courses()).singleElement().satisfies(course ->
-                assertThat(course.placeContentIds()).containsExactly("100", "200", "300"));
+                assertThat(contentIds(course)).containsExactly("100", "200", "300"));
         }
 
         @Test
@@ -61,7 +64,7 @@ class CourseCompositionValidatorTest {
 
             CourseComposition result = validator.validate(raw, manyCandidates, REGION_NAME);
 
-            assertThat(result.courses().getFirst().placeContentIds())
+            assertThat(contentIds(result.courses().getFirst()))
                 .containsExactly("100", "101", "102", "103", "104");
         }
 
@@ -77,7 +80,7 @@ class CourseCompositionValidatorTest {
             CourseComposition result = validator.validate(raw, clusters, REGION_NAME);
 
             assertThat(result.courses()).singleElement().satisfies(course ->
-                assertThat(course.placeContentIds()).containsExactly("100", "101", "102"));
+                assertThat(contentIds(course)).containsExactly("100", "101", "102"));
         }
 
         @Test
@@ -106,6 +109,41 @@ class CourseCompositionValidatorTest {
 
             assertThat(result.courses()).singleElement().satisfies(course ->
                 assertThat(course.name()).contains("정상 코스"));
+        }
+    }
+
+    @Nested
+    class 장소_이유_검증 {
+
+        @Test
+        void 장소_이유가_비어_있어도_장소는_유지하고_이유만_null로_둔다() {
+            CourseComposition raw = composition(CoursePlan.of("코스", "코스 이유", List.of(
+                PlacePlan.of("100", " "),
+                PlacePlan.of("200", null),
+                PlacePlan.of("300", " 시장 구경 "))));
+
+            CourseComposition result = validator.validate(raw, candidates, REGION_NAME);
+
+            assertThat(result.courses().getFirst().places())
+                .extracting(PlacePlan::contentId, PlacePlan::reason)
+                .containsExactly(
+                    tuple("100", null),
+                    tuple("200", null),
+                    tuple("300", "시장 구경"));
+        }
+
+        @Test
+        void 장소_이유가_120자를_넘으면_잘라낸다() {
+            String longReason = "가".repeat(130);
+            CourseComposition raw = composition(CoursePlan.of("코스", "코스 이유", List.of(
+                PlacePlan.of("100", longReason),
+                PlacePlan.of("200", "이유"),
+                PlacePlan.of("300", "이유"))));
+
+            CourseComposition result = validator.validate(raw, candidates, REGION_NAME);
+
+            assertThat(result.courses().getFirst().places().getFirst().reason())
+                .isEqualTo("가".repeat(120));
         }
     }
 
@@ -139,8 +177,8 @@ class CourseCompositionValidatorTest {
         @Test
         void 이름이나_이유가_없는_코스는_탈락한다() {
             CourseComposition raw = composition(
-                CoursePlan.of(" ", "이유", List.of("100", "200", "300")),
-                CoursePlan.of("이름", null, List.of("100", "200", "300")));
+                CoursePlan.of(" ", "이유", plans(List.of("100", "200", "300"))),
+                CoursePlan.of("이름", null, plans(List.of("100", "200", "300"))));
 
             assertThatThrownBy(() -> validator.validate(raw, candidates, REGION_NAME))
                 .isInstanceOf(BusinessException.class)
@@ -188,6 +226,18 @@ class CourseCompositionValidatorTest {
     }
 
     private CoursePlan course(String name, List<String> placeContentIds) {
-        return CoursePlan.of(name, "코스 이유", placeContentIds);
+        return CoursePlan.of(name, "코스 이유", plans(placeContentIds));
+    }
+
+    private List<PlacePlan> plans(List<String> placeContentIds) {
+        List<PlacePlan> plans = new ArrayList<>();
+        for (String contentId : placeContentIds) {
+            plans.add(contentId == null ? null : PlacePlan.of(contentId, "장소 이유"));
+        }
+        return plans;
+    }
+
+    private List<String> contentIds(CoursePlan course) {
+        return course.places().stream().map(PlacePlan::contentId).toList();
     }
 }

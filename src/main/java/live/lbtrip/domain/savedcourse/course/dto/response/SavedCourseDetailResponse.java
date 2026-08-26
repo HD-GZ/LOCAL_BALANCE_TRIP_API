@@ -55,7 +55,10 @@ public record SavedCourseDetailResponse(
         boolean hasAudio,
 
         @Schema(description = "오디오가이드 재생 URL. 미지원 장소는 null.", nullable = true)
-        String audioUrl
+        String audioUrl,
+
+        @Schema(description = "이 장소를 추천한 이유", nullable = true)
+        String reason
     ) {
 
         private static InnerPlaceResponse from(SavedCoursePlace place) {
@@ -68,7 +71,8 @@ public record SavedCourseDetailResponse(
                 place.getLatitude(),
                 place.getWalkMinutes(),
                 place.isHasAudio(),
-                place.getAudioUrl()
+                place.getAudioUrl(),
+                place.getReason()
             );
         }
     }
