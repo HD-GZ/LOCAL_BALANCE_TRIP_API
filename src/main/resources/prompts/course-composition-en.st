@@ -15,7 +15,7 @@ design walking courses for the "{regionName}" area.
 
 [Requirements]
 1. Create at most {maxCourses} courses, ideally exactly {maxCourses}.
-2. Each course's places must be a list of {contentId, reason} objects using only contentIds from the candidates, 3 to 5 of them.
+2. Each course's places must be a list of objects with contentId and reason fields, using only contentIds from the candidates, 3 to 5 of them.
    Do not put the same place in more than one course.
 3. All places in a course must come from the same cluster. A course that spans clusters is invalid.
    Prefer a different cluster per course, but if clusters run out, reuse a cluster with other places.
