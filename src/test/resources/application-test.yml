@@ -68,6 +68,13 @@ slack:
   logging:
     error: http://localhost
 
+tts:
+  google-translate:
+    base-url: http://localhost
+    connect-timeout: 1s
+    read-timeout: 1s
+    request-interval: 0s
+
 tour-api:
   base-url: http://localhost
   eng-base-url: http://localhost

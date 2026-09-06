@@ -86,6 +86,14 @@ slack:
   logging:
     error: ${SLACK_LOGGING_ERROR_URL}
 
+tts:
+  google-translate:
+    enabled: ${GOOGLE_TRANSLATE_TTS_ENABLED:true}
+    base-url: ${GOOGLE_TRANSLATE_TTS_BASE_URL:https://translate.google.com}
+    connect-timeout: ${GOOGLE_TRANSLATE_TTS_CONNECT_TIMEOUT:5s}
+    read-timeout: ${GOOGLE_TRANSLATE_TTS_READ_TIMEOUT:20s}
+    request-interval: ${GOOGLE_TRANSLATE_TTS_REQUEST_INTERVAL:1s}
+
 tour-api:
   base-url: https://apis.data.go.kr/B551011/KorService2
   eng-base-url: https://apis.data.go.kr/B551011/EngService2
