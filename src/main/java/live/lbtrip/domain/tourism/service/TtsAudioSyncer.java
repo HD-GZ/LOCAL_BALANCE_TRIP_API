@@ -5,11 +5,13 @@ import java.util.Locale;
 
 import org.springframework.ai.audio.tts.TextToSpeechModel;
 import org.springframework.ai.audio.tts.TextToSpeechPrompt;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import live.lbtrip.domain.tourism.client.GoogleTranslateTtsClient;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.storage.service.AudioStorage;
@@ -28,6 +30,10 @@ public class TtsAudioSyncer {
     private final TourPlaceRepository tourPlaceRepository;
     private final TextToSpeechModel textToSpeechModel;
     private final AudioStorage audioStorage;
+    private final GoogleTranslateTtsClient googleTranslateTtsClient;
+
+    @Value("${tts.google-translate.enabled}")
+    private boolean googleTranslateTtsEnabled;
 
     public void sync(Locale locale) {
         Pageable firstPage = PageRequest.of(0, PAGE_SIZE);
@@ -64,7 +70,9 @@ public class TtsAudioSyncer {
             if (input.isEmpty()) {
                 place.markTtsAudioUnavailable(LocalDateTime.now());
             } else {
-                byte[] audio = textToSpeechModel.call(new TextToSpeechPrompt(input)).getResult().getOutput();
+                byte[] audio = googleTranslateTtsEnabled
+                    ? googleTranslateTtsClient.synthesize(input, locale)
+                    : textToSpeechModel.call(new TextToSpeechPrompt(input)).getResult().getOutput();
                 String key = audioStorage.storeTts(audio, locale);
                 place.updateTtsAudio(key, LocalDateTime.now());
             }

@@ -51,7 +51,7 @@ public interface AdminTourSyncApi {
             - VISITOR_STATS: 지역별 방문자수 적재 (미적재 일자당 API 1회, 최대 45회)
             - PLACES_EN: 지역별 영문 장소 적재 (지역당 API 5회)
             - OVERVIEWS_EN: 영문 장소 상세 설명 보강 (미적재 영문 장소당 API 1회)
-            - TTS_AUDIO: 오디오 가이드 없는 장소의 소개글 TTS 음원 생성 (한글·영문 미생성 장소당 OpenAI 1회, 연속 3회 실패 시 중단)
+            - TTS_AUDIO: 오디오 가이드 없는 장소의 소개글 TTS 음원 생성 (기본 구글 번역 TTS, 한글·영문 미생성 장소만 처리, 연속 3회 실패 시 중단)
             - REGION_NAMES_EN: 지역 영문명 적재 (시도당 API 1회)
 
             실행 중 일일 한도를 초과하면 해당 단계를 즉시 중단합니다.

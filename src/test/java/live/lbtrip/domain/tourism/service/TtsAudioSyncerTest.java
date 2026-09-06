@@ -14,6 +14,8 @@ import java.util.Locale;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -25,7 +27,9 @@ import org.springframework.ai.audio.tts.TextToSpeechResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import live.lbtrip.domain.tourism.client.GoogleTranslateTtsClient;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
@@ -47,8 +51,35 @@ class TtsAudioSyncerTest {
     @Mock
     private AudioStorage audioStorage;
 
+    @Mock
+    private GoogleTranslateTtsClient googleTranslateTtsClient;
+
     @InjectMocks
     private TtsAudioSyncer ttsAudioSyncer;
+
+    @Nested
+    class 구글_번역_TTS {
+
+        @ParameterizedTest
+        @ValueSource(strings = {"ko", "en"})
+        void 활성화하면_기존_저장_방식으로_저장하고_OpenAI는_호출하지_않는다(String language) {
+            Locale locale = Locale.forLanguageTag(language);
+            TourPlace place = TourPlaceFixture.withOverview("장소", "소개");
+            String key = "tts/" + language + "/abc.mp3";
+            ReflectionTestUtils.setField(ttsAudioSyncer, "googleTranslateTtsEnabled", true);
+            when(tourPlaceRepository.findTtsPending(eq(locale), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(place))).thenReturn(Page.empty());
+            when(googleTranslateTtsClient.synthesize("소개", locale)).thenReturn(MP3_BYTES);
+            when(audioStorage.storeTts(MP3_BYTES, locale)).thenReturn(key);
+
+            ttsAudioSyncer.sync(locale);
+
+            assertThat(place.getTtsAudioKey()).isEqualTo(key);
+            assertThat(place.getTtsSyncedAt()).isNotNull();
+            verify(tourPlaceRepository).save(place);
+            verify(textToSpeechModel, never()).call(any(TextToSpeechPrompt.class));
+        }
+    }
 
     @Nested
     class 음원_생성 {
