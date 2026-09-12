@@ -301,7 +301,9 @@ class HomeServiceTest {
         when(course.getRecommendedRegion()).thenReturn(region);
         when(region.getRegionName()).thenReturn("전라남도 담양군");
         when(region.getRegionCandidate()).thenReturn(RegionCandidateFixture.candidateWithId());
-        when(generatedCourseRepository.findById(10L)).thenReturn(Optional.of(course));
+        when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
+        when(generatedCourseRepository.findByIdAndRecommendedRegionLocale(10L, Locale.KOREAN))
+            .thenReturn(Optional.of(course));
         when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
             .thenReturn(List.of());
 
@@ -315,7 +317,9 @@ class HomeServiceTest {
 
     @Test
     void 공개_인기_코스_상세는_없는_코스면_예외를_던진다() {
-        when(generatedCourseRepository.findById(999L)).thenReturn(Optional.empty());
+        when(messageResolver.currentLocale()).thenReturn(Locale.ENGLISH);
+        when(generatedCourseRepository.findByIdAndRecommendedRegionLocale(999L, Locale.ENGLISH))
+            .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> homeService.getPopularCourseDetail(999L))
             .isInstanceOf(BusinessException.class)

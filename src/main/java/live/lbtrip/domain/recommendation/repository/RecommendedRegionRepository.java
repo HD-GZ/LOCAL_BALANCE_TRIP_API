@@ -18,7 +18,7 @@ public interface RecommendedRegionRepository extends JpaRepository<RecommendedRe
 
     List<RecommendedRegion> findAllByUserIdAndLocaleOrderByDisplayOrder(Long userId, Locale locale);
 
-    Optional<RecommendedRegion> findByIdAndUserId(Long id, Long userId);
+    Optional<RecommendedRegion> findByIdAndUserIdAndLocale(Long id, Long userId, Locale locale);
 
     Optional<RecommendedRegion> findFirstByRegionCandidateIdAndLocale(Long regionCandidateId, Locale locale);
 

@@ -6,6 +6,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,7 @@ import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.MessageResolver;
 
 @ExtendWith(MockitoExtension.class)
 class SavedCourseServiceTest {
@@ -48,6 +51,9 @@ class SavedCourseServiceTest {
     private UserFinder userFinder;
 
     @Mock
+    private MessageResolver messageResolver;
+
+    @Mock
     private GeneratedCourse generatedCourse;
 
     @Mock
@@ -64,7 +70,8 @@ class SavedCourseServiceTest {
 
         @Test
         void 추천_코스를_저장한다() {
-            when(generatedCourseFinder.findByIdAndUserId(COURSE_ID, USER_ID))
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
+            when(generatedCourseFinder.findByIdAndUserId(COURSE_ID, USER_ID, Locale.KOREAN))
                 .thenReturn(generatedCourse);
             when(userFinder.findById(USER_ID)).thenReturn(user);
 
@@ -84,13 +91,14 @@ class SavedCourseServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.DUPLICATE_SAVE_COURSE);
 
-            verify(generatedCourseFinder, never()).findByIdAndUserId(COURSE_ID, USER_ID);
+            verify(generatedCourseFinder, never()).findByIdAndUserId(COURSE_ID, USER_ID, Locale.KOREAN);
             verify(saveCourseManager, never()).add(generatedCourse, user);
         }
 
         @Test
         void 추천_코스가_없으면_예외를_던진다() {
-            when(generatedCourseFinder.findByIdAndUserId(COURSE_ID, USER_ID))
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
+            when(generatedCourseFinder.findByIdAndUserId(COURSE_ID, USER_ID, Locale.KOREAN))
                 .thenThrow(BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
 
             assertThatThrownBy(() -> savedCourseService.saveCourse(USER_ID, COURSE_ID))
@@ -104,7 +112,8 @@ class SavedCourseServiceTest {
 
         @Test
         void 사용자가_없으면_예외를_던진다() {
-            when(generatedCourseFinder.findByIdAndUserId(COURSE_ID, USER_ID))
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
+            when(generatedCourseFinder.findByIdAndUserId(COURSE_ID, USER_ID, Locale.KOREAN))
                 .thenReturn(generatedCourse);
             when(userFinder.findById(USER_ID))
                 .thenThrow(BusinessException.of(ErrorCode.USER_NOT_FOUND));

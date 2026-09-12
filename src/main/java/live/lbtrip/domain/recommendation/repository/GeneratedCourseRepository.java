@@ -10,7 +10,9 @@ import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 
 public interface GeneratedCourseRepository extends JpaRepository<GeneratedCourse, Long> {
 
-    Optional<GeneratedCourse> findByIdAndUserId(Long id, Long userId);
+    Optional<GeneratedCourse> findByIdAndUserIdAndRecommendedRegionLocale(Long id, Long userId, Locale locale);
+
+    Optional<GeneratedCourse> findByIdAndRecommendedRegionLocale(Long id, Locale locale);
 
     List<GeneratedCourse> findAllByUserId(Long userId);
 
