@@ -30,6 +30,7 @@ import live.lbtrip.domain.savedcourse.share.service.CourseShareService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.CourseShareFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
@@ -37,7 +38,7 @@ import live.lbtrip.support.fixture.TokenFixture;
 import live.lbtrip.support.fixture.UserFixture;
 
 @WebMvcTest(CourseShareController.class)
-@Import(CourseShareControllerTest.TestCorsConfig.class)
+@Import({CourseShareControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class CourseShareControllerTest {
 
     private static final Long SAVED_COURSE_ID = 3L;

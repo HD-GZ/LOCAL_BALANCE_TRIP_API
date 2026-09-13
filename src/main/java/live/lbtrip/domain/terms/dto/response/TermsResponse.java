@@ -3,8 +3,8 @@ package live.lbtrip.domain.terms.dto.response;
 import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import live.lbtrip.domain.terms.model.Terms;
 import live.lbtrip.domain.terms.model.TermsType;
+import live.lbtrip.domain.terms.model.vo.LocalizedTerms;
 
 public record TermsResponse(
     @Schema(description = "약관 종류", example = "SERVICE")
@@ -26,13 +26,13 @@ public record TermsResponse(
     String content
 ) {
 
-    public static TermsResponse from(Terms terms) {
+    public static TermsResponse from(LocalizedTerms terms) {
         return new TermsResponse(
-            terms.getType(),
-            terms.getTitle(),
-            terms.getVersion(),
-            terms.getEffectiveDate(),
-            terms.getContent()
+            terms.type(),
+            terms.title(),
+            terms.version(),
+            terms.effectiveDate(),
+            terms.content()
         );
     }
 }

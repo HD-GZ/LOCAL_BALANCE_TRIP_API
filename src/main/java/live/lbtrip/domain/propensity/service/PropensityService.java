@@ -7,8 +7,8 @@ import live.lbtrip.domain.propensity.dto.request.PropensityRequest;
 import live.lbtrip.domain.propensity.dto.response.PropensityResponse;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.repository.PropensityRepository;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
@@ -42,15 +42,15 @@ public class PropensityService {
                 return propensityRepository.save(Propensity.create(user, preference, valueConsumption));
             });
 
-        TravelProfile travelProfile = travelProfileFinder.findByPreference(preference);
-        return PropensityResponse.of(propensity, travelProfile, imageStorage.publicUrl(travelProfile.getImageKey()));
+        LocalizedTravelProfile travelProfile = travelProfileFinder.findLocalizedByPreference(preference);
+        return PropensityResponse.of(propensity, travelProfile, imageStorage.publicUrl(travelProfile.imageKey()));
     }
 
     public PropensityResponse getPropensity(Long userId) {
         Propensity propensity = propensityRepository.findByUserId(userId)
             .orElseThrow(() -> BusinessException.of(ErrorCode.PROPENSITY_NOT_FOUND));
 
-        TravelProfile travelProfile = travelProfileFinder.findByPreference(propensity.getPreference());
-        return PropensityResponse.of(propensity, travelProfile, imageStorage.publicUrl(travelProfile.getImageKey()));
+        LocalizedTravelProfile travelProfile = travelProfileFinder.findLocalizedByPreference(propensity.getPreference());
+        return PropensityResponse.of(propensity, travelProfile, imageStorage.publicUrl(travelProfile.imageKey()));
     }
 }

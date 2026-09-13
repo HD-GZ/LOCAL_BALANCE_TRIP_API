@@ -1,6 +1,7 @@
 package live.lbtrip.domain.recommendation.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import live.lbtrip.domain.region.repository.RegionCandidateRepository;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.repository.UserRepository;
+import live.lbtrip.global.storage.service.AudioStorage;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -26,10 +28,12 @@ public class RecommendationStore {
     private final RecommendedRegionRepository recommendedRegionRepository;
     private final UserRepository userRepository;
     private final RegionCandidateRepository regionCandidateRepository;
+    private final AudioStorage audioStorage;
 
     @Transactional
-    public void replace(Long userId, List<RegionPlan> plans) {
-        recommendedRegionRepository.deleteAll(recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId));
+    public void replace(Long userId, Locale locale, List<RegionPlan> plans) {
+        recommendedRegionRepository.deleteAll(
+            recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale));
         recommendedRegionRepository.flush();
 
         User user = userRepository.getReferenceById(userId);
@@ -38,7 +42,8 @@ public class RecommendationStore {
             RegionCandidate regionCandidate = regionCandidateRepository.getReferenceById(plan.region().regionCandidateId());
             RecommendedRegion region = RecommendedRegion.create(
                 user,
-                plan.region().regionName(),
+                locale,
+                plan.regionName(),
                 regionCandidate,
                 firstPlaceImageUrl(plan.courses().getFirst()),
                 plan.regionReason(),
@@ -59,7 +64,7 @@ public class RecommendationStore {
                 int visitOrder = 1;
                 for (RoutedPlace routedPlace : plannedCourse.places()) {
                     TourPlace place = routedPlace.place();
-                    String audioUrl = place.getOdiiTheme() == null ? null : place.getOdiiTheme().getAudioUrl();
+                    String audioUrl = audioUrlOf(place);
                     course.addPlace(CoursePlace.create(
                         visitOrder++,
                         place.getTitle(),
@@ -69,13 +74,21 @@ public class RecommendationStore {
                         place.getLongitude(),
                         routedPlace.walkMinutes(),
                         audioUrl != null,
-                        audioUrl
+                        audioUrl,
+                        routedPlace.reason()
                         )
                     );
                 }
             }
             recommendedRegionRepository.save(region);
         }
+    }
+
+    private String audioUrlOf(TourPlace place) {
+        if (place.getOdiiTheme() != null) {
+            return place.getOdiiTheme().getAudioUrl();
+        }
+        return place.getTtsAudioKey() == null ? null : audioStorage.publicUrl(place.getTtsAudioKey());
     }
 
     private String firstPlaceImageUrl(PlannedCourse course) {

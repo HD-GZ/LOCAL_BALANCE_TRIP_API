@@ -25,12 +25,13 @@ import live.lbtrip.domain.auth.model.JwtTokenSubject;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.domain.recommendation.service.RecommendationService;
 import live.lbtrip.global.config.CorsProperties;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(RecommendationController.class)
-@Import(RecommendationControllerTest.TestCorsConfig.class)
+@Import({RecommendationControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class RecommendationControllerTest {
 
     @Autowired
@@ -109,7 +110,9 @@ class RecommendationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.courseId").value(RecommendationFixture.COURSE_ID))
-                .andExpect(jsonPath("$.data.places[0].order").value(1));
+                .andExpect(jsonPath("$.data.places[0].order").value(1))
+                .andExpect(jsonPath("$.data.places[0].reason").value(RecommendationFixture.PLACE_REASON))
+                .andExpect(jsonPath("$.data.places[1].reason").isEmpty());
         }
 
         @Test

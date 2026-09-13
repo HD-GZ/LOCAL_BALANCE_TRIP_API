@@ -147,7 +147,21 @@ class RegionSelectorTest {
         }
 
         @Test
-        void 중립_성향의_동점은_입력_순서를_유지한다() {
+        void 동점이면_그린_점수가_높은_지역을_우선한다() {
+            List<RegionMetrics> inputs = List.of(
+                metrics("그린낮음", 10, Map.of(), Map.of(), 0, 1),
+                metrics("그린높음", 20, Map.of(), Map.of(), 0, 4));
+            Propensity propensity = Propensity.create(UserFixture.user(),
+                Preference.of(3, 3, 3, 3, 3), ValueConsumption.of(3, 3, 3, 3, 3));
+
+            List<RegionMetrics> selected = regionSelector.selectTop(propensity, inputs, 2);
+
+            assertThat(selected).extracting(RegionMetrics::regionName)
+                .containsExactly("그린높음", "그린낮음");
+        }
+
+        @Test
+        void 그린_점수까지_같으면_입력_순서를_유지한다() {
             List<RegionMetrics> inputs = List.of(
                 metrics("첫 지역", 10, Map.of(), Map.of(), 0),
                 metrics("두 번째 지역", 20, Map.of(), Map.of(), 0));
@@ -158,6 +172,16 @@ class RegionSelectorTest {
 
             assertThat(selected).extracting(RegionMetrics::regionName)
                 .containsExactly("첫 지역", "두 번째 지역");
+        }
+
+        @Test
+        void 그린_점수는_1차_성향_점수를_뒤집지_못한다() {
+            RegionMetrics luxury = metrics("럭셔리그린", 100, Map.of(),
+                Map.of(CategoryGroup.LUXURY_SHOPPING, 10), 0, 5);
+            RegionMetrics frugal = metrics("실속", 100, Map.of(),
+                Map.of(CategoryGroup.TRADITIONAL_MARKET, 10), 0, 0);
+
+            assertThat(top(preference(3, 5, 3, 3), List.of(luxury, frugal))).isEqualTo("실속");
         }
 
         @Test
@@ -172,7 +196,7 @@ class RegionSelectorTest {
 
         @Test
         void 샘플이_없는_지역은_비율_지표가_0으로_처리된다() {
-            RegionMetrics empty = new RegionMetrics(99L, "무샘플", 0, 0, Map.of(), Map.of(), 0);
+            RegionMetrics empty = new RegionMetrics(99L, "무샘플", null, 0, 0, Map.of(), Map.of(), 0, 0);
             RegionMetrics normal = metrics("정상", 100, Map.of(),
                 Map.of(CategoryGroup.TRADITIONAL_MARKET, 10), 0);
 
@@ -247,6 +271,15 @@ class RegionSelectorTest {
         Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts,
         double recentOutsiderVisitors
     ) {
-        return new RegionMetrics(1L, name, totalCount, 100, typeCounts, groupCounts, recentOutsiderVisitors);
+        return metrics(name, totalCount, typeCounts, groupCounts, recentOutsiderVisitors, 0);
+    }
+
+    private RegionMetrics metrics(
+        String name, int totalCount,
+        Map<Integer, Integer> typeCounts, Map<CategoryGroup, Integer> groupCounts,
+        double recentOutsiderVisitors, int greenScore
+    ) {
+        return new RegionMetrics(1L, name, null, totalCount, 100, typeCounts, groupCounts,
+            recentOutsiderVisitors, greenScore);
     }
 }

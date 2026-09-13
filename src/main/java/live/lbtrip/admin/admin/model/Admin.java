@@ -24,19 +24,19 @@ public class Admin extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "이름은 필수입니다.")
-    @Size(max = 50, message = "이름은 50자 이하여야 합니다.")
+    @NotBlank(message = "{validation.name.required}")
+    @Size(max = 50, message = "{validation.name.size}")
     @Column(nullable = false, length = 50)
     private String name;
 
-    @NotBlank(message = "이메일은 필수입니다.")
-    @Email(message = "이메일 형식이 올바르지 않습니다.")
-    @Size(max = 255, message = "이메일은 255자 이하여야 합니다.")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.format}")
+    @Size(max = 255, message = "{validation.email.size}")
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @NotBlank(message = "비밀번호는 필수입니다.")
-    @Size(max = 255, message = "비밀번호는 255자 이하여야 합니다.")
+    @NotBlank(message = "{validation.password.required}")
+    @Size(max = 255, message = "{validation.password.size}")
     @Column(nullable = false)
     private String password;
 

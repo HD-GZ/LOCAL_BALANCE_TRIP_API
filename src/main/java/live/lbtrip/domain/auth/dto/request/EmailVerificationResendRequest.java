@@ -8,8 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public record EmailVerificationResendRequest(
     @Schema(description = "인증 코드를 재발송할 이메일", example = "user@example.com", requiredMode = REQUIRED)
-    @NotBlank(message = "이메일은 필수입니다.")
-    @Email(message = "이메일 형식이 올바르지 않습니다.")
+    @NotBlank(message = "{validation.email.required}")
+    @Email(message = "{validation.email.format}")
     String email
 ) {
 }

@@ -19,6 +19,13 @@ spring:
   ai:
     openai:
       api-key: test-key
+      audio:
+        speech:
+          options:
+            model: gpt-4o-mini-tts
+            voice: alloy
+            response-format: mp3
+            speed: 1.0
   mail:
     host: localhost
     port: 1025
@@ -61,8 +68,18 @@ slack:
   logging:
     error: http://localhost
 
+tts:
+  google-translate:
+    base-url: http://localhost
+    connect-timeout: 1s
+    read-timeout: 1s
+    request-interval: 0s
+
 tour-api:
+  sync-cron: 0 30 7 * * *
+  sync-zone: Asia/Seoul
   base-url: http://localhost
+  eng-base-url: http://localhost
   odii-base-url: http://localhost
   data-lab-base-url: http://localhost
   service-key: test-key

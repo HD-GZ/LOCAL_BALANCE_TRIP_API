@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCoursePlace;
@@ -55,7 +55,10 @@ public record SavedCourseDetailResponse(
         boolean hasAudio,
 
         @Schema(description = "오디오가이드 재생 URL. 미지원 장소는 null.", nullable = true)
-        String audioUrl
+        String audioUrl,
+
+        @Schema(description = "이 장소를 추천한 이유", nullable = true)
+        String reason
     ) {
 
         private static InnerPlaceResponse from(SavedCoursePlace place) {
@@ -68,7 +71,8 @@ public record SavedCourseDetailResponse(
                 place.getLatitude(),
                 place.getWalkMinutes(),
                 place.isHasAudio(),
-                place.getAudioUrl()
+                place.getAudioUrl(),
+                place.getReason()
             );
         }
     }
@@ -84,12 +88,12 @@ public record SavedCourseDetailResponse(
         String url
     ) {
 
-        private static InnerBenefitResponse from(Incentive incentive) {
-            return new InnerBenefitResponse(incentive.getTitle(), incentive.getDescription(), incentive.getUrl());
+        private static InnerBenefitResponse from(LocalizedIncentive incentive) {
+            return new InnerBenefitResponse(incentive.title(), incentive.description(), incentive.url());
         }
     }
 
-    public static SavedCourseDetailResponse of(SavedCourse savedCourse, List<Incentive> incentives) {
+    public static SavedCourseDetailResponse of(SavedCourse savedCourse, List<LocalizedIncentive> incentives) {
         return new SavedCourseDetailResponse(
             savedCourse.getId(),
             savedCourse.getRegionName(),

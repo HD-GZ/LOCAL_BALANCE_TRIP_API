@@ -1,6 +1,7 @@
 package live.lbtrip.domain.tourism.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,7 @@ import live.lbtrip.domain.tourism.client.dto.TourPlaceItem;
 import live.lbtrip.domain.tourism.model.enums.TourSyncStep;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.LocaleConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +26,8 @@ public class TourDataSyncService {
     private final OdiiThemeSyncer odiiThemeSyncer;
     private final PlaceThemeLinker placeThemeLinker;
     private final VisitorStatsSyncer visitorStatsSyncer;
+    private final RegionNameSyncer regionNameSyncer;
+    private final TtsAudioSyncer ttsAudioSyncer;
 
     public void syncAll() {
         long startedAt = System.nanoTime();
@@ -38,9 +42,13 @@ public class TourDataSyncService {
         switch (step) {
             case REGIONS -> syncRegions(regionCandidateRepository.findAll());
             case PLACE_THEMES -> linkPlaceThemes(regionCandidateRepository.findAll());
-            case OVERVIEWS -> tourPlaceSyncer.syncOverviews();
+            case OVERVIEWS -> tourPlaceSyncer.syncOverviews(LocaleConfig.DEFAULT_LOCALE);
             case AUDIO_URLS -> odiiThemeSyncer.syncAudioUrls();
             case VISITOR_STATS -> visitorStatsSyncer.sync();
+            case PLACES_EN -> syncPlaces(regionCandidateRepository.findAll(), Locale.ENGLISH);
+            case OVERVIEWS_EN -> tourPlaceSyncer.syncOverviews(Locale.ENGLISH);
+            case TTS_AUDIO -> syncTtsAudio();
+            case REGION_NAMES_EN -> regionNameSyncer.syncEnglishNames();
         }
         log.info("관광 데이터 적재 단계 종료: step={}, elapsedMs={}", step, elapsedMillis(startedAt));
     }
@@ -69,7 +77,7 @@ public class TourDataSyncService {
     private void syncRegion(RegionCandidate candidate) {
         long startedAt = System.nanoTime();
         regionStatsSyncer.sync(candidate);
-        List<TourPlaceItem> places = tourPlaceSyncer.sync(candidate);
+        List<TourPlaceItem> places = tourPlaceSyncer.sync(candidate, LocaleConfig.DEFAULT_LOCALE);
         odiiThemeSyncer.sync(places);
         log.info("지역 데이터 적재 성공: region={}, placeCount={}, elapsedMs={}",
             candidate.getName(), places.size(), elapsedMillis(startedAt));
@@ -86,6 +94,31 @@ public class TourDataSyncService {
             }
         }
         log.info("장소-테마 매칭 완료: success={}/{}", successCount, candidates.size());
+    }
+
+    private void syncPlaces(List<RegionCandidate> candidates, Locale locale) {
+        int successCount = 0;
+        for (RegionCandidate candidate : candidates) {
+            try {
+                tourPlaceSyncer.sync(candidate, locale);
+                successCount++;
+            } catch (BusinessException e) {
+                if (e.getErrorCode() != ErrorCode.TOUR_API_QUOTA_EXCEEDED) {
+                    log.error("장소 적재 실패 - 다음 지역 진행: locale={}, region={}", locale, candidate.getName(), e);
+                    continue;
+                }
+                log.warn("장소 적재 중단 - 일일 한도 초과: locale={}, success={}/{}", locale, successCount, candidates.size());
+                return;
+            } catch (Exception e) {
+                log.error("장소 적재 실패 - 다음 지역 진행: locale={}, region={}", locale, candidate.getName(), e);
+            }
+        }
+        log.info("장소 적재 완료: locale={}, success={}/{}", locale, successCount, candidates.size());
+    }
+
+    private void syncTtsAudio() {
+        ttsAudioSyncer.sync(LocaleConfig.DEFAULT_LOCALE);
+        ttsAudioSyncer.sync(Locale.ENGLISH);
     }
 
     private long elapsedMillis(long startedAt) {

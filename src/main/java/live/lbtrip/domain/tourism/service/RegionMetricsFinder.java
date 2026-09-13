@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import live.lbtrip.domain.region.model.RegionGreenMetrics;
+import live.lbtrip.domain.region.repository.RegionGreenMetricsRepository;
 import live.lbtrip.domain.tourism.model.entity.TourRegionStats;
 import live.lbtrip.domain.tourism.model.enums.VisitorType;
 import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
@@ -24,6 +26,7 @@ public class RegionMetricsFinder {
 
     private final TourRegionStatsRepository tourRegionStatsRepository;
     private final RegionVisitorStatsRepository regionVisitorStatsRepository;
+    private final RegionGreenMetricsRepository regionGreenMetricsRepository;
 
     public List<RegionMetrics> findAllMetrics() {
         List<TourRegionStats> statsList = tourRegionStatsRepository.findAllWithRegionCandidate();
@@ -32,12 +35,21 @@ public class RegionMetricsFinder {
         }
 
         Map<Long, Double> visitorSums = recentOutsiderVisitorSums();
+        Map<Long, Integer> greenScores = greenScores();
         return statsList.stream()
             .map(stats -> RegionMetrics.of(
                 stats,
                 stats.getRegionCandidate(),
-                visitorSums.getOrDefault(stats.getRegionCandidate().getId(), 0.0)))
+                visitorSums.getOrDefault(stats.getRegionCandidate().getId(), 0.0),
+                greenScores.getOrDefault(stats.getRegionCandidate().getId(), 0)))
             .toList();
+    }
+
+    private Map<Long, Integer> greenScores() {
+        return regionGreenMetricsRepository.findAllWithRegionCandidate().stream()
+            .collect(Collectors.toMap(
+                metrics -> metrics.getRegionCandidate().getId(),
+                RegionGreenMetrics::greenScore));
     }
 
     private Map<Long, Double> recentOutsiderVisitorSums() {

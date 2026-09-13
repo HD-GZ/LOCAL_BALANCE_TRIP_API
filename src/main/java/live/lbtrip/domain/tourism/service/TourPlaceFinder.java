@@ -1,6 +1,7 @@
 package live.lbtrip.domain.tourism.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,7 @@ public class TourPlaceFinder {
 
     private final TourPlaceRepository tourPlaceRepository;
 
-    public List<TourPlace> findAllByRegionCandidateId(Long regionCandidateId) {
-        return tourPlaceRepository.findAllWithOdiiThemeByRegionCandidateId(regionCandidateId);
+    public List<TourPlace> findAllByRegionCandidateId(Long regionCandidateId, Locale locale) {
+        return tourPlaceRepository.findAllWithOdiiThemeByLocaleAndRegionCandidateId(locale, regionCandidateId);
     }
 }

@@ -1,17 +1,19 @@
 package live.lbtrip.domain.recommendation.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.recommendation.dto.response.CourseCandidateResponse;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.global.i18n.MessageResolver;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,29 +25,33 @@ public class RecommendationService {
     private final RecommendedRegionFinder recommendedRegionFinder;
     private final GeneratedCourseFinder generatedCourseFinder;
     private final IncentiveFinder incentiveFinder;
+    private final MessageResolver messageResolver;
 
     @Transactional
     public void createRecommendations(Long userId) {
-        courseRecommendationGenerator.generate(userId);
+        courseRecommendationGenerator.generate(userId, messageResolver.currentLocale());
     }
 
     public List<RegionRecommendationResponse> getRecommendedRegions(Long userId) {
-        return recommendedRegionFinder.findAllByUserId(userId).stream()
+        return recommendedRegionFinder.findAllByUserId(userId, messageResolver.currentLocale()).stream()
             .map(RegionRecommendationResponse::from)
             .toList();
     }
 
     public List<CourseCandidateResponse> getRegionCourses(Long userId, Long regionId) {
-        return recommendedRegionFinder.findByIdAndUserId(regionId, userId).getCourses().stream()
+        return recommendedRegionFinder.findByIdAndUserId(
+                regionId, userId, messageResolver.currentLocale()).getCourses().stream()
             .map(CourseCandidateResponse::from)
             .toList();
     }
 
     public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
-        GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
+        GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(
+            courseId, userId, messageResolver.currentLocale());
         RecommendedRegion recommendedRegion = course.getRecommendedRegion();
-        List<Incentive> incentives = incentiveFinder.findAllByRegion(
-            recommendedRegion.getRegionCandidate().getId()
+        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(
+            recommendedRegion.getRegionCandidate().getId(),
+            LocalDate.now()
         );
 
         return CourseDetailResponse.of(course, incentives);

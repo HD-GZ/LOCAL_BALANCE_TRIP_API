@@ -1,4 +1,9 @@
 spring:
+  messages:
+    basename: messages/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+    use-code-as-default-message: false
   output:
     ansi:
       enabled: ${SPRING_OUTPUT_ANSI_ENABLED}
@@ -24,6 +29,13 @@ spring:
         options:
           model: gpt-4o-mini
           temperature: 0.7
+      audio:
+        speech:
+          options:
+            model: ${OPENAI_TTS_MODEL:gpt-4o-mini-tts}
+            voice: ${OPENAI_TTS_VOICE:alloy}
+            response-format: mp3
+            speed: 1.0
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
@@ -74,8 +86,19 @@ slack:
   logging:
     error: ${SLACK_LOGGING_ERROR_URL}
 
+tts:
+  google-translate:
+    enabled: ${GOOGLE_TRANSLATE_TTS_ENABLED:true}
+    base-url: ${GOOGLE_TRANSLATE_TTS_BASE_URL:https://translate.google.com}
+    connect-timeout: ${GOOGLE_TRANSLATE_TTS_CONNECT_TIMEOUT:5s}
+    read-timeout: ${GOOGLE_TRANSLATE_TTS_READ_TIMEOUT:20s}
+    request-interval: ${GOOGLE_TRANSLATE_TTS_REQUEST_INTERVAL:1s}
+
 tour-api:
+  sync-cron: ${TOUR_DATA_SYNC_CRON:0 30 7 * * *}
+  sync-zone: ${TOUR_DATA_SYNC_ZONE:Asia/Seoul}
   base-url: https://apis.data.go.kr/B551011/KorService2
+  eng-base-url: https://apis.data.go.kr/B551011/EngService2
   odii-base-url: https://apis.data.go.kr/B551011/Odii
   data-lab-base-url: https://apis.data.go.kr/B551011/DataLabService
   service-key: ${TOUR_API_SERVICE_KEY}

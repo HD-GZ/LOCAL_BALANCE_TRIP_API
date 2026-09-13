@@ -4,6 +4,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,11 +29,14 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AuthResponseFixture;
+import live.lbtrip.support.fixture.CourseShareFixture;
+import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.TokenFixture;
 
 @WebMvcTest(SavedCourseController.class)
-@Import(SavedCourseControllerTest.TestCorsConfig.class)
+@Import({SavedCourseControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class SavedCourseControllerTest {
 
     private static final Long COURSE_ID = 2L;
@@ -87,6 +91,25 @@ class SavedCourseControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.result").value("ERROR"))
                 .andExpect(jsonPath("$.error.code").value("INVALID_ACCESS_TOKEN"));
+        }
+    }
+
+    @Nested
+    class 상세_조회 {
+
+        @Test
+        void 저장한_코스_상세를_장소별_추천_이유와_함께_조회한다() throws Exception {
+            인증된_사용자();
+            when(savedCourseService.getSavedCourseDetail(AuthResponseFixture.USER_ID, SAVED_COURSE_ID))
+                .thenReturn(CourseShareFixture.savedCourseDetailResponse());
+
+            mockMvc.perform(get("/saved-courses/{savedCourseId}", SAVED_COURSE_ID)
+                    .header("Authorization", "Bearer " + TokenFixture.ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.places[0].order").value(1))
+                .andExpect(jsonPath("$.data.places[0].reason").value(RecommendationFixture.PLACE_REASON))
+                .andExpect(jsonPath("$.data.places[1].reason").isEmpty());
         }
     }
 

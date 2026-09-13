@@ -34,11 +34,12 @@ import live.lbtrip.domain.auth.service.PasswordResetService;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.PasswordResetFixture;
 import live.lbtrip.support.fixture.UserFixture;
 
 @WebMvcTest(PasswordResetController.class)
-@Import(PasswordResetControllerTest.TestCorsConfig.class)
+@Import({PasswordResetControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class PasswordResetControllerTest {
 
     @Autowired

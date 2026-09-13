@@ -3,6 +3,7 @@ package live.lbtrip.domain.home.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -16,13 +17,12 @@ import live.lbtrip.domain.home.dto.response.HomeIncentiveResponse;
 import live.lbtrip.domain.home.dto.response.PopularCourseListResponse;
 import live.lbtrip.domain.home.dto.response.ProfileSummaryResponse;
 import live.lbtrip.domain.home.dto.response.ProfileTypeListResponse;
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.incentive.service.IncentiveFinder;
 import live.lbtrip.domain.propensity.model.Preference;
 import live.lbtrip.domain.propensity.model.Propensity;
-import live.lbtrip.domain.propensity.model.TravelProfile;
 import live.lbtrip.domain.propensity.model.ValueConsumption;
-import live.lbtrip.domain.propensity.repository.TravelProfileRepository;
+import live.lbtrip.domain.propensity.model.vo.LocalizedTravelProfile;
 import live.lbtrip.domain.propensity.service.PropensityFinder;
 import live.lbtrip.domain.propensity.service.TravelProfileFinder;
 import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
@@ -37,6 +37,7 @@ import live.lbtrip.domain.savedcourse.course.service.SavedCourseService;
 import live.lbtrip.domain.tourism.repository.TourPlaceRepository;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.global.storage.service.ImageStorage;
 import live.lbtrip.global.web.PageQueryRequest;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,6 @@ public class HomeService {
     private static final int SAVED_FEED_PAGE_SIZE = 20;
     private static final int SAVED_PER_RECOMMENDATION = 2;
 
-    private final TravelProfileRepository travelProfileRepository;
     private final ImageStorage imageStorage;
     private final PropensityFinder propensityFinder;
     private final TravelProfileFinder travelProfileFinder;
@@ -62,13 +62,15 @@ public class HomeService {
     private final SavedCourseService savedCourseService;
     private final RecommendationService recommendationService;
     private final IncentiveFinder incentiveFinder;
+    private final MessageResolver messageResolver;
 
     public HeroResponse getHero(Long userId) {
+        Locale locale = messageResolver.currentLocale();
         List<HeroResponse.InnerHeroItem> items = (userId == null)
-            ? tourPlaceRepository.findRandomWithImage(HERO_SIZE).stream()
+            ? tourPlaceRepository.findRandomWithImage(locale.toString(), HERO_SIZE).stream()
                 .map(p -> new HeroResponse.InnerHeroItem(p.getImageUrl(), p.getTitle()))
                 .toList()
-            : recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
+            : recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale).stream()
                 .filter(r -> r.getImageUrl() != null)
                 .map(r -> new HeroResponse.InnerHeroItem(r.getImageUrl(), r.getRegionName()))
                 .toList();
@@ -76,13 +78,12 @@ public class HomeService {
     }
 
     public ProfileTypeListResponse getProfileTypes() {
-        List<ProfileTypeListResponse.InnerProfileType> types = travelProfileRepository
-            .findByFeaturedOrderIsNotNullOrderByFeaturedOrderAsc().stream()
+        List<ProfileTypeListResponse.InnerProfileType> types = travelProfileFinder.findFeatured().stream()
             .map(p -> new ProfileTypeListResponse.InnerProfileType(
-                p.getCode(),
-                p.getNickname(),
-                p.getDescription(),
-                imageStorage.publicUrl(p.getImageKey())))
+                p.code(),
+                p.nickname(),
+                p.description(),
+                imageStorage.publicUrl(p.imageKey())))
             .toList();
         return ProfileTypeListResponse.of(types);
     }
@@ -91,32 +92,41 @@ public class HomeService {
         Propensity propensity = propensityFinder.findByUserId(userId);
         Preference preference = propensity.getPreference();
         ValueConsumption valueConsumption = propensity.getValueConsumption();
-        TravelProfile profile = travelProfileFinder.findByPreference(preference);
+        LocalizedTravelProfile profile = travelProfileFinder.findLocalizedByPreference(preference);
+
+        List<ProfileSummaryResponse.InnerSlider> sliders = propensityFactorSelector.selectThree().stream()
+            .map(factor -> new ProfileSummaryResponse.InnerSlider(
+                factor.name(),
+                messageResolver.resolve(factor.minLabelKey()),
+                messageResolver.resolve(factor.maxLabelKey()),
+                factor.score(preference, valueConsumption)))
+            .toList();
 
         return ProfileSummaryResponse.of(
             profile,
-            imageStorage.publicUrl(profile.getImageKey()),
+            imageStorage.publicUrl(profile.imageKey()),
             propensity.getUpdatedAt().toLocalDate(),
-            preference,
-            valueConsumption,
-            propensityFactorSelector.selectThree());
+            sliders);
     }
 
     public PopularCourseListResponse getPopularCourses() {
+        Locale locale = messageResolver.currentLocale();
         List<GeneratedCourse> courses = recommendedRegionRepository
-            .findPopularRegions(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+            .findPopularRegions(locale, PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
             .map(popular -> generatedCourseRepository
-                .findFirstByRecommendedRegionRegionCandidateIdOrderByIdAsc(popular.getRegionCandidateId()))
+                .findFirstByRecommendedRegionRegionCandidateIdAndRecommendedRegionLocaleOrderByIdAsc(
+                    popular.getRegionCandidateId(), locale))
             .flatMap(Optional::stream)
             .toList();
         return PopularCourseListResponse.of(courses);
     }
 
     public CourseDetailResponse getPopularCourseDetail(Long courseId) {
-        GeneratedCourse course = generatedCourseRepository.findById(courseId)
+        Locale locale = messageResolver.currentLocale();
+        GeneratedCourse course = generatedCourseRepository.findByIdAndRecommendedRegionLocale(courseId, locale)
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
         RecommendedRegion region = course.getRecommendedRegion();
-        List<Incentive> incentives = incentiveFinder.findActiveByRegion(
+        List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(
             region.getRegionCandidate().getId(), LocalDate.now());
         return CourseDetailResponse.of(course, incentives);
     }
@@ -152,14 +162,15 @@ public class HomeService {
 
     public HomeIncentiveResponse getIncentives(Long userId) {
         LocalDate today = LocalDate.now();
+        Locale locale = messageResolver.currentLocale();
         List<HomeIncentiveResponse.InnerRegionTab> tabs = (userId == null)
-            ? popularRegionTabs(today)
-            : myRegionTabs(userId, today);
+            ? popularRegionTabs(today, locale)
+            : myRegionTabs(userId, today, locale);
         return HomeIncentiveResponse.of(tabs);
     }
 
-    private List<HomeIncentiveResponse.InnerRegionTab> myRegionTabs(Long userId, LocalDate today) {
-        return recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId).stream()
+    private List<HomeIncentiveResponse.InnerRegionTab> myRegionTabs(Long userId, LocalDate today, Locale locale) {
+        return recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale).stream()
             .map(r -> HomeIncentiveResponse.tab(
                 r.getRegionName(), r.getRegionCandidate().getId(),
                 incentiveFinder.findActiveByRegion(r.getRegionCandidate().getId(), today),
@@ -168,10 +179,10 @@ public class HomeService {
             .toList();
     }
 
-    private List<HomeIncentiveResponse.InnerRegionTab> popularRegionTabs(LocalDate today) {
-        return recommendedRegionRepository.findPopularRegions(PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
+    private List<HomeIncentiveResponse.InnerRegionTab> popularRegionTabs(LocalDate today, Locale locale) {
+        return recommendedRegionRepository.findPopularRegions(locale, PageRequest.of(0, POPULAR_REGION_SIZE)).stream()
             .map(popular -> recommendedRegionRepository
-                .findFirstByRegionCandidateId(popular.getRegionCandidateId())
+                .findFirstByRegionCandidateIdAndLocale(popular.getRegionCandidateId(), locale)
                 .map(region -> HomeIncentiveResponse.tab(
                     region.getRegionName(),
                     region.getRegionCandidate().getId(),

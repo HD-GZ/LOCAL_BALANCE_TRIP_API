@@ -58,7 +58,7 @@ public class UserAnonymizationProcessor {
 
         generatedCourseRepository.deleteAll(generatedCourseRepository.findAllByUserId(userId));
         recommendedRegionRepository.deleteAll(
-            recommendedRegionRepository.findAllByUserIdOrderByDisplayOrder(userId));
+            recommendedRegionRepository.findAllByUserId(userId));
         propensityRepository.findByUserId(userId).ifPresent(propensityRepository::delete);
 
         refreshTokenRepository.deleteByUserId(userId);

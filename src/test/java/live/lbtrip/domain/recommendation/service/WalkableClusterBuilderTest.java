@@ -3,6 +3,7 @@ package live.lbtrip.domain.recommendation.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ class WalkableClusterBuilderTest {
     }
 
     private TourPlace place(String contentId, double lat, double lon) {
-        return TourPlace.create(contentId, candidate, 12, "장소" + contentId,
+        return TourPlace.create(Locale.KOREAN, contentId, candidate, 12, "장소" + contentId,
             RecommendationFixture.IMAGE_URL, lon, lat, 1);
     }
 
@@ -89,7 +90,7 @@ class WalkableClusterBuilderTest {
                 place("1", LAT, LON),
                 place("2", LAT + ONE_KM_LAT * 0.5, LON),
                 place("3", LAT + ONE_KM_LAT, LON),
-                TourPlace.create("4", candidate, 12, "좌표없음",
+                TourPlace.create(Locale.KOREAN, "4", candidate, 12, "좌표없음",
                     RecommendationFixture.IMAGE_URL, null, null, 1));
 
             List<WalkableCluster> result = builder(1500).build(places);

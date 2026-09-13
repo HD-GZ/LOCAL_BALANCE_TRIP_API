@@ -60,9 +60,12 @@ public class CoursePlace extends BaseEntity {
     @Column(name = "audio_url", length = 500)
     private String audioUrl;
 
+    @Column(length = 150)
+    private String reason;
+
     private CoursePlace(
         int visitOrder, String name, String overview, String imageUrl,
-        Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl
+        Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl, String reason
     ) {
         this.visitOrder = visitOrder;
         this.name = name;
@@ -73,14 +76,15 @@ public class CoursePlace extends BaseEntity {
         this.walkMinutes = walkMinutes;
         this.hasAudio = hasAudio;
         this.audioUrl = audioUrl;
+        this.reason = reason;
     }
 
     public static CoursePlace create(
         int visitOrder, String name, String overview, String imageUrl,
-        Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl
+        Double latitude, Double longitude, Integer walkMinutes, boolean hasAudio, String audioUrl, String reason
     ) {
         return new CoursePlace(visitOrder, name, overview, imageUrl,
-            latitude, longitude, walkMinutes, hasAudio, audioUrl);
+            latitude, longitude, walkMinutes, hasAudio, audioUrl, reason);
     }
 
     /** {@link GeneratedCourse#addPlace}에서만 호출하는 연관관계 세터. */

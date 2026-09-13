@@ -2,6 +2,7 @@ package live.lbtrip.domain.recommendation.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Locale;
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
@@ -44,11 +45,29 @@ class RecommendedRegionPopularQueryTest {
         entityManager.flush();
         entityManager.clear();
 
-        List<PopularRegion> result = recommendedRegionRepository.findPopularRegions(PageRequest.of(0, 6));
+        List<PopularRegion> result = recommendedRegionRepository.findPopularRegions(Locale.KOREAN, PageRequest.of(0, 6));
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getRegionCandidateId()).isEqualTo(popular.getId());
         assertThat(result.get(1).getRegionCandidateId()).isEqualTo(other.getId());
+    }
+
+    @Test
+    void 다른_로케일의_추천은_집계에서_제외한다() {
+        User user = userRepository.save(UserFixture.user());
+        RegionCandidate candidate = persistCandidate(RegionCandidateFixture.candidate());
+        recommendedRegionRepository.save(region(user, candidate, 1));
+        recommendedRegionRepository.save(RecommendedRegion.create(
+            user, Locale.ENGLISH, "Damyang-gun, Jeollanam-do", candidate,
+            RecommendationFixture.IMAGE_URL, RecommendationFixture.REGION_REASON, 2));
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(recommendedRegionRepository.findPopularRegions(Locale.ENGLISH, PageRequest.of(0, 6))).hasSize(1);
+        assertThat(recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(user.getId(), Locale.ENGLISH))
+            .singleElement()
+            .extracting(RecommendedRegion::getRegionName)
+            .isEqualTo("Damyang-gun, Jeollanam-do");
     }
 
     private RegionCandidate persistCandidate(RegionCandidate candidate) {
@@ -59,6 +78,7 @@ class RecommendedRegionPopularQueryTest {
     private RecommendedRegion region(User user, RegionCandidate candidate, int displayOrder) {
         return RecommendedRegion.create(
             user,
+            Locale.KOREAN,
             RecommendationFixture.REGION_NAME,
             candidate,
             RecommendationFixture.IMAGE_URL,

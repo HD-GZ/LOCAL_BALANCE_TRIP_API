@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -50,10 +51,8 @@ class CourseComposerTest {
         RecommendationProperties properties = new RecommendationProperties(3, 3, List.of(1500));
         courseComposer = new CourseComposer(
             chatClientBuilder,
-            new ByteArrayResource("{regionName} {candidateLines} {maxCourses} {locality} {frugality} "
-                .concat("{experientiality} {vitality} {sociality} {accommodation} {food} ")
-                .concat("{experience} {transportation} {cafeExhibition}")
-                .getBytes(StandardCharsets.UTF_8)),
+            template("KO "),
+            template("EN "),
             properties,
             new CourseCompositionValidator(properties)
         );
@@ -65,7 +64,7 @@ class CourseComposerTest {
         @Test
         void 검증을_통과한_LLM_응답을_반환한다() {
             CourseComposition response = CourseComposition.of("추천 이유", List.of(
-                CoursePlan.of(RecommendationFixture.COURSE_NAME, "코스 이유", List.of("100", "200", "300"))));
+                CoursePlan.of(RecommendationFixture.COURSE_NAME, "코스 이유", RecommendationFixture.placePlans("100", "200", "300"))));
             mockResponse(response);
 
             CourseComposition result = compose();
@@ -76,7 +75,7 @@ class CourseComposerTest {
         @Test
         void 클러스터별_후보의_contentId와_좌표를_LLM에_전달한다() {
             mockResponse(CourseComposition.of("추천 이유", List.of(
-                CoursePlan.of("코스", "코스 이유", List.of("100", "200", "300")))));
+                CoursePlan.of("코스", "코스 이유", RecommendationFixture.placePlans("100", "200", "300")))));
             ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
 
             compose();
@@ -85,13 +84,29 @@ class CourseComposerTest {
             assertThat(promptCaptor.getValue())
                 .contains("## 클러스터 1")
                 .contains("100 | 관광지 | 죽녹원 | 126.986 | 35.325")
-                .contains(RecommendationFixture.REGION_NAME);
+                .contains(RecommendationFixture.REGION_NAME)
+                .startsWith("KO ");
+        }
+
+        @Test
+        void 영문_로케일이면_영문_프롬프트와_영문_유형명을_사용한다() {
+            mockResponse(CourseComposition.of("reason", List.of(
+                CoursePlan.of("course", "course reason", RecommendationFixture.placePlans("100", "200", "300")))));
+            ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+
+            compose(Locale.ENGLISH);
+
+            verify(requestSpec).user(promptCaptor.capture());
+            assertThat(promptCaptor.getValue())
+                .startsWith("EN ")
+                .contains("## Cluster 1")
+                .contains("100 | Tourist Attraction | 죽녹원 | 126.986 | 35.325");
         }
 
         @Test
         void 검증에서_모든_코스가_탈락하면_추천_생성_예외를_던진다() {
             mockResponse(CourseComposition.of("추천 이유", List.of(
-                CoursePlan.of("환각 코스", "코스 이유", List.of("998", "999")))));
+                CoursePlan.of("환각 코스", "코스 이유", RecommendationFixture.placePlans("998", "999")))));
 
             assertThatThrownBy(CourseComposerTest.this::compose)
                 .isInstanceOf(BusinessException.class)
@@ -110,11 +125,24 @@ class CourseComposerTest {
         }
     }
 
+    private static ByteArrayResource template(String prefix) {
+        return new ByteArrayResource(prefix
+            .concat("{regionName} {candidateLines} {maxCourses} {locality} {frugality} ")
+            .concat("{experientiality} {vitality} {sociality} {accommodation} {food} ")
+            .concat("{experience} {transportation} {cafeExhibition}")
+            .getBytes(StandardCharsets.UTF_8));
+    }
+
     private CourseComposition compose() {
+        return compose(Locale.KOREAN);
+    }
+
+    private CourseComposition compose(Locale locale) {
         return courseComposer.compose(
             PropensityFixture.propensity(),
             RecommendationFixture.REGION_NAME,
-            RecommendationFixture.walkableClusters()
+            RecommendationFixture.walkableClusters(),
+            locale
         );
     }
 

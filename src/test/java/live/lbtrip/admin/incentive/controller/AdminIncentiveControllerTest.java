@@ -27,22 +27,23 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import live.lbtrip.admin.auth.model.AdminJwtTokenSubject;
+import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 import live.lbtrip.admin.incentive.dto.request.AdminIncentiveRequest;
 import live.lbtrip.admin.incentive.service.AdminIncentiveService;
 import live.lbtrip.domain.auth.service.JwtTokenProvider;
 import live.lbtrip.global.config.CorsProperties;
 import live.lbtrip.global.error.BusinessException;
 import live.lbtrip.global.error.ErrorCode;
+import live.lbtrip.support.config.I18nTestConfig;
 import live.lbtrip.support.fixture.AdminFixture;
 import live.lbtrip.support.fixture.AdminIncentiveRequestFixture;
 import live.lbtrip.support.fixture.AdminIncentiveResponseFixture;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
 import live.lbtrip.support.fixture.TokenFixture;
-import live.lbtrip.admin.auth.model.AdminJwtTokenSubject;
-import live.lbtrip.admin.auth.service.AdminJwtTokenProvider;
 
 @WebMvcTest(AdminIncentiveController.class)
-@Import(AdminIncentiveControllerTest.TestCorsConfig.class)
+@Import({AdminIncentiveControllerTest.TestCorsConfig.class, I18nTestConfig.class})
 class AdminIncentiveControllerTest {
 
     @Autowired
@@ -94,8 +95,8 @@ class AdminIncentiveControllerTest {
                     .header("Authorization", "Bearer " + TokenFixture.ADMIN_ACCESS_TOKEN)
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
-                        " ", AdminIncentiveRequestFixture.URL, AdminIncentiveRequestFixture.DESCRIPTION,
-                        AdminIncentiveRequestFixture.START_DATE, AdminIncentiveRequestFixture.END_DATE,
+                        " ", null, AdminIncentiveRequestFixture.URL, AdminIncentiveRequestFixture.DESCRIPTION,
+                        null, AdminIncentiveRequestFixture.START_DATE, AdminIncentiveRequestFixture.END_DATE,
                         AdminIncentiveRequestFixture.regionCandidateIds()))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.result").value("ERROR"))
@@ -111,8 +112,10 @@ class AdminIncentiveControllerTest {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
                         AdminIncentiveRequestFixture.TITLE,
+                        null,
                         AdminIncentiveRequestFixture.URL,
                         AdminIncentiveRequestFixture.DESCRIPTION,
+                        null,
                         null,
                         AdminIncentiveRequestFixture.END_DATE,
                         AdminIncentiveRequestFixture.regionCandidateIds()
@@ -232,8 +235,10 @@ class AdminIncentiveControllerTest {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(new AdminIncentiveRequest(
                         AdminIncentiveRequestFixture.TITLE,
+                        null,
                         AdminIncentiveRequestFixture.URL,
                         AdminIncentiveRequestFixture.DESCRIPTION,
+                        null,
                         null,
                         AdminIncentiveRequestFixture.END_DATE,
                         AdminIncentiveRequestFixture.regionCandidateIds()

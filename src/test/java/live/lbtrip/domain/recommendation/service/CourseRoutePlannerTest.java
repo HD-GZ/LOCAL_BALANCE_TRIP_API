@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -76,7 +77,7 @@ class CourseRoutePlannerTest {
     }
 
     private TourPlace place(String contentId, Double longitude, Double latitude) {
-        return TourPlace.create(contentId, RegionCandidateFixture.candidateWithId(), 12,
+        return TourPlace.create(Locale.KOREAN, contentId, RegionCandidateFixture.candidateWithId(), 12,
             "장소" + contentId, null, longitude, latitude, 1);
     }
 }

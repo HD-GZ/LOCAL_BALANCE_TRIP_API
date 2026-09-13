@@ -1,5 +1,6 @@
 package live.lbtrip.domain.tourism.model.vo;
 
+import java.util.Locale;
 import java.util.Map;
 
 import live.lbtrip.domain.region.model.RegionCandidate;
@@ -9,25 +10,36 @@ import live.lbtrip.domain.tourism.model.enums.CategoryGroup;
 public record RegionMetrics(
     Long regionCandidateId,
     String regionName,
+    String regionNameEn,
     int totalCount,
     int sampleSize,
     Map<Integer, Integer> typeCounts,
     Map<CategoryGroup, Integer> groupCounts,
-    double recentOutsiderVisitors
+    double recentOutsiderVisitors,
+    int greenScore
 ) {
 
     public static RegionMetrics of(
-        TourRegionStats stats, RegionCandidate candidate, double recentOutsiderVisitors
+        TourRegionStats stats, RegionCandidate candidate, double recentOutsiderVisitors, int greenScore
     ) {
         return new RegionMetrics(
             candidate.getId(),
             candidate.getName(),
+            candidate.getNameEn(),
             stats.getTotalCount(),
             stats.getSampleSize(),
             stats.toTypeCounts(),
             stats.toGroupCounts(),
-            recentOutsiderVisitors
+            recentOutsiderVisitors,
+            greenScore
         );
+    }
+
+    public String regionNameFor(Locale locale) {
+        if (Locale.ENGLISH.getLanguage().equals(locale.getLanguage()) && regionNameEn != null && !regionNameEn.isBlank()) {
+            return regionNameEn;
+        }
+        return regionName;
     }
 
     public double typeRatio(int contentTypeId) {

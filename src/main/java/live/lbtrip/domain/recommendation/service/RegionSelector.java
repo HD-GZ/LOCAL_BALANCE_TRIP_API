@@ -31,7 +31,10 @@ import live.lbtrip.domain.tourism.model.vo.RegionMetrics;
  *       사용하게 만들어 8개 축의 영향력을 동일하게 유지하기 위함이다.</li>
  * </ul>
  *
- * 모든 정규화는 이번 호출의 후보 집합 안에서만 상대 평가되며, 동점은 입력 순서를 유지한다.
+ * 모든 정규화는 이번 호출의 후보 집합 안에서만 상대 평가된다.
+ * 동점은 Green 점수(친환경·로컬 지표 합산, 0~5)가 높은 지역을 우선하고,
+ * Green 점수까지 같으면 입력 순서를 유지한다. Green 점수는 보조 신호로만 쓰여
+ * 성향 기반 1차 순위를 뒤집지 않는다.
  */
 @Component
 public class RegionSelector {
@@ -206,13 +209,22 @@ public class RegionSelector {
         }
     }
 
-    /** 점수 내림차순 상위 limit개. 안정 정렬이므로 동점은 입력 순서를 유지한다. */
+    /**
+     * 점수 내림차순 상위 limit개. 동점은 Green 점수 내림차순으로 정렬하고,
+     * Green 점수까지 같으면 안정 정렬이므로 입력 순서를 유지한다.
+     */
     private List<RegionMetrics> topByScore(List<RegionMetrics> metrics, double[] scores, int limit) {
         Integer[] indexes = new Integer[metrics.size()];
         for (int i = 0; i < indexes.length; i++) {
             indexes[i] = i;
         }
-        Arrays.sort(indexes, (left, right) -> Double.compare(scores[right], scores[left]));
+        Arrays.sort(indexes, (left, right) -> {
+            int byScore = Double.compare(scores[right], scores[left]);
+            if (byScore != 0) {
+                return byScore;
+            }
+            return Integer.compare(metrics.get(right).greenScore(), metrics.get(left).greenScore());
+        });
 
         List<RegionMetrics> top = new ArrayList<>();
         for (int i = 0; i < indexes.length && i < limit; i++) {

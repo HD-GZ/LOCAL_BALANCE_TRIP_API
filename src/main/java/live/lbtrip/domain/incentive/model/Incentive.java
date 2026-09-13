@@ -3,6 +3,7 @@ package live.lbtrip.domain.incentive.model;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -31,19 +32,27 @@ public class Incentive extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "행사 제목은 필수입니다.")
-    @Size(max = 200, message = "행사 제목은 200자 이하여야 합니다.")
+    @NotBlank(message = "{validation.incentiveTitle.required}")
+    @Size(max = 200, message = "{validation.incentiveTitle.size}")
     @Column(nullable = false, length = 200)
     private String title;
 
-    @NotBlank(message = "행사 페이지 URL은 필수입니다.")
-    @Size(max = 500, message = "행사 페이지 URL은 500자 이하여야 합니다.")
+    @Size(max = 200, message = "{validation.incentiveTitleEn.size}")
+    @Column(name = "title_en", length = 200)
+    private String titleEn;
+
+    @NotBlank(message = "{validation.incentiveUrl.required}")
+    @Size(max = 500, message = "{validation.incentiveUrl.size}")
     @Column(nullable = false, length = 500)
     private String url;
 
-    @Size(max = 200, message = "행사 부가 설명은 200자 이하여야 합니다.")
+    @Size(max = 200, message = "{validation.incentiveDescription.size}")
     @Column(length = 200)
     private String description;
+
+    @Size(max = 200, message = "{validation.incentiveDescriptionEn.size}")
+    @Column(name = "description_en", length = 200)
+    private String descriptionEn;
 
     @Column(name = "start_date")
     private LocalDate startDate;
@@ -74,6 +83,29 @@ public class Incentive extends BaseEntity {
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public void updateTranslations(String titleEn, String descriptionEn) {
+        this.titleEn = titleEn;
+        this.descriptionEn = descriptionEn;
+    }
+
+    public String titleFor(Locale locale) {
+        if (isEnglish(locale) && titleEn != null && !titleEn.isBlank()) {
+            return titleEn;
+        }
+        return title;
+    }
+
+    public String descriptionFor(Locale locale) {
+        if (isEnglish(locale) && descriptionEn != null && !descriptionEn.isBlank()) {
+            return descriptionEn;
+        }
+        return description;
+    }
+
+    private boolean isEnglish(Locale locale) {
+        return Locale.ENGLISH.getLanguage().equals(locale.getLanguage());
     }
 
     private static void validatePeriod(LocalDate startDate, LocalDate endDate) {

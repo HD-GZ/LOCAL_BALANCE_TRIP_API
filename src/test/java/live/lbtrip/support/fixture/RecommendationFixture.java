@@ -2,6 +2,7 @@ package live.lbtrip.support.fixture;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -11,6 +12,7 @@ import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationRespon
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.domain.recommendation.model.vo.CourseComposition.PlacePlan;
 import live.lbtrip.domain.recommendation.model.vo.WalkableCluster;
 import live.lbtrip.domain.region.model.RegionCandidate;
 import live.lbtrip.domain.tourism.model.entity.TourPlace;
@@ -24,6 +26,7 @@ public final class RecommendationFixture {
     public static final String REGION_REASON = "한적한 로컬 여행에 어울리는 지역이에요.";
     public static final String COURSE_NAME = "전라남도 담양군 산책 코스";
     public static final String COURSE_REASON = "자연과 문화를 함께 둘러보는 코스예요.";
+    public static final String PLACE_REASON = "로컬 성향에 맞는 한적한 숲길이에요.";
     public static final String IMAGE_URL = "https://images.example.com/course.jpg";
 
     private RecommendationFixture() {
@@ -32,7 +35,7 @@ public final class RecommendationFixture {
     public static RecommendedRegion region() {
         User user = UserFixture.user();
         RecommendedRegion region = RecommendedRegion.create(
-            user, REGION_NAME, RegionCandidateFixture.candidateWithId(),
+            user, Locale.KOREAN, REGION_NAME, RegionCandidateFixture.candidateWithId(),
             IMAGE_URL, REGION_REASON, 1);
         ReflectionTestUtils.setField(region, "id", REGION_ID);
         region.addCourse(course(user));
@@ -48,23 +51,31 @@ public final class RecommendationFixture {
         ReflectionTestUtils.setField(course, "id", COURSE_ID);
         course.addPlace(CoursePlace.create(
             1, "죽녹원", "대나무 숲", IMAGE_URL,
-            35.325, 126.986, null, false, null));
+            35.325, 126.986, null, false, null, PLACE_REASON));
         course.addPlace(CoursePlace.create(
             2, "관방제림", "천연기념물 숲길", IMAGE_URL,
-            35.321, 126.981, 10, true, "https://audio.example.com/guide.mp3"));
+            35.321, 126.981, 10, true, "https://audio.example.com/guide.mp3", null));
         return course;
     }
 
     public static List<TourPlace> tourPlaces() {
         RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
         return List.of(
-            TourPlace.create("100", candidate, 12,
+            TourPlace.create(Locale.KOREAN, "100", candidate, 12,
                 "죽녹원", IMAGE_URL, 126.986, 35.325, 1),
-            TourPlace.create("200", candidate, 14,
+            TourPlace.create(Locale.KOREAN, "200", candidate, 14,
                 "관방제림", IMAGE_URL, 126.981, 35.321, 2),
-            TourPlace.create("300", candidate, 39,
+            TourPlace.create(Locale.KOREAN, "300", candidate, 39,
                 "담양시장", IMAGE_URL, 126.979, 35.319, 3)
         );
+    }
+
+    public static List<PlacePlan> placePlans(String... contentIds) {
+        List<PlacePlan> plans = new ArrayList<>();
+        for (String contentId : contentIds) {
+            plans.add(PlacePlan.of(contentId, PLACE_REASON));
+        }
+        return List.copyOf(plans);
     }
 
     public static List<WalkableCluster> walkableClusters() {
@@ -79,7 +90,7 @@ public final class RecommendationFixture {
         RegionCandidate candidate = RegionCandidateFixture.candidateWithId();
         List<TourPlace> places = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            places.add(TourPlace.create(String.valueOf(100 + i), candidate, 12,
+            places.add(TourPlace.create(Locale.KOREAN, String.valueOf(100 + i), candidate, 12,
                 "장소" + i, IMAGE_URL, 126.9 + i * 0.001, 35.3 + i * 0.001, i + 1));
         }
         return List.copyOf(places);

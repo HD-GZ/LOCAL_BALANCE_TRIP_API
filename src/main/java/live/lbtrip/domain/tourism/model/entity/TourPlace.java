@@ -1,5 +1,8 @@
 package live.lbtrip.domain.tourism.model.entity;
 
+import java.time.LocalDateTime;
+import java.util.Locale;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,13 +22,16 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @Table(name = "tour_places",
-    uniqueConstraints = @UniqueConstraint(name = "uk_tour_places_content_id", columnNames = "content_id"))
+    uniqueConstraints = @UniqueConstraint(name = "uk_tour_places_locale_content_id", columnNames = {"locale", "content_id"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TourPlace extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, length = 5)
+    private Locale locale;
 
     @Column(name = "content_id", nullable = false, length = 20)
     private String contentId;
@@ -57,10 +63,17 @@ public class TourPlace extends BaseEntity {
     @JoinColumn(name = "odii_theme_id")
     private OdiiTheme odiiTheme;
 
+    @Column(name = "tts_audio_key", length = 500)
+    private String ttsAudioKey;
+
+    @Column(name = "tts_synced_at")
+    private LocalDateTime ttsSyncedAt;
+
     private TourPlace(
-        String contentId, RegionCandidate regionCandidate, int contentTypeId,
+        Locale locale, String contentId, RegionCandidate regionCandidate, int contentTypeId,
         String title, String imageUrl, Double longitude, Double latitude, int sortOrder
     ) {
+        this.locale = locale;
         this.contentId = contentId;
         this.regionCandidate = regionCandidate;
         this.contentTypeId = contentTypeId;
@@ -72,11 +85,11 @@ public class TourPlace extends BaseEntity {
     }
 
     public static TourPlace create(
-        String contentId, RegionCandidate regionCandidate, int contentTypeId,
+        Locale locale, String contentId, RegionCandidate regionCandidate, int contentTypeId,
         String title, String imageUrl, Double longitude, Double latitude, int sortOrder
     ) {
         return new TourPlace(
-            contentId, regionCandidate, contentTypeId,
+            locale, contentId, regionCandidate, contentTypeId,
             title, imageUrl, longitude, latitude, sortOrder);
     }
 
@@ -94,5 +107,14 @@ public class TourPlace extends BaseEntity {
 
     public void assignOdiiTheme(OdiiTheme odiiTheme) {
         this.odiiTheme = odiiTheme;
+    }
+
+    public void updateTtsAudio(String ttsAudioKey, LocalDateTime syncedAt) {
+        this.ttsAudioKey = ttsAudioKey;
+        this.ttsSyncedAt = syncedAt;
+    }
+
+    public void markTtsAudioUnavailable(LocalDateTime syncedAt) {
+        updateTtsAudio(null, syncedAt);
     }
 }

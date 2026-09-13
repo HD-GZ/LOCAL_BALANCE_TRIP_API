@@ -33,8 +33,8 @@ class PropensityFactorTest {
     }
 
     @Test
-    void 각_요소는_min_max_라벨을_가진다() {
-        assertThat(PropensityFactor.LOCALITY.getMinLabel()).isEqualTo("핫플·유명 명소");
-        assertThat(PropensityFactor.LOCALITY.getMaxLabel()).isEqualTo("로컬·골목 상권");
+    void 각_요소는_min_max_라벨_메시지_키를_가진다() {
+        assertThat(PropensityFactor.LOCALITY.minLabelKey()).isEqualTo("propensityFactor.LOCALITY.min");
+        assertThat(PropensityFactor.LOCALITY.maxLabelKey()).isEqualTo("propensityFactor.LOCALITY.max");
     }
 }

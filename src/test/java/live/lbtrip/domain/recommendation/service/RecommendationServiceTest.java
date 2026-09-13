@@ -1,8 +1,12 @@
 package live.lbtrip.domain.recommendation.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.util.Locale;
 import java.util.List;
 
 import org.junit.jupiter.api.Nested;
@@ -18,6 +22,7 @@ import live.lbtrip.domain.recommendation.dto.response.CourseDetailResponse;
 import live.lbtrip.domain.recommendation.dto.response.RegionRecommendationResponse;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 import live.lbtrip.domain.recommendation.model.entity.RecommendedRegion;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.support.fixture.AuthResponseFixture;
 import live.lbtrip.support.fixture.RecommendationFixture;
 import live.lbtrip.support.fixture.RegionCandidateFixture;
@@ -34,6 +39,9 @@ class RecommendationServiceTest {
     @Mock
     private IncentiveFinder incentiveFinder;
 
+    @Mock
+    private MessageResolver messageResolver;
+
     @InjectMocks
     private RecommendationService recommendationService;
 
@@ -43,7 +51,8 @@ class RecommendationServiceTest {
         @Test
         void 사용자의_추천_지역을_응답한다() {
             RecommendedRegion region = RecommendationFixture.region();
-            when(recommendedRegionFinder.findAllByUserId(AuthResponseFixture.USER_ID))
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
+            when(recommendedRegionFinder.findAllByUserId(AuthResponseFixture.USER_ID, Locale.KOREAN))
                 .thenReturn(List.of(region));
 
             List<RegionRecommendationResponse> responses =
@@ -58,8 +67,9 @@ class RecommendationServiceTest {
         @Test
         void 사용자와_지역_ID로_코스를_조회한다() {
             RecommendedRegion region = RecommendationFixture.region();
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
             when(recommendedRegionFinder.findByIdAndUserId(
-                RecommendationFixture.REGION_ID, AuthResponseFixture.USER_ID)).thenReturn(region);
+                RecommendationFixture.REGION_ID, AuthResponseFixture.USER_ID, Locale.KOREAN)).thenReturn(region);
 
             List<CourseCandidateResponse> responses = recommendationService.getRegionCourses(
                 AuthResponseFixture.USER_ID, RecommendationFixture.REGION_ID);
@@ -74,12 +84,13 @@ class RecommendationServiceTest {
     class 코스_상세_조회 {
 
         @Test
-        void 사용자와_코스_ID로_상세와_혜택을_조회한다() {
+        void 사용자와_코스_ID로_상세와_기간_내_혜택을_조회한다() {
             RecommendedRegion region = RecommendationFixture.region();
             GeneratedCourse course = region.getCourses().getFirst();
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
             when(generatedCourseFinder.findByIdAndUserId(
-                RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID)).thenReturn(course);
-            when(incentiveFinder.findAllByRegion(RegionCandidateFixture.CANDIDATE_ID))
+                RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID, Locale.KOREAN)).thenReturn(course);
+            when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
                 .thenReturn(List.of());
 
             CourseDetailResponse response = recommendationService.getCourseDetail(

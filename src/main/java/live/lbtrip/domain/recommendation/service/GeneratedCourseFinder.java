@@ -1,5 +1,7 @@
 package live.lbtrip.domain.recommendation.service;
 
+import java.util.Locale;
+
 import org.springframework.stereotype.Component;
 
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
@@ -14,8 +16,8 @@ public class GeneratedCourseFinder {
 
     private final GeneratedCourseRepository generatedCourseRepository;
 
-    public GeneratedCourse findByIdAndUserId(Long id, Long userId) {
-        return generatedCourseRepository.findByIdAndUserId(id, userId)
+    public GeneratedCourse findByIdAndUserId(Long id, Long userId, Locale locale) {
+        return generatedCourseRepository.findByIdAndUserIdAndRecommendedRegionLocale(id, userId, locale)
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
     }
 }

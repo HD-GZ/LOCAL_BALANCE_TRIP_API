@@ -17,6 +17,9 @@ public final class IncentiveFixture {
             AdminIncentiveRequestFixture.DESCRIPTION,
             AdminIncentiveRequestFixture.START_DATE,
             AdminIncentiveRequestFixture.END_DATE);
+        incentive.updateTranslations(
+            AdminIncentiveRequestFixture.TITLE_EN,
+            AdminIncentiveRequestFixture.DESCRIPTION_EN);
         incentive.replaceRegions(List.of(IncentiveRegion.create(RegionCandidateFixture.candidateWithId())));
         return incentive;
     }

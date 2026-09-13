@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import live.lbtrip.domain.incentive.model.Incentive;
+import live.lbtrip.domain.incentive.model.vo.LocalizedIncentive;
 import live.lbtrip.domain.recommendation.model.entity.CoursePlace;
 import live.lbtrip.domain.recommendation.model.entity.GeneratedCourse;
 
@@ -51,7 +51,10 @@ public record CourseDetailResponse(
         boolean hasAudio,
 
         @Schema(description = "오디오가이드 재생 URL. 미지원 장소는 null.", nullable = true)
-        String audioUrl
+        String audioUrl,
+
+        @Schema(description = "이 장소를 추천한 이유", nullable = true)
+        String reason
     ) {
 
         private static InnerPlaceResponse from(CoursePlace place) {
@@ -64,7 +67,8 @@ public record CourseDetailResponse(
                 place.getLatitude(),
                 place.getWalkMinutes(),
                 place.isHasAudio(),
-                place.getAudioUrl()
+                place.getAudioUrl(),
+                place.getReason()
             );
         }
     }
@@ -80,12 +84,12 @@ public record CourseDetailResponse(
         String url
     ) {
 
-        private static InnerBenefitResponse from(Incentive incentive) {
-            return new InnerBenefitResponse(incentive.getTitle(), incentive.getDescription(), incentive.getUrl());
+        private static InnerBenefitResponse from(LocalizedIncentive incentive) {
+            return new InnerBenefitResponse(incentive.title(), incentive.description(), incentive.url());
         }
     }
 
-    public static CourseDetailResponse of(GeneratedCourse course, List<Incentive> incentives) {
+    public static CourseDetailResponse of(GeneratedCourse course, List<LocalizedIncentive> incentives) {
         return new CourseDetailResponse(
             course.getId(),
             course.getRecommendedRegion().getRegionName(),

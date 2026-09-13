@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "tour-api")
 public record TourApiProperties(
     String baseUrl,
+    String engBaseUrl,
     String odiiBaseUrl,
     String dataLabBaseUrl,
     String serviceKey,
