@@ -122,7 +122,8 @@ public class HomeService {
     }
 
     public CourseDetailResponse getPopularCourseDetail(Long courseId) {
-        GeneratedCourse course = generatedCourseRepository.findById(courseId)
+        Locale locale = messageResolver.currentLocale();
+        GeneratedCourse course = generatedCourseRepository.findByIdAndRecommendedRegionLocale(courseId, locale)
             .orElseThrow(() -> BusinessException.of(ErrorCode.COURSE_NOT_FOUND));
         RecommendedRegion region = course.getRecommendedRegion();
         List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(

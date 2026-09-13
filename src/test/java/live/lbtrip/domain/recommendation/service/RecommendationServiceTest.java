@@ -67,8 +67,9 @@ class RecommendationServiceTest {
         @Test
         void 사용자와_지역_ID로_코스를_조회한다() {
             RecommendedRegion region = RecommendationFixture.region();
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
             when(recommendedRegionFinder.findByIdAndUserId(
-                RecommendationFixture.REGION_ID, AuthResponseFixture.USER_ID)).thenReturn(region);
+                RecommendationFixture.REGION_ID, AuthResponseFixture.USER_ID, Locale.KOREAN)).thenReturn(region);
 
             List<CourseCandidateResponse> responses = recommendationService.getRegionCourses(
                 AuthResponseFixture.USER_ID, RecommendationFixture.REGION_ID);
@@ -86,8 +87,9 @@ class RecommendationServiceTest {
         void 사용자와_코스_ID로_상세와_기간_내_혜택을_조회한다() {
             RecommendedRegion region = RecommendationFixture.region();
             GeneratedCourse course = region.getCourses().getFirst();
+            when(messageResolver.currentLocale()).thenReturn(Locale.KOREAN);
             when(generatedCourseFinder.findByIdAndUserId(
-                RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID)).thenReturn(course);
+                RecommendationFixture.COURSE_ID, AuthResponseFixture.USER_ID, Locale.KOREAN)).thenReturn(course);
             when(incentiveFinder.findActiveByRegion(eq(RegionCandidateFixture.CANDIDATE_ID), any(LocalDate.class)))
                 .thenReturn(List.of());
 

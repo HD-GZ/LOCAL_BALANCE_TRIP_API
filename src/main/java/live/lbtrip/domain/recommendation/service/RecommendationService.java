@@ -39,13 +39,15 @@ public class RecommendationService {
     }
 
     public List<CourseCandidateResponse> getRegionCourses(Long userId, Long regionId) {
-        return recommendedRegionFinder.findByIdAndUserId(regionId, userId).getCourses().stream()
+        return recommendedRegionFinder.findByIdAndUserId(
+                regionId, userId, messageResolver.currentLocale()).getCourses().stream()
             .map(CourseCandidateResponse::from)
             .toList();
     }
 
     public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
-        GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
+        GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(
+            courseId, userId, messageResolver.currentLocale());
         RecommendedRegion recommendedRegion = course.getRecommendedRegion();
         List<LocalizedIncentive> incentives = incentiveFinder.findActiveByRegion(
             recommendedRegion.getRegionCandidate().getId(),

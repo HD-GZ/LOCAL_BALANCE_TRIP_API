@@ -12,7 +12,7 @@ public class TourDataSyncScheduler {
 
     private final TourDataSyncService tourDataSyncService;
 
-    // @Scheduled(cron = "0 0 4 * * *")
+    @Scheduled(cron = "${tour-api.sync-cron}", zone = "${tour-api.sync-zone}")
     public void syncScheduled() {
         tourDataSyncService.syncAll();
     }

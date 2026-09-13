@@ -21,8 +21,8 @@ public class RecommendedRegionFinder {
         return recommendedRegionRepository.findAllByUserIdAndLocaleOrderByDisplayOrder(userId, locale);
     }
 
-    public RecommendedRegion findByIdAndUserId(Long id, Long userId) {
-        return recommendedRegionRepository.findByIdAndUserId(id, userId)
+    public RecommendedRegion findByIdAndUserId(Long id, Long userId, Locale locale) {
+        return recommendedRegionRepository.findByIdAndUserIdAndLocale(id, userId, locale)
             .orElseThrow(() -> BusinessException.of(ErrorCode.REGION_NOT_FOUND));
     }
 }

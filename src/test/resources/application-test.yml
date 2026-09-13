@@ -76,6 +76,8 @@ tts:
     request-interval: 0s
 
 tour-api:
+  sync-cron: 0 30 7 * * *
+  sync-zone: Asia/Seoul
   base-url: http://localhost
   eng-base-url: http://localhost
   odii-base-url: http://localhost

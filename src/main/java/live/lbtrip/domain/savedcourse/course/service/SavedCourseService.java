@@ -13,6 +13,7 @@ import live.lbtrip.domain.savedcourse.model.enums.SavedCourseStatus;
 import live.lbtrip.domain.savedcourse.model.entity.SavedCourse;
 import live.lbtrip.domain.user.model.User;
 import live.lbtrip.domain.user.service.UserFinder;
+import live.lbtrip.global.i18n.MessageResolver;
 import live.lbtrip.global.web.PageQueryRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -27,11 +28,13 @@ public class SavedCourseService {
     private final SaveCourseValidator saveCourseValidator;
     private final GeneratedCourseFinder generatedCourseFinder;
     private final UserFinder userFinder;
+    private final MessageResolver messageResolver;
 
     @Transactional
     public void saveCourse(Long userId, Long courseId) {
         saveCourseValidator.validateNew(userId, courseId);
-        GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(courseId, userId);
+        GeneratedCourse course = generatedCourseFinder.findByIdAndUserId(
+            courseId, userId, messageResolver.currentLocale());
         User user = userFinder.findById(userId);
         saveCourseManager.add(course, user);
     }

@@ -27,6 +27,9 @@ class RecommendationOrderRepositoryTest {
     private RecommendedRegionRepository recommendedRegionRepository;
 
     @Autowired
+    private GeneratedCourseRepository generatedCourseRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -53,13 +56,21 @@ class RecommendationOrderRepositoryTest {
         entityManager.clear();
 
         RecommendedRegion found = recommendedRegionRepository
-            .findByIdAndUserId(region.getId(), user.getId())
+            .findByIdAndUserIdAndLocale(region.getId(), user.getId(), Locale.KOREAN)
             .orElseThrow();
 
         assertThat(found.getCourses()).extracting(GeneratedCourse::getName)
             .containsExactly("첫 코스", "두 번째 코스");
         assertThat(found.getCourses().getFirst().getPlaces()).extracting(CoursePlace::getVisitOrder)
             .containsExactly(1, 2);
+        assertThat(recommendedRegionRepository
+            .findByIdAndUserIdAndLocale(region.getId(), user.getId(), Locale.ENGLISH)).isEmpty();
+        assertThat(generatedCourseRepository.findByIdAndUserIdAndRecommendedRegionLocale(
+            found.getCourses().getFirst().getId(), user.getId(), Locale.KOREAN)).isPresent();
+        assertThat(generatedCourseRepository.findByIdAndUserIdAndRecommendedRegionLocale(
+            found.getCourses().getFirst().getId(), user.getId(), Locale.ENGLISH)).isEmpty();
+        assertThat(generatedCourseRepository.findByIdAndRecommendedRegionLocale(
+            found.getCourses().getFirst().getId(), Locale.ENGLISH)).isEmpty();
     }
 
     private GeneratedCourse course(User user, String name, int displayOrder) {
